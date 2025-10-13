@@ -1,0 +1,2514 @@
+{
+  "Premier League": [],
+  "FA Cup": [],
+  "Carabao Cup": [
+    {
+      "name": "Grimsby Town vs Brentford",
+      "home": "Grimsby Town",
+      "away": "Brentford",
+      "date": "2025-10-28 19:45 UTC",
+      "best_home": {
+        "odd": 8.3,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.3,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.39,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Wycombe Wanderers vs Fulham",
+      "home": "Wycombe Wanderers",
+      "away": "Fulham",
+      "date": "2025-10-28 19:45 UTC",
+      "best_home": {
+        "odd": 7.4,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.4,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 1.51,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Wrexham AFC vs Cardiff City",
+      "home": "Wrexham AFC",
+      "away": "Cardiff City",
+      "date": "2025-10-28 20:00 UTC",
+      "best_home": {
+        "odd": 2.09,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.45,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 3.8,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Arsenal vs Brighton and Hove Albion",
+      "home": "Arsenal",
+      "away": "Brighton and Hove Albion",
+      "date": "2025-10-29 19:45 UTC",
+      "best_home": {
+        "odd": 1.57,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.45,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 6.3,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Wolverhampton Wanderers vs Chelsea",
+      "home": "Wolverhampton Wanderers",
+      "away": "Chelsea",
+      "date": "2025-10-29 19:45 UTC",
+      "best_home": {
+        "odd": 5.2,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.25,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 1.69,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Liverpool vs Crystal Palace",
+      "home": "Liverpool",
+      "away": "Crystal Palace",
+      "date": "2025-10-29 19:45 UTC",
+      "best_home": {
+        "odd": 1.53,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 5.4,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 7.9,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Swansea City vs Manchester City",
+      "home": "Swansea City",
+      "away": "Manchester City",
+      "date": "2025-10-29 19:45 UTC",
+      "best_home": {
+        "odd": 13.5,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 6.05,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.26,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Newcastle United vs Tottenham Hotspur",
+      "home": "Newcastle United",
+      "away": "Tottenham Hotspur",
+      "date": "2025-10-29 20:00 UTC",
+      "best_home": {
+        "odd": 2.08,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.7,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 3.7,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "Championship": [],
+  "La Liga": [
+    {
+      "name": "Oviedo vs Espanyol",
+      "home": "Oviedo",
+      "away": "Espanyol",
+      "date": "2025-10-17 19:00 UTC",
+      "best_home": {
+        "odd": 3.2,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.32,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.6,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Sevilla vs Mallorca",
+      "home": "Sevilla",
+      "away": "Mallorca",
+      "date": "2025-10-18 12:00 UTC",
+      "best_home": {
+        "odd": 1.94,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.63,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.9,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Barcelona vs Girona",
+      "home": "Barcelona",
+      "away": "Girona",
+      "date": "2025-10-18 14:15 UTC",
+      "best_home": {
+        "odd": 1.21,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 9.2,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 16.5,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Villarreal vs Real Betis",
+      "home": "Villarreal",
+      "away": "Real Betis",
+      "date": "2025-10-18 16:30 UTC",
+      "best_home": {
+        "odd": 1.98,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 4.13,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Atlético Madrid vs CA Osasuna",
+      "home": "Atlético Madrid",
+      "away": "CA Osasuna",
+      "date": "2025-10-18 19:00 UTC",
+      "best_home": {
+        "odd": 1.46,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.9,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 10.0,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Elche CF vs Athletic Bilbao",
+      "home": "Elche CF",
+      "away": "Athletic Bilbao",
+      "date": "2025-10-19 12:00 UTC",
+      "best_home": {
+        "odd": 3.75,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.4,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.36,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Celta Vigo vs Real Sociedad",
+      "home": "Celta Vigo",
+      "away": "Real Sociedad",
+      "date": "2025-10-19 14:15 UTC",
+      "best_home": {
+        "odd": 2.22,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.52,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.66,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Levante vs Rayo Vallecano",
+      "home": "Levante",
+      "away": "Rayo Vallecano",
+      "date": "2025-10-19 16:30 UTC",
+      "best_home": {
+        "odd": 2.85,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.63,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 2.65,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Getafe vs Real Madrid",
+      "home": "Getafe",
+      "away": "Real Madrid",
+      "date": "2025-10-19 19:00 UTC",
+      "best_home": {
+        "odd": 9.0,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 5.0,
+        "bookmaker": "Coolbet"
+      },
+      "best_away": {
+        "odd": 1.52,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Alavés vs Valencia",
+      "home": "Alavés",
+      "away": "Valencia",
+      "date": "2025-10-20 19:00 UTC",
+      "best_home": {
+        "odd": 2.53,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.15,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.35,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Real Sociedad vs Sevilla",
+      "home": "Real Sociedad",
+      "away": "Sevilla",
+      "date": "2025-10-24 19:00 UTC",
+      "best_home": {
+        "odd": 2.07,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.51,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.1,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Girona vs Oviedo",
+      "home": "Girona",
+      "away": "Oviedo",
+      "date": "2025-10-25 12:00 UTC",
+      "best_home": {
+        "odd": 1.87,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.67,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.8,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Espanyol vs Elche CF",
+      "home": "Espanyol",
+      "away": "Elche CF",
+      "date": "2025-10-25 14:15 UTC",
+      "best_home": {
+        "odd": 2.13,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.45,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.9,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Athletic Bilbao vs Getafe",
+      "home": "Athletic Bilbao",
+      "away": "Getafe",
+      "date": "2025-10-25 16:30 UTC",
+      "best_home": {
+        "odd": 1.75,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.63,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 5.97,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Valencia vs Villarreal",
+      "home": "Valencia",
+      "away": "Villarreal",
+      "date": "2025-10-25 19:00 UTC",
+      "best_home": {
+        "odd": 3.1,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.62,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.4,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Mallorca vs Levante",
+      "home": "Mallorca",
+      "away": "Levante",
+      "date": "2025-10-26 13:00 UTC",
+      "best_home": {
+        "odd": 2.17,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.51,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.85,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Real Madrid vs Barcelona",
+      "home": "Real Madrid",
+      "away": "Barcelona",
+      "date": "2025-10-26 15:15 UTC",
+      "best_home": {
+        "odd": 2.15,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.98,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.33,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "CA Osasuna vs Celta Vigo",
+      "home": "CA Osasuna",
+      "away": "Celta Vigo",
+      "date": "2025-10-26 17:30 UTC",
+      "best_home": {
+        "odd": 2.61,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.35,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.99,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Rayo Vallecano vs Alavés",
+      "home": "Rayo Vallecano",
+      "away": "Alavés",
+      "date": "2025-10-26 20:00 UTC",
+      "best_home": {
+        "odd": 2.06,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.31,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.38,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Real Betis vs Atlético Madrid",
+      "home": "Real Betis",
+      "away": "Atlético Madrid",
+      "date": "2025-10-27 20:00 UTC",
+      "best_home": {
+        "odd": 3.25,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.71,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 2.29,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "Copa del Rey": [],
+  "Serie A": [
+    {
+      "name": "Pisa vs Hellas Verona",
+      "home": "Pisa",
+      "away": "Hellas Verona",
+      "date": "2025-10-18 13:00 UTC",
+      "best_home": {
+        "odd": 2.64,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.27,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.2,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Lecce vs Sassuolo",
+      "home": "Lecce",
+      "away": "Sassuolo",
+      "date": "2025-10-18 13:00 UTC",
+      "best_home": {
+        "odd": 2.96,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.27,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.78,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Torino vs Napoli",
+      "home": "Torino",
+      "away": "Napoli",
+      "date": "2025-10-18 16:00 UTC",
+      "best_home": {
+        "odd": 5.75,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.71,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.83,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "AS Roma vs Inter Milan",
+      "home": "AS Roma",
+      "away": "Inter Milan",
+      "date": "2025-10-18 18:45 UTC",
+      "best_home": {
+        "odd": 3.15,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.33,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.56,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Como vs Juventus",
+      "home": "Como",
+      "away": "Juventus",
+      "date": "2025-10-19 10:30 UTC",
+      "best_home": {
+        "odd": 3.2,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.42,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.52,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Cagliari vs Bologna",
+      "home": "Cagliari",
+      "away": "Bologna",
+      "date": "2025-10-19 13:00 UTC",
+      "best_home": {
+        "odd": 3.55,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.42,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.34,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Genoa vs Parma",
+      "home": "Genoa",
+      "away": "Parma",
+      "date": "2025-10-19 13:00 UTC",
+      "best_home": {
+        "odd": 2.17,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.3,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 4.2,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Atalanta BC vs Lazio",
+      "home": "Atalanta BC",
+      "away": "Lazio",
+      "date": "2025-10-19 16:00 UTC",
+      "best_home": {
+        "odd": 1.91,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 4.5,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "AC Milan vs Fiorentina",
+      "home": "AC Milan",
+      "away": "Fiorentina",
+      "date": "2025-10-19 18:45 UTC",
+      "best_home": {
+        "odd": 1.57,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.5,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 7.0,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Cremonese vs Udinese",
+      "home": "Cremonese",
+      "away": "Udinese",
+      "date": "2025-10-20 18:45 UTC",
+      "best_home": {
+        "odd": 3.1,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.4,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.62,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "AC Milan vs Pisa",
+      "home": "AC Milan",
+      "away": "Pisa",
+      "date": "2025-10-24 18:45 UTC",
+      "best_home": {
+        "odd": 1.31,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 6.11,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 12.5,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Parma vs Como",
+      "home": "Parma",
+      "away": "Como",
+      "date": "2025-10-25 13:00 UTC",
+      "best_home": {
+        "odd": 3.6,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.56,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.19,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Udinese vs Lecce",
+      "home": "Udinese",
+      "away": "Lecce",
+      "date": "2025-10-25 13:00 UTC",
+      "best_home": {
+        "odd": 1.87,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.62,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.86,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Napoli vs Inter Milan",
+      "home": "Napoli",
+      "away": "Inter Milan",
+      "date": "2025-10-25 16:00 UTC",
+      "best_home": {
+        "odd": 2.74,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.35,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.87,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Cremonese vs Atalanta BC",
+      "home": "Cremonese",
+      "away": "Atalanta BC",
+      "date": "2025-10-25 18:45 UTC",
+      "best_home": {
+        "odd": 5.57,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.34,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.65,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Torino vs Genoa",
+      "home": "Torino",
+      "away": "Genoa",
+      "date": "2025-10-26 11:30 UTC",
+      "best_home": {
+        "odd": 2.42,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.15,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.51,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Sassuolo vs AS Roma",
+      "home": "Sassuolo",
+      "away": "AS Roma",
+      "date": "2025-10-26 14:00 UTC",
+      "best_home": {
+        "odd": 4.71,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.85,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Hellas Verona vs Cagliari",
+      "home": "Hellas Verona",
+      "away": "Cagliari",
+      "date": "2025-10-26 14:00 UTC",
+      "best_home": {
+        "odd": 2.44,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.31,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.29,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Fiorentina vs Bologna",
+      "home": "Fiorentina",
+      "away": "Bologna",
+      "date": "2025-10-26 17:00 UTC",
+      "best_home": {
+        "odd": 2.82,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.3,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 2.81,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Lazio vs Juventus",
+      "home": "Lazio",
+      "away": "Juventus",
+      "date": "2025-10-26 19:45 UTC",
+      "best_home": {
+        "odd": 3.1,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.31,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.56,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "Copa Italia": [],
+  "Bundesliga": [
+    {
+      "name": "Union Berlin vs Borussia Monchengladbach",
+      "home": "Union Berlin",
+      "away": "Borussia Monchengladbach",
+      "date": "2025-10-17 18:30 UTC",
+      "best_home": {
+        "odd": 2.34,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.65,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 3.21,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "1. FC Heidenheim vs Werder Bremen",
+      "home": "1. FC Heidenheim",
+      "away": "Werder Bremen",
+      "date": "2025-10-18 13:30 UTC",
+      "best_home": {
+        "odd": 2.98,
+        "bookmaker": "Suprabets"
+      },
+      "best_draw": {
+        "odd": 3.75,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.46,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "1. FC Köln vs Augsburg",
+      "home": "1. FC Köln",
+      "away": "Augsburg",
+      "date": "2025-10-18 13:30 UTC",
+      "best_home": {
+        "odd": 2.09,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.95,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 3.6,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "FSV Mainz 05 vs Bayer Leverkusen",
+      "home": "FSV Mainz 05",
+      "away": "Bayer Leverkusen",
+      "date": "2025-10-18 13:30 UTC",
+      "best_home": {
+        "odd": 2.92,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.6,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "RB Leipzig vs Hamburger SV",
+      "home": "RB Leipzig",
+      "away": "Hamburger SV",
+      "date": "2025-10-18 13:30 UTC",
+      "best_home": {
+        "odd": 1.5,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.4,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 6.8,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "VfL Wolfsburg vs VfB Stuttgart",
+      "home": "VfL Wolfsburg",
+      "away": "VfB Stuttgart",
+      "date": "2025-10-18 13:30 UTC",
+      "best_home": {
+        "odd": 2.73,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.8,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.6,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Bayern Munich vs Borussia Dortmund",
+      "home": "Bayern Munich",
+      "away": "Borussia Dortmund",
+      "date": "2025-10-18 16:30 UTC",
+      "best_home": {
+        "odd": 1.38,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 6.2,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 8.8,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "SC Freiburg vs Eintracht Frankfurt",
+      "home": "SC Freiburg",
+      "away": "Eintracht Frankfurt",
+      "date": "2025-10-19 13:30 UTC",
+      "best_home": {
+        "odd": 2.64,
+        "bookmaker": "Suprabets"
+      },
+      "best_draw": {
+        "odd": 3.88,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.8,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "FC St. Pauli vs TSG Hoffenheim",
+      "home": "FC St. Pauli",
+      "away": "TSG Hoffenheim",
+      "date": "2025-10-19 15:30 UTC",
+      "best_home": {
+        "odd": 2.51,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.91,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Werder Bremen vs Union Berlin",
+      "home": "Werder Bremen",
+      "away": "Union Berlin",
+      "date": "2025-10-24 18:30 UTC",
+      "best_home": {
+        "odd": 2.15,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.8,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 3.51,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "TSG Hoffenheim vs 1. FC Heidenheim",
+      "home": "TSG Hoffenheim",
+      "away": "1. FC Heidenheim",
+      "date": "2025-10-25 13:30 UTC",
+      "best_home": {
+        "odd": 1.69,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.45,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 5.1,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Augsburg vs RB Leipzig",
+      "home": "Augsburg",
+      "away": "RB Leipzig",
+      "date": "2025-10-25 13:30 UTC",
+      "best_home": {
+        "odd": 3.65,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 4.18,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.01,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Borussia Monchengladbach vs Bayern Munich",
+      "home": "Borussia Monchengladbach",
+      "away": "Bayern Munich",
+      "date": "2025-10-25 13:30 UTC",
+      "best_home": {
+        "odd": 10.0,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 6.9,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 1.34,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Eintracht Frankfurt vs FC St. Pauli",
+      "home": "Eintracht Frankfurt",
+      "away": "FC St. Pauli",
+      "date": "2025-10-25 13:30 UTC",
+      "best_home": {
+        "odd": 1.81,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.23,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.38,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Hamburger SV vs VfL Wolfsburg",
+      "home": "Hamburger SV",
+      "away": "VfL Wolfsburg",
+      "date": "2025-10-25 13:30 UTC",
+      "best_home": {
+        "odd": 2.62,
+        "bookmaker": "Betsson"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.78,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Borussia Dortmund vs 1. FC Köln",
+      "home": "Borussia Dortmund",
+      "away": "1. FC Köln",
+      "date": "2025-10-25 16:30 UTC",
+      "best_home": {
+        "odd": 1.52,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.0,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 6.4,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Bayer Leverkusen vs SC Freiburg",
+      "home": "Bayer Leverkusen",
+      "away": "SC Freiburg",
+      "date": "2025-10-26 14:30 UTC",
+      "best_home": {
+        "odd": 1.72,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.13,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 5.25,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "VfB Stuttgart vs FSV Mainz 05",
+      "home": "VfB Stuttgart",
+      "away": "FSV Mainz 05",
+      "date": "2025-10-26 16:30 UTC",
+      "best_home": {
+        "odd": 1.87,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.18,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.13,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "Copa Alemana": [],
+  "Ligue 1": [
+    {
+      "name": "Paris Saint Germain vs Strasbourg",
+      "home": "Paris Saint Germain",
+      "away": "Strasbourg",
+      "date": "2025-10-17 18:45 UTC",
+      "best_home": {
+        "odd": 1.33,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 6.4,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 11.0,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Nice vs Lyon",
+      "home": "Nice",
+      "away": "Lyon",
+      "date": "2025-10-18 15:00 UTC",
+      "best_home": {
+        "odd": 2.52,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.91,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Angers vs AS Monaco",
+      "home": "Angers",
+      "away": "AS Monaco",
+      "date": "2025-10-18 17:00 UTC",
+      "best_home": {
+        "odd": 5.6,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 4.4,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 1.67,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Marseille vs Le Havre",
+      "home": "Marseille",
+      "away": "Le Havre",
+      "date": "2025-10-18 19:05 UTC",
+      "best_home": {
+        "odd": 1.36,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 6.0,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 10.5,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "RC Lens vs Paris FC",
+      "home": "RC Lens",
+      "away": "Paris FC",
+      "date": "2025-10-19 13:00 UTC",
+      "best_home": {
+        "odd": 1.94,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.99,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Rennes vs Auxerre",
+      "home": "Rennes",
+      "away": "Auxerre",
+      "date": "2025-10-19 15:15 UTC",
+      "best_home": {
+        "odd": 1.78,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.2,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 4.9,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Lorient vs Brest",
+      "home": "Lorient",
+      "away": "Brest",
+      "date": "2025-10-19 15:15 UTC",
+      "best_home": {
+        "odd": 2.56,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.65,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.94,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Toulouse vs Metz",
+      "home": "Toulouse",
+      "away": "Metz",
+      "date": "2025-10-19 15:15 UTC",
+      "best_home": {
+        "odd": 1.62,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.3,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 6.6,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Nantes vs Lille",
+      "home": "Nantes",
+      "away": "Lille",
+      "date": "2025-10-19 18:45 UTC",
+      "best_home": {
+        "odd": 4.6,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.82,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 1.92,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Paris FC vs Nantes",
+      "home": "Paris FC",
+      "away": "Nantes",
+      "date": "2025-10-24 18:45 UTC",
+      "best_home": {
+        "odd": 1.72,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.18,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 5.1,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Brest vs Paris Saint Germain",
+      "home": "Brest",
+      "away": "Paris Saint Germain",
+      "date": "2025-10-25 15:00 UTC",
+      "best_home": {
+        "odd": 6.1,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 4.9,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 1.55,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "AS Monaco vs Toulouse",
+      "home": "AS Monaco",
+      "away": "Toulouse",
+      "date": "2025-10-25 17:00 UTC",
+      "best_home": {
+        "odd": 1.74,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.33,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.8,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "RC Lens vs Marseille",
+      "home": "RC Lens",
+      "away": "Marseille",
+      "date": "2025-10-25 19:05 UTC",
+      "best_home": {
+        "odd": 3.0,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.54,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Lille vs Metz",
+      "home": "Lille",
+      "away": "Metz",
+      "date": "2025-10-26 14:00 UTC",
+      "best_home": {
+        "odd": 1.46,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.95,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 8.2,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Angers vs Lorient",
+      "home": "Angers",
+      "away": "Lorient",
+      "date": "2025-10-26 16:15 UTC",
+      "best_home": {
+        "odd": 2.95,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.4,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.76,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Auxerre vs Le Havre",
+      "home": "Auxerre",
+      "away": "Le Havre",
+      "date": "2025-10-26 16:15 UTC",
+      "best_home": {
+        "odd": 2.29,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.65,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 3.55,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Rennes vs Nice",
+      "home": "Rennes",
+      "away": "Nice",
+      "date": "2025-10-26 16:15 UTC",
+      "best_home": {
+        "odd": 2.35,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.65,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 3.23,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Lyon vs Strasbourg",
+      "home": "Lyon",
+      "away": "Strasbourg",
+      "date": "2025-10-26 19:45 UTC",
+      "best_home": {
+        "odd": 1.91,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 4.06,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.25,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    }
+  ],
+  "Brasileirao": [
+    {
+      "name": "Palmeiras vs Bragantino-SP",
+      "home": "Palmeiras",
+      "away": "Bragantino-SP",
+      "date": "2025-10-15 22:00 UTC",
+      "best_home": {
+        "odd": 1.4,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.13,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 10.5,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Botafogo vs Flamengo",
+      "home": "Botafogo",
+      "away": "Flamengo",
+      "date": "2025-10-15 22:30 UTC",
+      "best_home": {
+        "odd": 4.1,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.25,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.14,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Sport Recife vs Ceará",
+      "home": "Sport Recife",
+      "away": "Ceará",
+      "date": "2025-10-15 23:00 UTC",
+      "best_home": {
+        "odd": 2.48,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.21,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.4,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Mirassol vs Internacional",
+      "home": "Mirassol",
+      "away": "Internacional",
+      "date": "2025-10-15 23:00 UTC",
+      "best_home": {
+        "odd": 2.17,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.38,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.67,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Atletico Mineiro vs Cruzeiro",
+      "home": "Atletico Mineiro",
+      "away": "Cruzeiro",
+      "date": "2025-10-16 00:30 UTC",
+      "best_home": {
+        "odd": 2.98,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.15,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 2.67,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Santos vs Corinthians",
+      "home": "Santos",
+      "away": "Corinthians",
+      "date": "2025-10-16 00:30 UTC",
+      "best_home": {
+        "odd": 2.24,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 3.14,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.83,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Fortaleza vs Vasco da Gama",
+      "home": "Fortaleza",
+      "away": "Vasco da Gama",
+      "date": "2025-10-16 00:30 UTC",
+      "best_home": {
+        "odd": 2.3,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.4,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 3.35,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Grêmio vs Sao Paulo",
+      "home": "Grêmio",
+      "away": "Sao Paulo",
+      "date": "2025-10-16 22:00 UTC",
+      "best_home": {
+        "odd": 3.04,
+        "bookmaker": "Pinnacle"
+      },
+      "best_draw": {
+        "odd": 3.14,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 2.57,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Vitoria vs Bahia",
+      "home": "Vitoria",
+      "away": "Bahia",
+      "date": "2025-10-17 00:30 UTC",
+      "best_home": {
+        "odd": 2.9,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.29,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.64,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Fluminense vs Juventude",
+      "home": "Fluminense",
+      "away": "Juventude",
+      "date": "2025-10-17 00:30 UTC",
+      "best_home": {
+        "odd": 1.39,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 4.59,
+        "bookmaker": "Pinnacle"
+      },
+      "best_away": {
+        "odd": 10.5,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "Corinthians vs Atletico Mineiro",
+      "home": "Corinthians",
+      "away": "Atletico Mineiro",
+      "date": "2025-10-18 21:30 UTC",
+      "best_home": {
+        "odd": 2.12,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.27,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.8,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Internacional vs Sport Recife",
+      "home": "Internacional",
+      "away": "Sport Recife",
+      "date": "2025-10-18 21:30 UTC",
+      "best_home": {
+        "odd": 1.51,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.9,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 6.3,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Cruzeiro vs Fortaleza",
+      "home": "Cruzeiro",
+      "away": "Fortaleza",
+      "date": "2025-10-19 00:00 UTC",
+      "best_home": {
+        "odd": 1.57,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.0,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 6.38,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Ceará vs Botafogo",
+      "home": "Ceará",
+      "away": "Botafogo",
+      "date": "2025-10-19 19:00 UTC",
+      "best_home": {
+        "odd": 2.83,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.17,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 2.7,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Flamengo vs Palmeiras",
+      "home": "Flamengo",
+      "away": "Palmeiras",
+      "date": "2025-10-19 19:00 UTC",
+      "best_home": {
+        "odd": 1.94,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.39,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.32,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Mirassol vs Sao Paulo",
+      "home": "Mirassol",
+      "away": "Sao Paulo",
+      "date": "2025-10-19 19:00 UTC",
+      "best_home": {
+        "odd": 2.46,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.19,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.15,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Internacional vs Sport Recife",
+      "home": "Internacional",
+      "away": "Sport Recife",
+      "date": "2025-10-19 21:30 UTC",
+      "best_home": {
+        "odd": 1.55,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.04,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 6.64,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Bahia vs Grêmio",
+      "home": "Bahia",
+      "away": "Grêmio",
+      "date": "2025-10-19 23:30 UTC",
+      "best_home": {
+        "odd": 1.82,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.45,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 4.45,
+        "bookmaker": "Betsson"
+      }
+    },
+    {
+      "name": "Juventude vs Bragantino-SP",
+      "home": "Juventude",
+      "away": "Bragantino-SP",
+      "date": "2025-10-20 22:00 UTC",
+      "best_home": {
+        "odd": 2.65,
+        "bookmaker": "Betsson"
+      },
+      "best_draw": {
+        "odd": 3.15,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 2.7,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Vasco da Gama vs Fluminense",
+      "home": "Vasco da Gama",
+      "away": "Fluminense",
+      "date": "2025-10-20 22:30 UTC",
+      "best_home": {
+        "odd": 2.77,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.2,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.77,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Santos vs Vitoria",
+      "home": "Santos",
+      "away": "Vitoria",
+      "date": "2025-10-21 00:30 UTC",
+      "best_home": {
+        "odd": 1.77,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 4.9,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    }
+  ],
+  "Liga MX": [],
+  "MLS": [
+    {
+      "name": "Atlanta United FC vs D.C. United",
+      "home": "Atlanta United FC",
+      "away": "D.C. United",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 2.05,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 4.0,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 3.6,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "FC Cincinnati vs CF Montreal",
+      "home": "FC Cincinnati",
+      "away": "CF Montreal",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 1.55,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 4.95,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 5.45,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Charlotte FC vs Philadelphia Union",
+      "home": "Charlotte FC",
+      "away": "Philadelphia Union",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 2.55,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.78,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "New England Revolution vs Chicago Fire",
+      "home": "New England Revolution",
+      "away": "Chicago Fire",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 2.89,
+        "bookmaker": "Pinnacle"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.33,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Columbus Crew SC vs New York Red Bulls",
+      "home": "Columbus Crew SC",
+      "away": "New York Red Bulls",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 1.59,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.5,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 5.73,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Nashville SC vs Inter Miami CF",
+      "home": "Nashville SC",
+      "away": "Inter Miami CF",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 2.35,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.85,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "New York City FC vs Seattle Sounders FC",
+      "home": "New York City FC",
+      "away": "Seattle Sounders FC",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 2.18,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 3.35,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Toronto FC vs Orlando City SC",
+      "home": "Toronto FC",
+      "away": "Orlando City SC",
+      "date": "2025-10-18 22:00 UTC",
+      "best_home": {
+        "odd": 3.7,
+        "bookmaker": "Betsson"
+      },
+      "best_draw": {
+        "odd": 4.15,
+        "bookmaker": "Coolbet"
+      },
+      "best_away": {
+        "odd": 2.0,
+        "bookmaker": "Betfair"
+      }
+    },
+    {
+      "name": "San Jose Earthquakes vs Austin FC",
+      "home": "San Jose Earthquakes",
+      "away": "Austin FC",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 1.98,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 3.72,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Colorado Rapids vs Los Angeles FC",
+      "home": "Colorado Rapids",
+      "away": "Los Angeles FC",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 3.52,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.1,
+        "bookmaker": "Betfair"
+      },
+      "best_away": {
+        "odd": 2.05,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Vancouver Whitecaps FC vs FC Dallas",
+      "home": "Vancouver Whitecaps FC",
+      "away": "FC Dallas",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 1.58,
+        "bookmaker": "Betfair"
+      },
+      "best_draw": {
+        "odd": 4.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 5.8,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "Sporting Kansas City vs Houston Dynamo",
+      "home": "Sporting Kansas City",
+      "away": "Houston Dynamo",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 2.56,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.0,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.63,
+        "bookmaker": "LeoVegas (SE)"
+      }
+    },
+    {
+      "name": "LA Galaxy vs Minnesota United FC",
+      "home": "LA Galaxy",
+      "away": "Minnesota United FC",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 2.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_draw": {
+        "odd": 3.95,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.55,
+        "bookmaker": "Pinnacle"
+      }
+    },
+    {
+      "name": "Portland Timbers vs San Diego FC",
+      "home": "Portland Timbers",
+      "away": "San Diego FC",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 2.7,
+        "bookmaker": "Pinnacle"
+      },
+      "best_draw": {
+        "odd": 3.9,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.52,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "St. Louis City SC vs Real Salt Lake",
+      "home": "St. Louis City SC",
+      "away": "Real Salt Lake",
+      "date": "2025-10-19 01:00 UTC",
+      "best_home": {
+        "odd": 2.45,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 4.0,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 2.7,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "Liga 1 Perú": [],
+  "UEFA Champions League": [],
+  "UEFA Europa League": [
+    {
+      "name": "Go Ahead Eagles vs Aston Villa",
+      "home": "Go Ahead Eagles",
+      "away": "Aston Villa",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 6.0,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 4.75,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 1.56,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "FCSB vs Bologna",
+      "home": "FCSB",
+      "away": "Bologna",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 4.75,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.82,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 1.82,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Lyon vs FC Basel",
+      "home": "Lyon",
+      "away": "FC Basel",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 1.62,
+        "bookmaker": "Betsson"
+      },
+      "best_draw": {
+        "odd": 4.6,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 5.5,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Fenerbahce vs VfB Stuttgart",
+      "home": "Fenerbahce",
+      "away": "VfB Stuttgart",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 2.29,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.76,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 3.12,
+        "bookmaker": "Suprabets"
+      }
+    },
+    {
+      "name": "Salzburg vs Ferencváros TC",
+      "home": "Salzburg",
+      "away": "Ferencváros TC",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 1.99,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.95,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 3.85,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Feyenoord vs Panathinaikos FC",
+      "home": "Feyenoord",
+      "away": "Panathinaikos FC",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 1.68,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.2,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 5.25,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "KRC Genk vs Real Betis",
+      "home": "KRC Genk",
+      "away": "Real Betis",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 3.1,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.71,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 2.37,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "SK Brann vs Rangers FC",
+      "home": "SK Brann",
+      "away": "Rangers FC",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 2.15,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.67,
+        "bookmaker": "1xBet"
+      },
+      "best_away": {
+        "odd": 3.45,
+        "bookmaker": "Suprabets"
+      }
+    },
+    {
+      "name": "SC Braga vs Red Star Belgrade",
+      "home": "SC Braga",
+      "away": "Red Star Belgrade",
+      "date": "2025-10-23 16:45 UTC",
+      "best_home": {
+        "odd": 1.87,
+        "bookmaker": "Suprabets"
+      },
+      "best_draw": {
+        "odd": 3.85,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 4.5,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "AS Roma vs Viktoria Plzeň",
+      "home": "AS Roma",
+      "away": "Viktoria Plzeň",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 1.39,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 5.4,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 8.65,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "Celta Vigo vs Nice",
+      "home": "Celta Vigo",
+      "away": "Nice",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 2.03,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.75,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 3.75,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Celtic vs SK Sturm Graz",
+      "home": "Celtic",
+      "away": "SK Sturm Graz",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 1.53,
+        "bookmaker": "Suprabets"
+      },
+      "best_draw": {
+        "odd": 4.7,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 7.0,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Malmo FF vs Dinamo Zagreb",
+      "home": "Malmo FF",
+      "away": "Dinamo Zagreb",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 3.4,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.58,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 2.24,
+        "bookmaker": "Suprabets"
+      }
+    },
+    {
+      "name": "Maccabi Tel Aviv vs FC Midtjylland",
+      "home": "Maccabi Tel Aviv",
+      "away": "FC Midtjylland",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 2.7,
+        "bookmaker": "Coolbet"
+      },
+      "best_draw": {
+        "odd": 3.61,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 2.66,
+        "bookmaker": "1xBet"
+      }
+    },
+    {
+      "name": "SC Freiburg vs FC Utrecht",
+      "home": "SC Freiburg",
+      "away": "FC Utrecht",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 1.6,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.5,
+        "bookmaker": "Suprabets"
+      },
+      "best_away": {
+        "odd": 6.0,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Lille vs PAOK",
+      "home": "Lille",
+      "away": "PAOK",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 1.66,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 4.3,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 5.75,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Nottingham Forest vs Porto",
+      "home": "Nottingham Forest",
+      "away": "Porto",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 2.17,
+        "bookmaker": "1xBet"
+      },
+      "best_draw": {
+        "odd": 3.65,
+        "bookmaker": "LeoVegas (SE)"
+      },
+      "best_away": {
+        "odd": 3.5,
+        "bookmaker": "Coolbet"
+      }
+    },
+    {
+      "name": "Young Boys vs PFC Ludogorets Razgrad",
+      "home": "Young Boys",
+      "away": "PFC Ludogorets Razgrad",
+      "date": "2025-10-23 19:00 UTC",
+      "best_home": {
+        "odd": 1.77,
+        "bookmaker": "Suprabets"
+      },
+      "best_draw": {
+        "odd": 4.0,
+        "bookmaker": "Betsson"
+      },
+      "best_away": {
+        "odd": 4.78,
+        "bookmaker": "1xBet"
+      }
+    }
+  ],
+  "UEFA Conference League": [],
+  "Copa Libertadores": [],
+  "Copa Sudamericana": []
+}

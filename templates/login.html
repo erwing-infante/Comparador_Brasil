@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>MáncoraBet - Mantenimiento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a73e8, #0f4c75);
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    .login-box {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      width: 300px;
+    }
+    .login-box h1 {
+      margin-bottom: 1rem;
+    }
+    .login-box input {
+      width: 100%;
+      padding: .5rem;
+      margin: .5rem 0;
+      border: none;
+      border-radius: 5px;
+    }
+    .login-box button {
+      width: 100%;
+      padding: .5rem;
+      background-color: #1a73e8;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .login-box button:hover {
+      background-color: #155ab6;
+    }
+    .error {
+      color: #ff5555;
+      margin-top: .5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h1>🛠 Página en mantenimiento</h1>
+    <p>Inicia sesión para acceder</p>
+    <form method="POST" action="/login">
+      <input type="text" name="username" placeholder="Usuario" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Iniciar sesión</button>
+      {% if error %}
+        <div class="error">{{ error }}</div>
+      {% endif %}
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #f4f4f4;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* 🟦 Panel de ligas */
+.sidebar {
+  width: 250px;
+  background-color: #222;
+  color: white;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: .5rem;
+}
+
+#league-list {
+  list-style: none;
+}
+
+#league-list li {
+  padding: .5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#league-list li:hover, 
+#league-list li.active {
+  background-color: #444;
+}
+
+/* 🟨 Panel de partidos */
+.content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+#league-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  text-align: center;
+  padding: 0.6rem;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.best-odd {
+  font-weight: bold;
+  color: #1a73e8;
+}
