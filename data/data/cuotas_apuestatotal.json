@@ -1,0 +1,3082 @@
+[
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-16 20:00:00",
+    "Partido": "Sport Boys vs Alianza Atletico",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 3.25,
+    "EventId": 14650211
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-19 20:00:00",
+    "Partido": "Atletico Grau vs Sporting Cristal",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.625,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 2.6,
+    "EventId": 14650210
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-22 20:30:00",
+    "Partido": "Chankas Cyc vs Universitario De Deportes",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.25,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 1.8,
+    "EventId": 14650209
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Alianza Lima vs Utc Cajamarca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1539,
+    "Cuota Empate": 6.5,
+    "Cuota Visita": 14.0,
+    "EventId": 14650207
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Alianza Universidad vs Juan Pablo Ii",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.9,
+    "EventId": 14650213
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Cienciano vs Ayacucho",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3637,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 7.5,
+    "EventId": 14650208
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Comerciantes Unidos vs Adt De Tarma",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.7143,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.4546,
+    "EventId": 14650212
+  },
+  {
+    "Liga": "Liga 1 Perú",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Sport Huancayo vs Cusco Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1667,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.0,
+    "EventId": 14650214
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 17:00:00",
+    "Partido": "Finlandia vs Malta",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3334,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 10.0,
+    "EventId": 13334420
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 19:45:00",
+    "Partido": "Croacia vs Islas Feroe",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1539,
+    "Cuota Empate": 7.5,
+    "Cuota Visita": 19.0,
+    "EventId": 14274508
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 19:45:00",
+    "Partido": "Eslovaquia vs Irlanda Del Norte",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 4.3334,
+    "EventId": 13335515
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 19:45:00",
+    "Partido": "Gibraltar vs Montenegro",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 14.0,
+    "Cuota Empate": 6.0,
+    "Cuota Visita": 1.2308,
+    "EventId": 14203653
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 19:45:00",
+    "Partido": "Luxemburgo vs Alemania",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 26.0,
+    "Cuota Empate": 9.0,
+    "Cuota Visita": 1.1112,
+    "EventId": 13335510
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-14 19:45:00",
+    "Partido": "Polonia vs Paises Bajos",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.3334,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 1.76,
+    "EventId": 13335518
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 14:00:00",
+    "Partido": "Kazajistan vs Belgica",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 12.0,
+    "Cuota Empate": 6.6667,
+    "Cuota Visita": 1.2223,
+    "EventId": 14211833
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 17:00:00",
+    "Partido": "Chipre vs Austria",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 11.0,
+    "Cuota Empate": 5.5,
+    "Cuota Visita": 1.2858,
+    "EventId": 13345267
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 17:00:00",
+    "Partido": "Georgia vs Espana",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 12.0,
+    "Cuota Empate": 6.0,
+    "Cuota Visita": 1.25,
+    "EventId": 13345253
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 17:00:00",
+    "Partido": "Liechtenstein vs Gales",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 81.0,
+    "Cuota Empate": 15.0,
+    "Cuota Visita": 1.0304,
+    "EventId": 14212349
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 17:00:00",
+    "Partido": "Turquia vs Bulgaria",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.091,
+    "Cuota Empate": 10.0,
+    "Cuota Visita": 31.0,
+    "EventId": 13345256
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 19:45:00",
+    "Partido": "Bosnia Y Herzegovina vs Rumania",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.8,
+    "EventId": 13346548
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 19:45:00",
+    "Partido": "Dinamarca vs Bielorrusia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.04,
+    "Cuota Empate": 14.0,
+    "Cuota Visita": 61.0,
+    "EventId": 13346544
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 19:45:00",
+    "Partido": "Eslovenia vs Kosovo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 4.0,
+    "EventId": 13346546
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 19:45:00",
+    "Partido": "Grecia vs Escocia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2223,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 3.75,
+    "EventId": 13346545
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-15 19:45:00",
+    "Partido": "Suiza vs Suecia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5834,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 5.5,
+    "EventId": 13346549
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 14:00:00",
+    "Partido": "Hungria vs Irlanda",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 4.3334,
+    "EventId": 13353565
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 14:00:00",
+    "Partido": "Portugal vs Armenia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.091,
+    "Cuota Empate": 10.0,
+    "Cuota Visita": 31.0,
+    "EventId": 13353562
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 17:00:00",
+    "Partido": "Albania vs Inglaterra",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 7.5,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 1.4167,
+    "EventId": 14222475
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 17:00:00",
+    "Partido": "Azerbaiyan vs Francia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 26.0,
+    "Cuota Empate": 9.0,
+    "Cuota Visita": 1.1112,
+    "EventId": 13355311
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 17:00:00",
+    "Partido": "Serbia vs Letonia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2,
+    "Cuota Empate": 6.6667,
+    "Cuota Visita": 15.0,
+    "EventId": 14222482
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 17:00:00",
+    "Partido": "Ucrania vs Islandia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.68,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 5.5,
+    "EventId": 13355315
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 19:45:00",
+    "Partido": "Israel vs Moldavia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.3334,
+    "Cuota Visita": 6.5,
+    "EventId": 13356486
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-16 19:45:00",
+    "Partido": "Italia vs Noruega",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.96,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 3.8,
+    "EventId": 13356487
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-17 19:45:00",
+    "Partido": "Alemania vs Eslovaquia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2308,
+    "Cuota Empate": 6.3334,
+    "Cuota Visita": 11.0,
+    "EventId": 13365849
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-17 19:45:00",
+    "Partido": "Irlanda Del Norte vs Luxemburgo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3077,
+    "Cuota Empate": 5.3334,
+    "Cuota Visita": 9.5,
+    "EventId": 13365846
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-17 19:45:00",
+    "Partido": "Malta vs Polonia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 14.0,
+    "Cuota Empate": 6.5,
+    "Cuota Visita": 1.2,
+    "EventId": 13365848
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-17 19:45:00",
+    "Partido": "Montenegro vs Croacia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 10.0,
+    "Cuota Empate": 5.75,
+    "Cuota Visita": 1.2728,
+    "EventId": 14344835
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Austria vs Bosnia Y Herzegovina",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3334,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 9.0,
+    "EventId": 13376247
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Bielorrusia vs Grecia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 11.0,
+    "Cuota Empate": 6.0,
+    "Cuota Visita": 1.25,
+    "EventId": 13376255
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Bulgaria vs Georgia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 6.0,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 1.52,
+    "EventId": 13376252
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Escocia vs Dinamarca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.3334,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.1429,
+    "EventId": 13376251
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Espana vs Turquia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2308,
+    "Cuota Empate": 6.3334,
+    "Cuota Visita": 11.0,
+    "EventId": 13376254
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Gales vs Macedonia Del Norte",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5455,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 5.75,
+    "EventId": 14256590
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Kosovo vs Suiza",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.75,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 1.6364,
+    "EventId": 13376249
+  },
+  {
+    "Liga": "Eliminatorias Europa - WC26",
+    "Fecha": "2025-11-18 19:45:00",
+    "Partido": "Suecia vs Eslovenia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6471,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 5.3334,
+    "EventId": 13376253
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 17:45:00",
+    "Partido": "Afc Ajax vs Sl Benfica",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6667,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 1.96,
+    "EventId": 14358230
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 17:45:00",
+    "Partido": "Galatasaray Sk vs Union Saint Gilloise",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 5.0,
+    "EventId": 14358229
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Borussia Dortmund vs Villarreal Cf",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6924,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 4.3334,
+    "EventId": 14358231
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Chelsea vs Fc Barcelona",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 2.7143,
+    "EventId": 14358232
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Fk Bodo Glimt vs Juventus",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.2,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 2.0,
+    "EventId": 13988230
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Manchester City vs Bayer 04 Leverkusen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2308,
+    "Cuota Empate": 6.3334,
+    "Cuota Visita": 11.0,
+    "EventId": 14358233
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Marsella vs Newcastle United",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 2.4,
+    "EventId": 14358234
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Napoles vs Qarabag Fk",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2858,
+    "Cuota Empate": 5.6667,
+    "Cuota Visita": 9.5,
+    "EventId": 14358236
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-25 20:00:00",
+    "Partido": "Slavia Prague vs Athletic Bilbao",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.375,
+    "EventId": 14358235
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 17:45:00",
+    "Partido": "Fc Copenhagen vs Kairat Almaty",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.32,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 10.0,
+    "EventId": 14358237
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 17:45:00",
+    "Partido": "Pafos Fc vs As Monaco",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.3334,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 1.6,
+    "EventId": 14358238
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Arsenal Fc vs Bayern Munchen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 3.4,
+    "EventId": 14358240
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Atletico De Madrid vs Inter Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.0,
+    "EventId": 14358241
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Eintracht Frankfurt vs Atalanta Bc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.3637,
+    "EventId": 14358243
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Liverpool Fc vs Psv Eindhoven",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2728,
+    "Cuota Empate": 6.3334,
+    "Cuota Visita": 8.5,
+    "EventId": 14358245
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Olympiacos Fc vs Real Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 7.0,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 1.4167,
+    "EventId": 14358242
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Paris Saint Germain vs Tottenham Hotspur",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4616,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 6.5,
+    "EventId": 14358246
+  },
+  {
+    "Liga": "UEFA Champions League",
+    "Fecha": "2025-11-26 20:00:00",
+    "Partido": "Sporting Lisboa vs Club Brugge Kv",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.5,
+    "EventId": 14358247
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "As Roma vs Fc Midtjylland",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4286,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 6.6667,
+    "EventId": 14358248
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Aston Villa Fc vs Bsc Young Boys",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1819,
+    "Cuota Empate": 7.0,
+    "Cuota Visita": 12.0,
+    "EventId": 14358249
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Fc Porto vs Ogc Niza",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.375,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 7.5,
+    "EventId": 14358250
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Fc Viktoria Plzen vs Sc Freiburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.3334,
+    "EventId": 14358252
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Fenerbahce vs Ferencvaros Tc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.3334,
+    "Cuota Visita": 5.75,
+    "EventId": 14358257
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Feyenoord vs Celtic Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.68,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 4.2,
+    "EventId": 14358258
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Losc Lille vs Gnk Dinamo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5715,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 5.0,
+    "EventId": 14358251
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Paok Fc vs Brann",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.3334,
+    "Cuota Visita": 5.75,
+    "EventId": 14358260
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Pfc Ludogorets vs Rc Celta",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.0,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 1.6924,
+    "EventId": 14358259
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Bologna Fc vs Fc Salzburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.35,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 8.5,
+    "EventId": 14358253
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Estrella Roja vs Fcsb",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4546,
+    "Cuota Empate": 4.3334,
+    "Cuota Visita": 6.6667,
+    "EventId": 14358262
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Go Ahead Eagles vs Vfb Stuttgart",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.5,
+    "Cuota Empate": 4.3334,
+    "Cuota Visita": 1.52,
+    "EventId": 14358263
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Krc Genk vs Basel",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 3.6,
+    "EventId": 14358254
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Maccabi Tel Aviv Fc vs Olympique Lyon",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.0,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 1.8,
+    "EventId": 14358264
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Nottingham Forest vs Malmo Ff",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2308,
+    "Cuota Empate": 5.75,
+    "Cuota Visita": 12.0,
+    "EventId": 14358265
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Panathinaikos vs Sk Sturm Graz",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.68,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 5.5,
+    "EventId": 14358255
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Rangers Fc vs Sc Braga",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.3334,
+    "EventId": 14358266
+  },
+  {
+    "Liga": "UEFA Europa League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Real Betis vs Utrecht",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2858,
+    "Cuota Empate": 5.3334,
+    "Cuota Visita": 9.5,
+    "EventId": 14358261
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Ac Omonia Nicosia vs Fc Dynamo Kiev",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5455,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.5715,
+    "EventId": 14465935
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Az Alkmaar vs Shelbourne Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.125,
+    "Cuota Empate": 7.5,
+    "Cuota Visita": 15.0,
+    "EventId": 14465942
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Hamrun Spartan vs Lincoln Red Imps Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9334,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 3.6667,
+    "EventId": 14465938
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Lech Poznan vs Fc Lausanne Sports",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.25,
+    "EventId": 14482180
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Rakow Czestochowa vs Rapid Wien",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.8572,
+    "EventId": 14465941
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Sigma Olomouc vs Celje",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.6667,
+    "EventId": 14465937
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Sk Slovan Bratislava vs Rayo Vallecano",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 1.95,
+    "EventId": 14465939
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "U Craiova vs 1 Fsv Mainz 05",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.75,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 1.6667,
+    "EventId": 14482181
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 17:45:00",
+    "Partido": "Zrinjski vs Bk Hacken",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3637,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 3.0,
+    "EventId": 14465940
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Aberdeen Fc vs Noah",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.8,
+    "EventId": 14482184
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Breidablik Kopavogur vs Samsunspor",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.75,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 1.5,
+    "EventId": 14482183
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Drita vs Shkendija",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4286,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 2.8,
+    "EventId": 14482182
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Estrasburgo vs Crystal Palace",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.5455,
+    "EventId": 14482189
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Fiorentina vs Aek",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 5.0,
+    "EventId": 14409861
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Jagiellonia Bialystok vs Kups",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 6.3334,
+    "EventId": 14482188
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Legia Warszawa vs Ac Sparta Prague",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1429,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 3.1,
+    "EventId": 14465936
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Rijeka vs Aek Larnaca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.75,
+    "EventId": 14482187
+  },
+  {
+    "Liga": "UEFA Conference League",
+    "Fecha": "2025-11-27 20:00:00",
+    "Partido": "Shamrock Rovers Fc vs Fc Shakhtar Donetsk",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 9.0,
+    "Cuota Empate": 5.6667,
+    "Cuota Visita": 1.25,
+    "EventId": 14465934
+  },
+  {
+    "Liga": "Copa Libertadores",
+    "Fecha": "2025-11-29 21:00:00",
+    "Partido": "Palmeiras vs Flamengo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8334,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 2.6,
+    "EventId": 14500145
+  },
+  {
+    "Liga": "Copa Sudamericana",
+    "Fecha": "2025-11-22 20:00:00",
+    "Partido": "Lanus vs Atletico Mg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.4546,
+    "EventId": 14500351
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-21 20:00:00",
+    "Partido": "Valencia Cf vs Levante",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.125,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.4,
+    "EventId": 13365596
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-22 13:00:00",
+    "Partido": "Deportivo Alaves vs Rc Celta",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.625,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.9,
+    "EventId": 13365571
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-22 15:15:00",
+    "Partido": "Fc Barcelona vs Athletic Bilbao",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4167,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 6.5,
+    "EventId": 13247307
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-22 17:30:00",
+    "Partido": "Ca Osasuna vs Real Sociedad",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5715,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.8334,
+    "EventId": 13368378
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-22 20:00:00",
+    "Partido": "Villarreal Cf vs Rcd Mallorca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4286,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 6.6667,
+    "EventId": 13365515
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-23 13:00:00",
+    "Partido": "Real Oviedo vs Rayo Vallecano",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 2.2,
+    "EventId": 13365530
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-23 15:15:00",
+    "Partido": "Real Betis vs Girona Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.3334,
+    "EventId": 13368405
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-23 17:30:00",
+    "Partido": "Getafe Cf vs Atletico De Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.5,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 1.8334,
+    "EventId": 13365497
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-23 20:00:00",
+    "Partido": "Elche vs Real Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 6.3334,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 1.4445,
+    "EventId": 13368433
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-24 20:00:00",
+    "Partido": "Rcd Espanyol vs Sevilla Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.0834,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.6667,
+    "EventId": 13365471
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-28 20:00:00",
+    "Partido": "Getafe Cf vs Elche",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2223,
+    "Cuota Empate": 2.9,
+    "Cuota Visita": 3.8,
+    "EventId": 13368434
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-29 13:00:00",
+    "Partido": "Rcd Mallorca vs Ca Osasuna",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 3.1,
+    "EventId": 13368379
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-29 15:15:00",
+    "Partido": "Fc Barcelona vs Deportivo Alaves",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.25,
+    "Cuota Empate": 6.3334,
+    "Cuota Visita": 10.0,
+    "EventId": 13365550
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-29 17:30:00",
+    "Partido": "Levante vs Athletic Bilbao",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.75,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.0,
+    "EventId": 13365597
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-29 20:00:00",
+    "Partido": "Atletico De Madrid vs Real Oviedo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2858,
+    "Cuota Empate": 5.3334,
+    "Cuota Visita": 11.0,
+    "EventId": 13365531
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-30 13:00:00",
+    "Partido": "Real Sociedad vs Villarreal Cf",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.7143,
+    "EventId": 13247312
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-30 15:15:00",
+    "Partido": "Sevilla Fc vs Real Betis",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.3334,
+    "EventId": 13365621
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-30 17:30:00",
+    "Partido": "Rc Celta vs Rcd Espanyol",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9091,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 4.2,
+    "EventId": 13365572
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-11-30 20:00:00",
+    "Partido": "Girona Fc vs Real Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 7.5,
+    "Cuota Empate": 5.3334,
+    "Cuota Visita": 1.35,
+    "EventId": 13368406
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-12-01 20:00:00",
+    "Partido": "Rayo Vallecano vs Valencia Cf",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8572,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 4.0,
+    "EventId": 13365483
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-12-02 20:00:00",
+    "Partido": "Fc Barcelona vs Atletico De Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9091,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 3.5,
+    "EventId": 13247302
+  },
+  {
+    "Liga": "La Liga",
+    "Fecha": "2025-12-03 18:00:00",
+    "Partido": "Athletic Bilbao vs Real Madrid",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.5,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 1.7858,
+    "EventId": 13227921
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-14 19:30:00",
+    "Partido": "Real Valladolid vs Ud Las Palmas",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3,
+    "Cuota Empate": 2.9,
+    "Cuota Visita": 3.4,
+    "EventId": 13719939
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Albacete vs Andorra",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.96,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 3.5,
+    "EventId": 13719929
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Castellon vs Real Sociedad B",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 6.6667,
+    "EventId": 13719930
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-15 20:00:00",
+    "Partido": "Racing Santander vs Granada",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8182,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 4.0,
+    "EventId": 13719937
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 13:00:00",
+    "Partido": "Ad Ceuta vs Cd Leganes",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 3.25,
+    "EventId": 13719931
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 15:15:00",
+    "Partido": "Almeria vs Cadiz",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6364,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 5.0,
+    "EventId": 13719934
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 15:15:00",
+    "Partido": "Real Sporting De Gijon vs Eibar",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.25,
+    "Cuota Empate": 2.9,
+    "Cuota Visita": 3.5,
+    "EventId": 13719936
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 17:30:00",
+    "Partido": "Cordoba vs Deportivo La Coruna",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.375,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 3.0,
+    "EventId": 13719932
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 17:30:00",
+    "Partido": "Mirandes vs Burgos",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 2.8572,
+    "Cuota Visita": 2.4,
+    "EventId": 13719935
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-16 20:00:00",
+    "Partido": "Real Zaragoza vs Huesca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.25,
+    "Cuota Empate": 2.9,
+    "Cuota Visita": 3.5,
+    "EventId": 13719938
+  },
+  {
+    "Liga": "La Liga 2",
+    "Fecha": "2025-11-17 19:30:00",
+    "Partido": "Cultural Leonesa vs Malaga",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.25,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 3.0,
+    "EventId": 13719933
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 12:30:00",
+    "Partido": "Burnley vs Chelsea",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.75,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 1.5385,
+    "EventId": 13414398
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Bournemouth vs West Ham United",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.3334,
+    "EventId": 13414274
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Brighton Hove Albion vs Brentford Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9334,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 3.8,
+    "EventId": 13414388
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Fulham vs Sunderland",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.0834,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 3.8,
+    "EventId": 13414355
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Liverpool Fc vs Nottingham Forest",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4445,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 6.3334,
+    "EventId": 13414357
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Wolverhampton Wanderers vs Crystal Palace",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.8,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 1.8889,
+    "EventId": 13414391
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-22 17:30:00",
+    "Partido": "Newcastle United vs Manchester City",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 2.05,
+    "EventId": 13414381
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-23 14:00:00",
+    "Partido": "Leeds vs Aston Villa Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.3334,
+    "EventId": 13414361
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-23 16:30:00",
+    "Partido": "Arsenal Fc vs Tottenham Hotspur",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3637,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 8.5,
+    "EventId": 13414272
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-24 20:00:00",
+    "Partido": "Manchester United vs Everton",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 4.75,
+    "EventId": 14010437
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-29 15:00:00",
+    "Partido": "Brentford Fc vs Burnley",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5385,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 5.75,
+    "EventId": 13482650
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-29 15:00:00",
+    "Partido": "Manchester City vs Leeds",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3077,
+    "Cuota Empate": 5.5,
+    "Cuota Visita": 9.0,
+    "EventId": 13482645
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-29 15:00:00",
+    "Partido": "Sunderland vs Bournemouth",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.4546,
+    "EventId": 13482608
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-29 17:30:00",
+    "Partido": "Everton vs Newcastle United",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.3334,
+    "EventId": 13482636
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-29 20:00:00",
+    "Partido": "Tottenham Hotspur vs Fulham",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.6,
+    "EventId": 13482644
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-30 12:00:00",
+    "Partido": "Crystal Palace vs Manchester United",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.8,
+    "EventId": 13482631
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-30 14:05:00",
+    "Partido": "Aston Villa Fc vs Wolverhampton Wanderers",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5556,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 5.6667,
+    "EventId": 13482646
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-30 14:05:00",
+    "Partido": "Nottingham Forest vs Brighton Hove Albion",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.7143,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.4546,
+    "EventId": 13482602
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-30 14:05:00",
+    "Partido": "West Ham United vs Liverpool Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.75,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 1.6364,
+    "EventId": 13482620
+  },
+  {
+    "Liga": "Premier League",
+    "Fecha": "2025-11-30 16:30:00",
+    "Partido": "Chelsea vs Arsenal Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.5,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.1429,
+    "EventId": 13482654
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-21 20:00:00",
+    "Partido": "Preston vs Blackburn Rovers",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 3.1,
+    "EventId": 14437467
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 12:30:00",
+    "Partido": "Bristol City vs Swansea",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2223,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 3.25,
+    "EventId": 14437474
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 12:30:00",
+    "Partido": "Charlton Athletic vs Southampton Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 2.75,
+    "EventId": 14437480
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 12:30:00",
+    "Partido": "Coventry vs West Bromwich",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6924,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 4.75,
+    "EventId": 14437479
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Birmingham vs Norwich City Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 4.75,
+    "EventId": 14437483
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Derby County vs Watford",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5455,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.7143,
+    "EventId": 14437482
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Ipswich Town vs Wrexham",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 6.0,
+    "EventId": 14437484
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Leicester City vs Stoke City",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.0834,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 3.6,
+    "EventId": 14437485
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Oxford United vs Fc Middlesbrough",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.8,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.0,
+    "EventId": 14437486
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Portsmouth vs Millwall",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.625,
+    "EventId": 14437487
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-22 15:00:00",
+    "Partido": "Queens Park Rangers vs Hull City",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.125,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 3.3334,
+    "EventId": 14437488
+  },
+  {
+    "Liga": "Championship",
+    "Fecha": "2025-11-23 12:00:00",
+    "Partido": "Sheffield Wednesday vs Sheffield United Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.0,
+    "EventId": 14437489
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Afc Wimbledon vs Stockport County",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 2.1,
+    "EventId": 13344694
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Barnsley vs Northampton",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 4.0,
+    "EventId": 13344721
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Burton vs Blackpool",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.0,
+    "EventId": 13344709
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Leyton Orient vs Exeter",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.76,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.25,
+    "EventId": 13344718
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Lincoln vs Doncaster",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.6667,
+    "EventId": 13344716
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Luton vs Rotherham",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5556,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 5.75,
+    "EventId": 13344701
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Mansfield vs Peterborough",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.85,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 3.8,
+    "EventId": 13344678
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Port Vale vs Wycombe",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6667,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.7143,
+    "EventId": 13344710
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Stevenage vs Bolton",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.5,
+    "EventId": 13344665
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-15 15:00:00",
+    "Partido": "Wigan vs Reading",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 3.1429,
+    "EventId": 13344693
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-11-20 20:00:00",
+    "Partido": "Peterborough vs Stockport County",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.1,
+    "EventId": 13414243
+  },
+  {
+    "Liga": "League One",
+    "Fecha": "2025-12-06 12:30:00",
+    "Partido": "Plymouth vs Bradford",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8334,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.3334,
+    "EventId": 13344698
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-22 14:00:00",
+    "Partido": "Cagliari vs Genoa",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6667,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.8334,
+    "EventId": 13421698
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-22 14:00:00",
+    "Partido": "Udinese vs Bologna Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.125,
+    "EventId": 13421710
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-22 17:00:00",
+    "Partido": "Fiorentina vs Juventus",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.75,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.0,
+    "EventId": 13421704
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-22 19:45:00",
+    "Partido": "Napoles vs Atalanta Bc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1429,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.5,
+    "EventId": 13421713
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-23 11:30:00",
+    "Partido": "Verona vs Parma",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 3.3334,
+    "EventId": 13421696
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-23 14:00:00",
+    "Partido": "Cremonese vs As Roma",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.5,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 1.625,
+    "EventId": 13421703
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-23 17:00:00",
+    "Partido": "Ss Lazio vs Lecce",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5834,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 6.0,
+    "EventId": 13421705
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-23 19:45:00",
+    "Partido": "Inter Milan vs Ac Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9091,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 4.2,
+    "EventId": 13421719
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-24 17:30:00",
+    "Partido": "Torino vs Como",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.4,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 2.1429,
+    "EventId": 13421695
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-24 19:45:00",
+    "Partido": "Sassuolo vs Pisa",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.05,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.8,
+    "EventId": 13421711
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-28 19:45:00",
+    "Partido": "Como vs Sassuolo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6364,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.0,
+    "EventId": 13490256
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-29 14:00:00",
+    "Partido": "Genoa vs Verona",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 4.0,
+    "EventId": 13490241
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-29 14:00:00",
+    "Partido": "Parma vs Udinese",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.8,
+    "EventId": 13490254
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-29 17:00:00",
+    "Partido": "Juventus vs Cagliari",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3334,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 9.0,
+    "EventId": 13490258
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-29 19:45:00",
+    "Partido": "Ac Milan vs Ss Lazio",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6154,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.3334,
+    "EventId": 13490230
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-30 11:30:00",
+    "Partido": "Lecce vs Torino",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 2.8334,
+    "EventId": 13490246
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-30 14:00:00",
+    "Partido": "Pisa vs Inter Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 7.5,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 1.375,
+    "EventId": 13490233
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-30 17:00:00",
+    "Partido": "Atalanta Bc vs Fiorentina",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6667,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.75,
+    "EventId": 13490261
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-11-30 19:45:00",
+    "Partido": "As Roma vs Napoles",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4546,
+    "Cuota Empate": 2.8,
+    "Cuota Visita": 3.4,
+    "EventId": 13490232
+  },
+  {
+    "Liga": "Serie A",
+    "Fecha": "2025-12-01 19:45:00",
+    "Partido": "Bologna Fc vs Cremonese",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4167,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 7.5,
+    "EventId": 13490236
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-02 20:00:00",
+    "Partido": "Juventus vs Udinese",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 7.0,
+    "EventId": 14108061
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-03 14:00:00",
+    "Partido": "Atalanta Bc vs Genoa",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 6.0,
+    "EventId": 14108056
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-03 17:00:00",
+    "Partido": "Napoles vs Cagliari",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.375,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 7.5,
+    "EventId": 14108053
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-03 20:00:00",
+    "Partido": "Inter Milan vs Venezia",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1112,
+    "Cuota Empate": 9.5,
+    "Cuota Visita": 15.0,
+    "EventId": 14108060
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-04 17:00:00",
+    "Partido": "Bologna Fc vs Parma",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4445,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 6.5,
+    "EventId": 14108055
+  },
+  {
+    "Liga": "Copa Italia",
+    "Fecha": "2025-12-04 20:00:00",
+    "Partido": "Ss Lazio vs Ac Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.2223,
+    "EventId": 14108057
+  },
+  {
+    "Liga": "Supercopa de Italia",
+    "Fecha": "2025-12-18 19:00:00",
+    "Partido": "Napoles vs Ac Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 3.1,
+    "EventId": 14011397
+  },
+  {
+    "Liga": "Supercopa de Italia",
+    "Fecha": "2025-12-19 20:00:00",
+    "Partido": "Bologna Fc vs Inter Milan",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.0,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 1.7334,
+    "EventId": 14011396
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-21 19:30:00",
+    "Partido": "1 Fsv Mainz 05 vs Tsg Hoffenheim",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 2.8334,
+    "EventId": 13412940
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 14:30:00",
+    "Partido": "1 Fc Heidenheim 1846 vs Borussia Monchengladbach",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.3334,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.1,
+    "EventId": 13412948
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 14:30:00",
+    "Partido": "Bayern Munchen vs Sc Freiburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2308,
+    "Cuota Empate": 6.5,
+    "Cuota Visita": 11.0,
+    "EventId": 13412911
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 14:30:00",
+    "Partido": "Borussia Dortmund vs Vfb Stuttgart",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6471,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 4.5,
+    "EventId": 13412914
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 14:30:00",
+    "Partido": "Fc Augsburg vs Hamburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.8572,
+    "EventId": 13412949
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 14:30:00",
+    "Partido": "Vfl Wolfsburg vs Bayer 04 Leverkusen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 2.1667,
+    "EventId": 13412941
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-22 17:30:00",
+    "Partido": "Fc Koln vs Eintracht Frankfurt",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8572,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 2.1429,
+    "EventId": 13412947
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-23 14:30:00",
+    "Partido": "Rb Leipzig vs Sv Werder Bremen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 5.3334,
+    "EventId": 13412945
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-23 16:30:00",
+    "Partido": "Fc St Pauli vs 1 Fc Union Berlin",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.1,
+    "EventId": 13412950
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-28 19:30:00",
+    "Partido": "Borussia Monchengladbach vs Rb Leipzig",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.1,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 2.1,
+    "EventId": 13481001
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-29 14:30:00",
+    "Partido": "1 Fc Union Berlin vs 1 Fc Heidenheim 1846",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.76,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 4.5,
+    "EventId": 13480980
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-29 14:30:00",
+    "Partido": "Bayern Munchen vs Fc St Pauli",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1112,
+    "Cuota Empate": 9.0,
+    "Cuota Visita": 18.0,
+    "EventId": 13481008
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-29 14:30:00",
+    "Partido": "Sv Werder Bremen vs Fc Koln",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2223,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 2.8572,
+    "EventId": 13480988
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-29 14:30:00",
+    "Partido": "Tsg Hoffenheim vs Fc Augsburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6924,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 4.25,
+    "EventId": 13480999
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-29 17:30:00",
+    "Partido": "Bayer 04 Leverkusen vs Borussia Dortmund",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5715,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.5455,
+    "EventId": 13480995
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-30 14:30:00",
+    "Partido": "Hamburg vs Vfb Stuttgart",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.0,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 2.2223,
+    "EventId": 13480991
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-30 16:30:00",
+    "Partido": "Eintracht Frankfurt vs Vfl Wolfsburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6154,
+    "Cuota Empate": 4.25,
+    "Cuota Visita": 4.75,
+    "EventId": 13480998
+  },
+  {
+    "Liga": "Bundesliga",
+    "Fecha": "2025-11-30 18:30:00",
+    "Partido": "Sc Freiburg vs 1 Fsv Mainz 05",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.2,
+    "EventId": 13480985
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-21 17:30:00",
+    "Partido": "Hertha Berlin vs Eintracht Braunschweig",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5295,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.3334,
+    "EventId": 13421332
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-21 17:30:00",
+    "Partido": "Vfl Bochum 1848 vs Dresden",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8572,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.75,
+    "EventId": 13421335
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-22 12:00:00",
+    "Partido": "Fortuna Dusseldorf vs Magdeburg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.3334,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.6667,
+    "EventId": 13421331
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-22 12:00:00",
+    "Partido": "Paderborn vs Hannover",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.125,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.0,
+    "EventId": 13421336
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-22 12:00:00",
+    "Partido": "Preussen Munster vs Schalke 04",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.125,
+    "EventId": 13421337
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-22 19:30:00",
+    "Partido": "Darmstadt vs Furth",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 5.0,
+    "EventId": 13421333
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-23 12:30:00",
+    "Partido": "Kaiserslautern vs Holstein Kiel",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1667,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 3.1,
+    "EventId": 13421339
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-23 12:30:00",
+    "Partido": "Karlsruhe vs Sv 07 Elversberg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.1429,
+    "EventId": 13421334
+  },
+  {
+    "Liga": "2 Bundesliga",
+    "Fecha": "2025-11-23 12:30:00",
+    "Partido": "Nurnberg vs Bielefeld",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.8,
+    "EventId": 13421338
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-21 19:45:00",
+    "Partido": "Ogc Niza vs Marsella",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.75,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 1.9,
+    "EventId": 14357391
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-22 16:00:00",
+    "Partido": "Lens vs Estrasburgo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9412,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 3.6,
+    "EventId": 14360309
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-22 18:00:00",
+    "Partido": "Rennes vs As Monaco",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5455,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 2.5,
+    "EventId": 14267278
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-22 20:05:00",
+    "Partido": "Paris Saint Germain vs Le Havre",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1765,
+    "Cuota Empate": 7.0,
+    "Cuota Visita": 15.0,
+    "EventId": 14267279
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-23 14:00:00",
+    "Partido": "Auxerre vs Olympique Lyon",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.75,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 2.0,
+    "EventId": 14278415
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-23 16:15:00",
+    "Partido": "Nantes vs Lorient",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.375,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.8334,
+    "EventId": 14278410
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-23 16:15:00",
+    "Partido": "Stade Brestois 29 vs Metz",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.5,
+    "EventId": 14278413
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-23 16:15:00",
+    "Partido": "Toulouse vs Angers",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.5715,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.75,
+    "EventId": 14360308
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-23 19:45:00",
+    "Partido": "Losc Lille vs Paris Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6364,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.0,
+    "EventId": 14278414
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-28 19:45:00",
+    "Partido": "Metz vs Rennes",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 1.96,
+    "EventId": 14360312
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-29 16:00:00",
+    "Partido": "As Monaco vs Paris Saint Germain",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.5,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 1.625,
+    "EventId": 14346284
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-29 18:00:00",
+    "Partido": "Paris Fc vs Auxerre",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 4.2,
+    "EventId": 14346280
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-29 20:05:00",
+    "Partido": "Marsella vs Toulouse",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6364,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.0,
+    "EventId": 14346283
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-30 14:00:00",
+    "Partido": "Estrasburgo vs Stade Brestois 29",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7778,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 4.3334,
+    "EventId": 14357393
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-30 16:15:00",
+    "Partido": "Angers vs Lens",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.5,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 1.7334,
+    "EventId": 14357394
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-30 16:15:00",
+    "Partido": "Le Havre vs Losc Lille",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.0,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 1.9091,
+    "EventId": 14360323
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-30 16:15:00",
+    "Partido": "Lorient vs Ogc Niza",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5455,
+    "Cuota Empate": 3.25,
+    "Cuota Visita": 2.8,
+    "EventId": 14357398
+  },
+  {
+    "Liga": "Ligue 1",
+    "Fecha": "2025-11-30 19:45:00",
+    "Partido": "Olympique Lyon vs Nantes",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4616,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 6.5,
+    "EventId": 14360325
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-15 21:30:00",
+    "Partido": "Sport Recife vs Flamengo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 9.5,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 1.3637,
+    "EventId": 14397178
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-16 00:00:00",
+    "Partido": "Santos vs Palmeiras",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.2,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 2.2858,
+    "EventId": 14245491
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-16 22:00:00",
+    "Partido": "Bragantino vs Atletico Mg",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 3.6,
+    "EventId": 13667044
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-18 23:30:00",
+    "Partido": "Botafogo vs Sport Recife",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3,
+    "Cuota Empate": 5.3334,
+    "Cuota Visita": 9.5,
+    "EventId": 13565460
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-19 22:30:00",
+    "Partido": "Palmeiras vs Ec Vitoria Ba",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2858,
+    "Cuota Empate": 5.5,
+    "Cuota Visita": 10.0,
+    "EventId": 13667057
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 00:30:00",
+    "Partido": "Fluminense vs Flamengo",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.8,
+    "Cuota Empate": 3.1429,
+    "Cuota Visita": 2.0834,
+    "EventId": 13565449
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 00:30:00",
+    "Partido": "Gremio vs Vasco Da Gama",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.25,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.1,
+    "EventId": 13565457
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 00:30:00",
+    "Partido": "Santos vs Mirassol",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.0834,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.5,
+    "EventId": 13565458
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 19:00:00",
+    "Partido": "Ec Juventude vs Cruzeiro",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.0,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 1.875,
+    "EventId": 13565445
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 21:00:00",
+    "Partido": "Bahia vs Fortaleza",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6154,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 5.0,
+    "EventId": 13565454
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-20 22:30:00",
+    "Partido": "Corinthians vs Sao Paulo Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2,
+    "Cuota Empate": 2.8,
+    "Cuota Visita": 4.0,
+    "EventId": 13565463
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-21 00:30:00",
+    "Partido": "Ceara vs Internacional",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1429,
+    "Cuota Empate": 3.1,
+    "Cuota Visita": 3.6667,
+    "EventId": 13565462
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-22 22:30:00",
+    "Partido": "Botafogo vs Gremio",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.68,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 5.3334,
+    "EventId": 13595101
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-23 00:30:00",
+    "Partido": "Flamengo vs Bragantino",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3334,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 9.0,
+    "EventId": 13595095
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-23 00:30:00",
+    "Partido": "Palmeiras vs Fluminense",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.48,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 7.5,
+    "EventId": 13595110
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-23 19:00:00",
+    "Partido": "Bahia vs Vasco Da Gama",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7858,
+    "Cuota Empate": 3.3334,
+    "Cuota Visita": 5.0,
+    "EventId": 13595088
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-23 19:00:00",
+    "Partido": "Sao Paulo Fc vs Ec Juventude",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.48,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 7.5,
+    "EventId": 13595114
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-24 22:00:00",
+    "Partido": "Mirassol vs Ceara",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7778,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 4.75,
+    "EventId": 13595099
+  },
+  {
+    "Liga": "Brasileirao",
+    "Fecha": "2025-11-25 00:00:00",
+    "Partido": "Internacional vs Santos",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7273,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 5.3334,
+    "EventId": 13595104
+  },
+  {
+    "Liga": "Copa de Brasil",
+    "Fecha": "2025-12-11 00:30:00",
+    "Partido": "Cruzeiro vs Corinthians",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8667,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 4.3334,
+    "EventId": 14540345
+  },
+  {
+    "Liga": "Copa de Brasil",
+    "Fecha": "2025-12-11 23:00:00",
+    "Partido": "Vasco Da Gama vs Fluminense",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4286,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 3.0,
+    "EventId": 14416846
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-28 20:15:00",
+    "Partido": "Vitoria Guimaraes vs Avs Futebol Sad",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.68,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 4.75,
+    "EventId": 13821627
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-29 15:30:00",
+    "Partido": "Casa Pia vs Alverca",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.4286,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.9,
+    "EventId": 13834386
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-29 15:30:00",
+    "Partido": "Moreirense vs Famalicao",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.6,
+    "Cuota Empate": 3.2,
+    "Cuota Visita": 2.0,
+    "EventId": 13834410
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-29 18:00:00",
+    "Partido": "Nacional vs Sl Benfica",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 8.0,
+    "Cuota Empate": 4.75,
+    "Cuota Visita": 1.32,
+    "EventId": 14522758
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-29 20:30:00",
+    "Partido": "Gil Vicente vs Tondela",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.625,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 5.3334,
+    "EventId": 13821535
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-30 15:30:00",
+    "Partido": "Rio Ave vs Santa Clara",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.2,
+    "Cuota Empate": 3.0,
+    "Cuota Visita": 2.25,
+    "EventId": 13821630
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-30 18:00:00",
+    "Partido": "Sporting Lisboa vs Estrela Amadora",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1,
+    "Cuota Empate": 8.0,
+    "Cuota Visita": 18.0,
+    "EventId": 13821654
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-11-30 20:30:00",
+    "Partido": "Fc Porto vs Estoril",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.2667,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 10.0,
+    "EventId": 13821603
+  },
+  {
+    "Liga": "Primeira Liga",
+    "Fecha": "2025-12-01 20:15:00",
+    "Partido": "Arouca vs Sc Braga",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.3334,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 1.5715,
+    "EventId": 13834451
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-22 15:30:00",
+    "Partido": "Nac Breda vs Psv Eindhoven",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 7.0,
+    "Cuota Empate": 5.6667,
+    "Cuota Visita": 1.3334,
+    "EventId": 13416547
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-22 17:45:00",
+    "Partido": "Afc Ajax vs Excelsior",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.3334,
+    "Cuota Empate": 5.6667,
+    "Cuota Visita": 7.0,
+    "EventId": 13416558
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-22 17:45:00",
+    "Partido": "Volendam vs Fc Twente Enschede",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 5.0,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 1.5834,
+    "EventId": 13416551
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-22 20:00:00",
+    "Partido": "Heracles vs Go Ahead Eagles",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.5455,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.5,
+    "EventId": 13416552
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-22 20:00:00",
+    "Partido": "Sparta De Roterdam vs Fortuna",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.85,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 3.8,
+    "EventId": 13416553
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-23 11:15:00",
+    "Partido": "Heerenveen vs Az Alkmaar",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.8,
+    "Cuota Empate": 3.8,
+    "Cuota Visita": 2.2223,
+    "EventId": 13416542
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-23 13:30:00",
+    "Partido": "Feyenoord vs Nec",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 6.5,
+    "EventId": 13416556
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-23 13:30:00",
+    "Partido": "Telstar vs Utrecht",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 3.25,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.05,
+    "EventId": 13416543
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-23 15:45:00",
+    "Partido": "Groningen vs Zwolle",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.52,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 6.3334,
+    "EventId": 13416569
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-28 19:00:00",
+    "Partido": "Zwolle vs Heerenveen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.6667,
+    "Cuota Visita": 2.2,
+    "EventId": 13484694
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-29 15:30:00",
+    "Partido": "Excelsior vs Nac Breda",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1667,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.1,
+    "EventId": 13484673
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-29 17:45:00",
+    "Partido": "Fortuna vs Heracles",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.8667,
+    "Cuota Empate": 3.75,
+    "Cuota Visita": 3.75,
+    "EventId": 13484674
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-29 20:00:00",
+    "Partido": "Nec vs Sparta De Roterdam",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.7143,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.2,
+    "EventId": 13484671
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-30 11:15:00",
+    "Partido": "Psv Eindhoven vs Volendam",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.1112,
+    "Cuota Empate": 9.0,
+    "Cuota Visita": 17.0,
+    "EventId": 13484679
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-30 13:30:00",
+    "Partido": "Go Ahead Eagles vs Utrecht",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6667,
+    "Cuota Empate": 3.6,
+    "Cuota Visita": 2.4,
+    "EventId": 13484661
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-30 13:30:00",
+    "Partido": "Telstar vs Feyenoord",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 8.5,
+    "Cuota Empate": 5.0,
+    "Cuota Visita": 1.3334,
+    "EventId": 13484695
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-30 15:45:00",
+    "Partido": "Fc Twente Enschede vs Az Alkmaar",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.625,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.5,
+    "EventId": 13484680
+  },
+  {
+    "Liga": "Eredivisie",
+    "Fecha": "2025-11-30 19:00:00",
+    "Partido": "Afc Ajax vs Groningen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.4445,
+    "Cuota Empate": 4.5,
+    "Cuota Visita": 6.5,
+    "EventId": 13484678
+  },
+  {
+    "Liga": "Eerste Divisie",
+    "Fecha": "2025-11-15 17:45:00",
+    "Partido": "Fc Eindhoven vs Cambuur",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 4.5,
+    "Cuota Empate": 4.2,
+    "Cuota Visita": 1.6,
+    "EventId": 13345262
+  },
+  {
+    "Liga": "Eerste Divisie",
+    "Fecha": "2025-11-15 20:00:00",
+    "Partido": "Willem Ii vs Fc Emmen",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 3.25,
+    "EventId": 13346719
+  },
+  {
+    "Liga": "Liga MX",
+    "Fecha": "2025-11-21 01:00:00",
+    "Partido": "Pachuca vs Pumas Unam",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.76,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 4.0,
+    "EventId": 14633934
+  },
+  {
+    "Liga": "Liga MX",
+    "Fecha": "2025-11-21 03:00:00",
+    "Partido": "Xolos De Tijuana vs Juarez",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1,
+    "Cuota Empate": 3.4,
+    "Cuota Visita": 3.3334,
+    "EventId": 14633931
+  },
+  {
+    "Liga": "Liga MX",
+    "Fecha": "2025-11-26 21:00:00",
+    "Partido": "Guadalajara Chivas vs Cruz Azul",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.2858,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.9,
+    "EventId": 14633964
+  },
+  {
+    "Liga": "Liga MX",
+    "Fecha": "2025-11-26 21:00:00",
+    "Partido": "Monterrey vs America",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.9,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 2.2858,
+    "EventId": 14633963
+  },
+  {
+    "Liga": "MLS",
+    "Fecha": "2025-11-23 02:30:00",
+    "Partido": "Vancouver Whitecaps vs Los Angeles Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.1667,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.1,
+    "EventId": 14594555
+  },
+  {
+    "Liga": "MLS",
+    "Fecha": "2025-11-23 22:00:00",
+    "Partido": "Fc Cincinnati vs Inter Miami Cf",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 2.6667,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 2.25,
+    "EventId": 14606301
+  },
+  {
+    "Liga": "MLS",
+    "Fecha": "2025-11-24 00:45:00",
+    "Partido": "Philadelphia Union vs New York City",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.9334,
+    "Cuota Empate": 3.5,
+    "Cuota Visita": 3.75,
+    "EventId": 14594554
+  },
+  {
+    "Liga": "MLS",
+    "Fecha": "2025-11-25 03:00:00",
+    "Partido": "San Diego Fc vs Minnesota United Fc",
+    "Casa": "Apuesta Total",
+    "Cuota Local": 1.6154,
+    "Cuota Empate": 4.0,
+    "Cuota Visita": 5.0,
+    "EventId": 14616588
+  }
+]
