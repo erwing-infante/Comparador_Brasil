@@ -270,6 +270,7 @@ def main():
         out_json = os.path.join(OUT_DIR, "cuotas_atlanticcity.json")
         df.to_json(out_json, orient="records", indent=2, date_format="iso", force_ascii=False)
         print(f"Ok Archivo JSON generado correctamente: {out_json}")
+        print(f"📊 Total partidos: {len(df)}")
     except Exception as e:
         log_error(f"Error general: {e}")
         print(f"F Error general: {e}")
