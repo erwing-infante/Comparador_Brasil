@@ -3,6 +3,9 @@ import time
 import datetime
 import os
 
+PYTHON = "/root/proyectos/Mancorabet/venv/bin/python3"
+BASE_DIR = "/root/proyectos/Mancorabet"
+
 SCRIPTS_EXTRACTORES = [
     "cuotas_oddsapi.py",
     "cuotas_apuestatotal.py",
@@ -15,7 +18,7 @@ SCRIPT_FUSION = "fusionar_cuotas.py"
 def ejecutar_script(script):
     try:
         resultado = subprocess.run(
-            ["python", script],
+            [PYTHON, script],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -36,9 +39,10 @@ def main():
     print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
 
     for script in SCRIPTS_EXTRACTORES:
+        full_path = os.path.join(BASE_DIR, script)         # ✅ CORREGIDO
         print(f"[INFO] Lanzando: {script}")
         p = subprocess.Popen(
-            ["python", script],
+            [PYTHON, full_path],                           # ✅ CORREGIDO
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -59,7 +63,8 @@ def main():
 
     # 3️⃣ Ejecutar fusión SOLO cuando ya terminaron
     print("\n[INFO] Ejecutando fusión final...\n")
-    stdout, stderr = ejecutar_script(SCRIPT_FUSION)
+    fusion_path = os.path.join(BASE_DIR, SCRIPT_FUSION)    # ✅ CORREGIDO
+    stdout, stderr = ejecutar_script(fusion_path)
 
     print("----- Resultado fusionar_cuotas.py -----")
     if stderr:
