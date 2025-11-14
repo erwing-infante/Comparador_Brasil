@@ -33,35 +33,60 @@ PARAMS_EVENTS = {
     "sportids": "66"
 }
 
-# === LIGAS EQUIVALENTES ===
+# === LIGAS EQUIVALENTES (idénticas a DoradoBet / ApuestaTotal) ===
 LIGAS_EQUIVALENCIAS = [
+    # Inglaterra
     ("Premier League", "Inglaterra", "Premier League"),
     ("FA Cup", "Inglaterra", "FA Cup"),
     ("EFL Trophy", "Inglaterra", "Carabao Cup"),
     ("Championship", "Inglaterra", "Championship"),
     ("League One", "Inglaterra", "League One"),
+   
+    # Italia
     ("Serie A", "Italia", "Serie A"),
     ("Copa Italia", "Italia", "Copa Italia"),
     ("Supercopa", "Italia", "Supercopa de Italia"),
+
+    # Alemania
     ("Bundesliga", "Alemania", "Bundesliga"),
     ("2ª Bundesliga", "Alemania", "2 Bundesliga"),
     ("DFB Pokal", "Alemania", "Copa Alemana"),
     ("Copa de Alemania", "Alemania", "Copa Alemana"),
+
+    # Francia
     ("Ligue 1", "Francia", "Ligue 1"),
+
+    # España
     ("LaLiga", "España", "La Liga"),
     ("LaLiga 2", "España", "La Liga 2"),
+
+    # Brasil
     ("Brasileirao Serie A", "Brasil", "Brasileirao"),
     ("Copa de Brasil", "Brasil", "Copa de Brasil"),
+
+    # México
     ("Liga MX", "México", "Liga MX"),
+
+    # Estados Unidos
     ("MLS", "Estados Unidos", "MLS"),
+
+    # Perú
     ("Liga 1", "Perú", "Liga 1 Perú"),
+
+    # Portugal
     ("Primera División", "Portugal", "Primeira Liga"),
+
+    # Países Bajos
     ("Eredivisie", "Países Bajos", "Eredivisie"),
     ("Eerste Divisie", "Países Bajos", "Eerste Divisie"),
+
+    # Clasificatorias Mundial
     ("Clasif. Mundial África", "Africa", "Eliminatorias Africa - WC26"),
     ("Clasif. Mundial Asia", "Asia", "Eliminatorias Asia AFC - WC26"),
     ("Clasif. Mundial CONCACAF", "Americas", "Eliminatorias CONCACAF - WC26"),
     ("Clasif. Mundial UEFA", "Europa", "Eliminatorias Europa - WC26"),
+
+    # Copas Internacionales
     ("Copa Libertadores", "Americas", "Copa Libertadores"),
     ("Copa Sudamericana", "Americas", "Copa Sudamericana"),
     ("UEFA Champions League", "Europa", "UEFA Champions League"),
