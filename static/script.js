@@ -16,20 +16,20 @@ const BOOKMAKER_LOGOS = {
     "Pinnacle": "/static/img/bookmakers/pinnacle.png"
 };
 
-
 // ================================
 // 🟦 Cargar JSON desde backend
 // ================================
 async function fetchCuotas() {
     try {
         const res = await fetch('/api/cuotas', {
-            credentials: "include"     // 🔥 NECESARIO PARA QUE FLASK AUTORICE
+            credentials: "include" // 🔥 NECESARIO PARA LOGIN
         });
 
         allData = await res.json();
 
+        // SI NO ESTÁ AUTORIZADO
         if (allData.error) {
-            console.warn("Sesión expirada o no autorizado.");
+            console.warn("Sesión no autorizada o expirada.");
             return;
         }
 
@@ -39,11 +39,11 @@ async function fetchCuotas() {
         if (currentLeague) {
             renderMatches(currentLeague);
         }
+
     } catch (e) {
         console.error("Error al cargar cuotas:", e);
     }
 }
-
 
 // ================================
 // 🟩 CORRECCIÓN DE FECHA INVALIDA
@@ -51,7 +51,6 @@ async function fetchCuotas() {
 function formatLocalDate(dateStr) {
     if (!dateStr) return "-";
 
-    // Convertir "2025-11-18 19:45 UTC" → "2025-11-18T19:45:00Z"
     let cleaned = dateStr
         .replace(" UTC", "")
         .replace(" ", "T") + ":00Z";
@@ -69,8 +68,9 @@ function formatLocalDate(dateStr) {
     });
 }
 
-
-// Mostrar metadata
+// ================================
+// METADATA
+// ================================
 function renderMetadata() {
     const meta = allData.metadata;
     if (!meta) return;
@@ -79,7 +79,6 @@ function renderMetadata() {
     document.getElementById("fuentes-ok").textContent = meta.fuentes_ok?.join(", ") || "---";
     document.getElementById("fuentes-error").textContent = meta.fuentes_error?.join(", ") || "---";
 }
-
 
 // ================================
 // 🟦 Renderizar ligas
@@ -91,6 +90,7 @@ function renderLeagues() {
     Object.keys(allData)
         .filter(key => key !== "metadata")
         .forEach(leagueName => {
+
             const li = document.createElement('li');
             li.textContent = leagueName;
 
@@ -114,12 +114,10 @@ function renderLeagues() {
 function isMatchInRange(dateStr) {
     if (dateFilter === "all") return true;
 
-    const date = new Date(
-        dateStr.replace(" UTC", "").replace(" ", "T") + ":00Z"
-    );
+    const date = new Date(dateStr.replace(" UTC", "").replace(" ", "T") + ":00Z");
     const now = new Date();
 
-    const diff = (date - now) / (1000 * 60 * 60 * 24); // días
+    const diff = (date - now) / (1000 * 60 * 60 * 24);
 
     if (dateFilter === "today") return diff >= 0 && diff < 1;
     if (dateFilter === "tomorrow") return diff >= 1 && diff < 2;
@@ -148,12 +146,10 @@ function renderMatches(leagueName) {
 
     matches.forEach(match => {
 
-        // 🔵 FILTRO DE FECHA
         if (!isMatchInRange(match.date)) return;
 
         const row = document.createElement('tr');
 
-        // ===== DETECTAR SUREBET =====
         const h = parseFloat(match.best_home.odd);
         const d = parseFloat(match.best_draw.odd);
         const a = parseFloat(match.best_away.odd);
@@ -163,34 +159,27 @@ function renderMatches(leagueName) {
             marginSure = 100 - ((1/h + 1/d + 1/a) * 100);
         }
 
-        // ⭐ MODO SOLO SUREBETS
         if (showOnlySurebets && !(marginSure > 0)) return;
 
         if (marginSure !== null && marginSure > 0) {
             row.classList.add("surebet-row");
         }
 
-        // Fecha
         const dateCell = document.createElement('td');
         dateCell.textContent = formatLocalDate(match.date);
         row.appendChild(dateCell);
 
-        // Partido
         const nameCell = document.createElement('td');
         nameCell.textContent = match.name;
         row.appendChild(nameCell);
 
-        // Cuotas
         row.appendChild(createOddCell(match.best_home));
         row.appendChild(createOddCell(match.best_draw));
         row.appendChild(createOddCell(match.best_away));
 
-        // % Margen
         const lossCell = document.createElement('td');
-
         if (marginSure !== null) {
-            const color = marginSure > 0 ? 'green' : 'red';
-            lossCell.innerHTML = `<span style="color:${color}; font-weight:bold;">${marginSure.toFixed(3)}%</span>`;
+            lossCell.innerHTML = `<span style="color:${marginSure > 0 ? 'green' : 'red'}; font-weight:bold;">${marginSure.toFixed(3)}%</span>`;
         } else {
             lossCell.textContent = "-";
         }
@@ -213,40 +202,42 @@ function createOddCell(best) {
 
     td.innerHTML = `
         <span class="best-odd">${best.odd}</span><br>
-        ${
-            logoPath
-                ? `<img src="${logoPath}" class="bm-logo">`
-                : `<small>${best.bookmaker}</small>`
-        }
+        ${logoPath ? `<img src="${logoPath}" class="bm-logo">` : `<small>${best.bookmaker}</small>`}
     `;
-
     return td;
 }
 
 // 🌙 MODO OSCURO
-document.getElementById("dark-toggle").addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-
-    const btn = document.getElementById("dark-toggle");
-    btn.textContent = document.body.classList.contains("dark-mode")
-        ? "Modo Claro"
-        : "Modo Oscuro";
-});
+const darkBtn = document.getElementById("dark-toggle");
+if (darkBtn) {
+    darkBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        darkBtn.textContent = document.body.classList.contains("dark-mode")
+            ? "Modo Claro"
+            : "Modo Oscuro";
+    });
+}
 
 // ⭐ SOLO SUREBETS
-document.getElementById("surebet-toggle").onclick = () => {
-    showOnlySurebets = !showOnlySurebets;
-    document.getElementById("surebet-toggle").classList.toggle("active");
-    renderMatches(currentLeague);
-};
+const surebetBtn = document.getElementById("surebet-toggle");
+if (surebetBtn) {
+    surebetBtn.onclick = () => {
+        showOnlySurebets = !showOnlySurebets;
+        surebetBtn.classList.toggle("active");
+        renderMatches(currentLeague);
+    };
+}
 
 // ⭐ FILTRO DE FECHA
-document.getElementById("date-filter").onchange = (e) => {
-    dateFilter = e.target.value;
-    renderMatches(currentLeague);
-};
+const filter = document.getElementById("date-filter");
+if (filter) {
+    filter.onchange = (e) => {
+        dateFilter = e.target.value;
+        renderMatches(currentLeague);
+    };
+}
 
-// AUTO UPDATE 2 minutos
+// AUTO UPDATE
 setInterval(fetchCuotas, 120000);
 
 // PRIMERA CARGA
