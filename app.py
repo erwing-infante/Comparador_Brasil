@@ -17,12 +17,8 @@ PASSWORD = "Mancora2025"
 def index():
     if "logged_in" not in session:
         return redirect(url_for("login"))
+    return render_template("index.html")
 
-    data = {}
-    if os.path.exists(DATA_PATH):
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    return render_template("index.html", data=data)
 
 # 🧠 API JSON (requiere login)
 @app.route("/api/cuotas")

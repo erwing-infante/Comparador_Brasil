@@ -16,6 +16,35 @@ const BOOKMAKER_LOGOS = {
     "Pinnacle": "/static/img/bookmakers/pinnacle.png"
 };
 
+
+// ================================
+// 🟦 Cargar JSON desde backend
+// ================================
+async function fetchCuotas() {
+    try {
+        const res = await fetch('/api/cuotas', {
+            credentials: "include"     // 🔥 NECESARIO PARA QUE FLASK AUTORICE
+        });
+
+        allData = await res.json();
+
+        if (allData.error) {
+            console.warn("Sesión expirada o no autorizado.");
+            return;
+        }
+
+        renderMetadata();
+        renderLeagues();
+
+        if (currentLeague) {
+            renderMatches(currentLeague);
+        }
+    } catch (e) {
+        console.error("Error al cargar cuotas:", e);
+    }
+}
+
+
 // ================================
 // 🟩 CORRECCIÓN DE FECHA INVALIDA
 // ================================
@@ -40,24 +69,6 @@ function formatLocalDate(dateStr) {
     });
 }
 
-// ================================
-// 🟦 Cargar JSON desde backend
-// ================================
-async function fetchCuotas() {
-    try {
-        const res = await fetch('/api/cuotas');
-        allData = await res.json();
-
-        renderMetadata();
-        renderLeagues();
-
-        if (currentLeague) {
-            renderMatches(currentLeague);
-        }
-    } catch (e) {
-        console.error("Error al cargar cuotas:", e);
-    }
-}
 
 // Mostrar metadata
 function renderMetadata() {
@@ -68,6 +79,7 @@ function renderMetadata() {
     document.getElementById("fuentes-ok").textContent = meta.fuentes_ok?.join(", ") || "---";
     document.getElementById("fuentes-error").textContent = meta.fuentes_error?.join(", ") || "---";
 }
+
 
 // ================================
 // 🟦 Renderizar ligas
