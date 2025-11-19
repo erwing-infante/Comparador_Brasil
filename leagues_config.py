@@ -4,7 +4,7 @@
 BOOKMAKERS = [
     "Bet365",
     "Betsson",
-    "LeoVegas ES",
+    "Pinnacle",
     "1xbet",
     "Betcris"
 ]
@@ -15,7 +15,6 @@ LEAGUES = {
     "FA Cup": {"provider": "odds-api.io", "league_id": "england-fa-cup"},
     "Carabao Cup": {"provider": "odds-api.io", "league_id": "england-efl-trophy"},
     "Championship": {"provider": "odds-api.io", "league_id": "england-championship"},
-    "League One": {"provider": "odds-api.io", "league_id": "england-league-one"},
 
     "La Liga": {"provider": "odds-api.io", "league_id": "spain-laliga"},
     "La Liga 2": {"provider": "odds-api.io", "league_id": "spain-laliga-2"},
@@ -24,7 +23,6 @@ LEAGUES = {
     "Copa Italia": {"provider": "odds-api.io", "league_id": "italy-coppa-italia"},
 
     "Bundesliga": {"provider": "odds-api.io", "league_id": "germany-bundesliga"},
-    "2 Bundesliga": {"provider": "odds-api.io", "league_id": "germany-2-bundesliga"},
     "Copa Alemana": {"provider": "odds-api.io", "league_id": "germany-dfb-pokal"},
 
     "Ligue 1": {"provider": "odds-api.io", "league_id": "france-ligue-1"},
@@ -36,7 +34,6 @@ LEAGUES = {
     "MLS": {"provider": "odds-api.io", "league_id": "usa-mls"},
     "Liga 1 Perú": {"provider": "odds-api.io", "league_id": "peru-liga-1"},
     "Primeira Liga": {"provider": "odds-api.io", "league_id": "portugal-liga-portugal"},
-    "Eerste Divisie": {"provider": "odds-api.io", "league_id": "netherlands-eerste-divisie"},
     "Eredivisie": {"provider": "odds-api.io", "league_id": "netherlands-eredivisie"},
     "Eliminatorias Africa - WC26": {"provider": "odds-api.io", "league_id": "international-fifa-world-cup-qualification-caf"},
     "Eliminatorias Asia AFC - WC26": {"provider": "odds-api.io", "league_id": "international-world-cup-qualification-afc"},

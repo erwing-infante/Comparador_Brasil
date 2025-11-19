@@ -14,13 +14,14 @@ ARCHIVOS = {
     "apuestatotal": os.path.join(DATA_DIR, "cuotas_apuestatotal.json"),
     "doradobet": os.path.join(DATA_DIR, "cuotas_doradobet.json"),
     "atlanticcity": os.path.join(DATA_DIR, "cuotas_atlanticcity.json"),
+    "olimpobet": os.path.join(DATA_DIR, "cuotas_olimpobet.json"),  # <--- AÑADIDO
 }
 
 # Similitud mínima
 SIM_THRESHOLD = 0.40
 
 # Casas excluidas en local/visita
-BOOKMAKERS_EXCLUIR_HA = {"betcris", "betsson", "1xbet"}
+BOOKMAKERS_EXCLUIR_HA = {"betcris", "betsson", "1xbet", "pinnacle"}
 
 # ============================================================
 # NORMALIZACIÓN
@@ -111,7 +112,7 @@ def cargar_json(ruta: str) -> pd.DataFrame:
     return df
 
 # ============================================================
-# FUSIÓN RÁPIDA CON BUCKETS
+# FUSIÓN CON BUCKETS
 # ============================================================
 
 def fusionar_cuotas():
@@ -119,11 +120,17 @@ def fusionar_cuotas():
 
     # CARGAR TODO
     df_list = []
+    fuentes_ok = []
+    fuentes_error = []
+
     for nombre, ruta in ARCHIVOS.items():
         df = cargar_json(ruta)
         if not df.empty:
             df["Origen"] = nombre
             df_list.append(df)
+            fuentes_ok.append(nombre)
+        else:
+            fuentes_error.append(nombre)
 
     if not df_list:
         print("F No hay datos.")
@@ -137,7 +144,7 @@ def fusionar_cuotas():
         (df["away_short"] != "desconocido")
     ]
 
-    # Creamos BUCKETS para acelerar
+    # BUCKETS
     buckets = {}
 
     for idx, row in df.iterrows():
@@ -157,7 +164,7 @@ def fusionar_cuotas():
     usados = set()
     filas = []
 
-    # PROCESO 40x MÁS RÁPIDO
+    # FUSIÓN
     for key, indices in buckets.items():
         for i in indices:
             if i in usados:
@@ -172,11 +179,9 @@ def fusionar_cuotas():
 
                 row2 = df.loc[j]
 
-                # chequeo rápido: mismo liga & ±2h
                 if abs((row["Fecha_dt"] - row2["Fecha_dt"]).total_seconds()) > 7200:
                     continue
 
-                # coincidencia difusa
                 if similitud(row["home_short"], row2["home_short"]) >= SIM_THRESHOLD and \
                    similitud(row["away_short"], row2["away_short"]) >= SIM_THRESHOLD:
                     grupo.append(j)
@@ -189,7 +194,7 @@ def fusionar_cuotas():
             def mejor(col):
                 col_lower = col.lower()
 
-                # EMPATE = no excluir
+                # EMPATE = todas las casas
                 if "empate" in col_lower:
                     s = subset[subset[col].notna()]
                     if s.empty:
@@ -207,7 +212,7 @@ def fusionar_cuotas():
                     idx = s[col].idxmax()
                     return float(s.loc[idx, col]), s.loc[idx, "Casa"]
 
-                # fallback – si quedaron solo casas prohibidas
+                # Si todas eran excluidas, tomar igual la mejor
                 s_all = subset[subset[col].notna()]
                 if s_all.empty:
                     return None, ""
@@ -234,11 +239,20 @@ def fusionar_cuotas():
             })
 
     # ORDENAR Y GUARDAR
-    salida = {}
+    salida = {
+        "metadata": {
+            "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "fuentes_ok": fuentes_ok,
+            "fuentes_error": fuentes_error
+        }
+    }
+
     for fila in filas:
         salida.setdefault(fila["Liga"], []).append(fila)
 
     for liga in salida:
+        if liga == "metadata":
+            continue
         try:
             salida[liga].sort(key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d %H:%M UTC"))
         except:

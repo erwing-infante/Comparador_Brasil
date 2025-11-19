@@ -1,41 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>MáncoraBet - Comparador de Cuotas</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MancoraBet - Comparador de Cuotas</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="container">
 
-    <!-- 🟦 Panel lateral de ligas -->
+<div class="container">
+
+    <!-- PANEL LATERAL IZQUIERDO -->
     <aside class="sidebar">
-      <h2>Ligas</h2>
-      <ul id="league-list"></ul>
+        <h2>Ligas</h2>
+        <ul id="league-list"></ul>
     </aside>
 
-    <!-- 🟨 Panel de partidos -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="content">
-      <h2 id="league-title">Selecciona una liga</h2>
-      <table id="matches-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Partido</th>
-            <th>Local</th>
-            <th>Empate</th>
-            <th>Visita</th>
-            <th>% Pérdida</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Se llena dinámicamente -->
-        </tbody>
-      </table>
+
+        <!-- 🔵 PANEL DE ÚLTIMA ACTUALIZACIÓN -->
+        <div id="update-info" class="update-box">
+            <p><strong>Última actualización:</strong> <span id="last-updated">---</span></p>
+            <p>
+                <strong>Fuentes OK:</strong> <span id="fuentes-ok">---</span><br>
+                <strong>Errores:</strong> <span id="fuentes-error">---</span>
+            </p>
+        </div>
+
+        <!-- 🌙 BOTONES SUPERIORES -->
+        <div class="top-controls">
+
+            <button id="dark-toggle" class="dark-btn">Modo Oscuro</button>
+
+            <!-- ⭐ MODO SOLO SUREBETS -->
+            <button id="surebet-toggle" class="surebet-btn">Solo Surebets</button>
+
+            <!-- ⭐ FILTRO DE FECHAS -->
+            <select id="date-filter" class="date-filter">
+                <option value="all">Todas las fechas</option>
+                <option value="today">Hoy</option>
+                <option value="tomorrow">Mañana</option>
+                <option value="2d">Próximos 2 días</option>
+                <option value="3d">Próximos 3 días</option>
+            </select>
+
+        </div>
+
+        <h2 id="league-title">Selecciona una liga</h2>
+
+        <table id="matches-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Partido</th>
+                    <th>Local</th>
+                    <th>Empate</th>
+                    <th>Visita</th>
+                    <th>% Pérdida</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
     </main>
 
-  </div>
+</div>
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+<script src="/static/script.js"></script>
 </body>
 </html>

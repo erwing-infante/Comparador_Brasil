@@ -3,8 +3,11 @@ import time
 import datetime
 import os
 
-PYTHON = "/root/proyectos/Mancorabet/venv/bin/python3"
-BASE_DIR = "/root/proyectos/Mancorabet"
+# Forzar UTF-8 para evitar errores de emojis
+os.environ["PYTHONIOENCODING"] = "utf-8"
+
+PYTHON = r"D:\Proyectos\Mancorabet\.venv\Scripts\python.exe"
+BASE_DIR = r"D:\Proyectos\Mancorabet"
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 SCRIPTS_EXTRACTORES = [
@@ -33,13 +36,11 @@ def ejecutar_script(script):
 
 
 def oddsapi_fallo(output):
-    """Detecta si OddsAPI falló para borrar archivo viejo."""
     texto = output.lower()
     return (
         "error" in texto or
         "no se encontraron cuotas" in texto or
         "oddsapi no responde" in texto or
-        "failed" in texto or
         "timeout" in texto or
         len(texto.strip()) == 0
     )
@@ -53,8 +54,7 @@ def main():
 
     procesos = []
 
-    # 1️⃣ Ejecutar extractores
-    print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
+    print("[INFO] Ejecutando extractores de cuotas...\n")
 
     for script in SCRIPTS_EXTRACTORES:
         full_path = os.path.join(BASE_DIR, script)
@@ -70,7 +70,7 @@ def main():
         )
         procesos.append((script, p))
 
-    # 2️⃣ Procesar resultados
+    # Procesar resultados
     for script, p in procesos:
         stdout, stderr = p.communicate()
 
@@ -79,7 +79,7 @@ def main():
         output = (stdout or "") + "\n" + (stderr or "")
         print(output)
 
-        # 🟨 Manejo de fallos de OddsAPI
+        # Manejo de fallo OddsAPI
         if script == "cuotas_oddsapi.py" and oddsapi_fallo(output):
             ruta_odds = os.path.join(DATA_DIR, "cuotas_oddsapi.json")
 
@@ -94,14 +94,13 @@ def main():
             except Exception as e:
                 print(f"[ERROR] No se pudo eliminar archivo OddsAPI: {e}")
 
-    # 3️⃣ Ejecutar fusión
-    print("\n[INFO] Ejecutando fusión final...\n")
+    # Ejecutar fusión
+    print("\n[INFO] Ejecutando fusión...\n")
     fusion_path = os.path.join(BASE_DIR, SCRIPT_FUSION)
     stdout, stderr = ejecutar_script(fusion_path)
 
     print("----- Resultado fusionar_cuotas.py -----")
     if stderr:
-        print("[ERROR]:")
         print(stderr)
     else:
         print(stdout)
