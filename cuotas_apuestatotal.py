@@ -6,6 +6,7 @@ import os
 import re
 import json
 import unicodedata
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # === CONFIGURACIÓN ===
@@ -66,6 +67,16 @@ LIGAS_EQUIVALENCIAS = [
 ]
 
 NOMBRES_1X2 = {"1x2", "resultado final", "match result", "ft result", "ganador"}
+
+
+# === NUEVO: FUNCIÓN PARA FILTRAR POR 3 DÍAS ===
+def dentro_de_3_dias(fecha_raw):
+    try:
+        fecha = pd.to_datetime(fecha_raw).tz_convert(None)
+        ahora = datetime.utcnow()
+        return ahora <= fecha.to_pydatetime() <= ahora + timedelta(days=3)
+    except:
+        return False
 
 
 # === FUNCIONES ===
@@ -257,13 +268,14 @@ def main():
 
     try:
         eventos = extraer_eventos(data)
-        print(f" Eventos encontrados: {len(eventos)}")
+        print(f" Eventos encontrados (sin filtrar): {len(eventos)}")
+
+        # === FILTRO NUEVO: SOLO PARTIDOS DENTRO DE 3 DÍAS ===
+        eventos = [ev for ev in eventos if dentro_de_3_dias(ev.get("EventDate", ""))]
+        print(f" Eventos dentro de 3 días: {len(eventos)}")
 
         registros = []
         
-        # ===========================================================
-        #  MULTIHILO REAL — 20 WORKERS — Aceleración máxima
-        # ===========================================================
         with ThreadPoolExecutor(max_workers=20) as executor:
             futures = [executor.submit(procesar_evento, ev) for ev in eventos]
 
@@ -271,7 +283,6 @@ def main():
                 result = future.result()
                 if result:
                     registros.append(result)
-        # ===========================================================
 
         if not registros:
             print(" No se encontraron cuotas válidas.")
