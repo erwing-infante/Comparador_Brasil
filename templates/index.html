@@ -51,6 +51,7 @@
                     <th>Local</th>
                     <th>Empate</th>
                     <th>Visita</th>
+                    <th>Calc</th>
                     <th>% Pérdida</th>
                 </tr>
             </thead>
@@ -59,6 +60,32 @@
 
     </main>
 
+</div>
+
+<!-- MODAL CALCULADORA ARBITRAJE -->
+<div id="arbitrageModal" class="arb-modal">
+  <div class="arb-content">
+    <div class="arb-header">
+      <h2 id="arbMatchTitle">Arbitraje</h2>
+      <button class="arb-close" onclick="closeArb()">✕</button>
+    </div>
+
+    <div id="arbContainer"></div>
+
+    <div class="arb-total-section">
+      <label for="arbTotalStake">Apuesta total:</label>
+      <input id="arbTotalStake" type="number" value="1000">
+      <select id="arbCurrency">
+        <option value="USD">USD</option>
+        <option value="PEN">PEN</option>
+      </select>
+    </div>
+
+    <div class="arb-profit-box">
+      <span>Beneficio garantizado:</span>
+      <strong id="arbGuaranteedProfit">--</strong>
+    </div>
+  </div>
 </div>
 
 <script src="/static/script.js"></script>

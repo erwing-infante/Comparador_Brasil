@@ -7,6 +7,9 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 from difflib import SequenceMatcher
 
+# === IMPORTAR EQUIVALENCIAS PLANAS DESDE ARCHIVO EXTERNO ===
+from equivalencias_equipos import EQUIVALENCIAS_EQUIPOS
+
 # === CONFIG ===
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 OUT_FILE = os.path.join(DATA_DIR, "cuotas.json")
@@ -36,120 +39,6 @@ STOP_TOKENS = {
     "sa", "sp", "mg", "ba", "ce", "rj", "rs"
 }
 
-# ============================================================
-# EQUIVALENCIAS DE NOMBRES DE EQUIPOS
-# ============================================================
-
-EQUIVALENCIAS_EQUIPOS = {
-    # Bayern Munich
-    "bayern munchen": "bayern munich",
-    "bayern múnich": "bayern munich",
-    "bayern münich": "bayern munich",
-    "bayern munich": "bayern munich",
-
-    # Hamburg
-    "hamburg": "hamburger sv",
-    "hamburgo": "hamburger sv",
-    "hamburger sv": "hamburger sv",
-
-    # Koln / Cologne
-    "koln": "1. fc cologne",
-    "1. cologne": "1. fc cologne",
-    "1 fc koln": "1. fc cologne",
-    "fc koln": "1. fc cologne",
-
-    # Mainz
-    "mainz 05": "fsv mainz",
-    "1 fsv mainz 05": "fsv mainz",
-    "fsv mainz": "fsv mainz",
-
-    # Freiburg
-    "sc freiburg": "freiburg",
-    "freiburg": "freiburg",
-
-    # St. Pauli
-    "st pauli": "fc st pauli",
-    "st. pauli": "fc st pauli",
-    "fc st pauli": "fc st pauli",
-
-    # Union Berlin
-    "1 union berlin": "1. fc union berlin",
-    "1. union berlin": "1. fc union berlin",
-    "fc union berlin": "1. fc union berlin",
-
-    # Heidenheim
-    "1 heidenheim": "1. fc heidenheim",
-    "1 fc heidenheim 1846": "1. fc heidenheim",
-    "1. heidenheim": "1. fc heidenheim",
-
-    # RB Leipzig
-    "rb leipzig": "rb leipzig",
-
-    # Borussia Monchengladbach
-    "borussia monchengladbach": "borussia monchengladbach",
-
-    # Borussia Dortmund
-    "borussia dortmund": "borussia dortmund",
-
-    # Bayer Leverkusen
-    "bayer leverkusen": "bayer 04 leverkusen",
-    "bayer 04 leverkusen": "bayer 04 leverkusen",
-
-    # Flamengo
-    "cr flamengo": "flamengo",
-    "flamengo rj": "flamengo",
-    "flamengo-rj": "flamengo",
-
-    # Bragantino
-    "red bull bragantino": "bragantino",
-    "rb bragantino": "bragantino",
-
-    # Palmeiras
-    "se palmeiras": "palmeiras",
-
-    # Gremio
-    "gremio fb porto alegrense": "gremio",
-
-    # Internacional
-    "sc internacional": "internacional",
-
-    # Sao Paulo
-    "sao paulo fc": "sao paulo",
-    "sao paulo fc sp": "sao paulo",
-
-    # Juventude
-    "ec juventude": "juventude",
-
-    # Bahia
-    "ec bahia": "bahia",
-
-    # Vitoria
-    "ec vitoria": "vitoria",
-
-    # Lanus
-    "ca lanus": "lanus",
-
-    # Atletico Mineiro
-    "atletico mineiro mg": "atletico mineiro",
-
-    # PSV
-    "psv eindhoven": "psv",
-
-    # Ajax
-    "afc ajax": "ajax",
-    "ajax amsterdam": "ajax",
-
-    # Excelsior
-    "excelsior rotterdam": "excelsior",
-
-    # Twente
-    "fc twente enschede": "twente",
-    "fc twente": "twente",
-
-    # Volendam
-    "fc volendam": "volendam",
-}
-
 def quitar_acentos(s: str) -> str:
     return "".join(
         c for c in unicodedata.normalize("NFKD", s)
@@ -159,15 +48,28 @@ def quitar_acentos(s: str) -> str:
 def limpiar_equipo(nombre: str) -> str:
     if not isinstance(nombre, str):
         return ""
-    nombre = quitar_acentos(nombre).lower()
+
+    original = nombre.strip()
+
+    # 🔥 1) BÚSQUEDA DIRECTA EN EL DICCIONARIO PLANO EXTERNO (exacto)
+    if original in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[original]
+
+    # 🔥 2) Fallback → limpieza automática
+    nombre = quitar_acentos(original).lower()
     nombre = nombre.replace("\t", " ").replace("\n", " ")
     nombre = nombre.replace("-", " ").replace("_", " ").replace("/", " ")
-    tokens = nombre.split()
-    tokens = [t for t in tokens if t not in STOP_TOKENS]
-    limpio = " ".join(tokens).strip()
-    return EQUIVALENCIAS_EQUIPOS.get(limpio, limpio)
 
-# 🔥 NUEVA FUNCIÓN INTELIGENTE (Opción A)
+    tokens = [t for t in nombre.split() if t not in STOP_TOKENS]
+    limpio = " ".join(tokens).strip()
+
+    # Si este limpio coincide con una clave del diccionario → normalizar
+    if limpio in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[limpio]
+
+    # Último fallback → devolver limpio
+    return limpio or original
+
 def team_short(name: str) -> str:
     limpio = limpiar_equipo(name)
     if not limpio:
@@ -192,22 +94,28 @@ def cargar_json(ruta: str) -> pd.DataFrame:
             raw = json.load(f)
     except:
         return pd.DataFrame()
+
     if not isinstance(raw, list):
         return pd.DataFrame()
+
     df = pd.DataFrame(raw)
+
     df.rename(columns={
         "Cuota Local": "Local Odd",
         "Cuota Empate": "Empate Odd",
         "Cuota Visita": "Visita Odd"
     }, inplace=True)
+
     for col in ["Liga", "Partido", "Casa", "Fecha", "Local", "Visita"]:
         if col not in df.columns:
             df[col] = ""
+
     for c in ["Local Odd", "Empate Odd", "Visita Odd"]:
         df[c] = pd.to_numeric(df[c], errors="coerce")
-    # Reconstruir Local vs Visita si están vacíos
+
     vacios = (df["Local"].astype(str).str.strip() == "") | \
              (df["Visita"].astype(str).str.strip() == "")
+
     if vacios.any():
         equipos = df.loc[vacios, "Partido"].astype(str).str.split(
             r"\s+vs\.?\s+|\s+v\s+|\s+VS\s+",
@@ -216,16 +124,20 @@ def cargar_json(ruta: str) -> pd.DataFrame:
         if equipos.shape[1] == 2:
             df.loc[vacios, "Local"] = equipos[0].str.strip()
             df.loc[vacios, "Visita"] = equipos[1].str.strip()
+
+    # 🔥 NORMALIZACIÓN EXTERNA DEFINITIVA
     df["Local"] = df["Local"].astype(str).apply(limpiar_equipo)
     df["Visita"] = df["Visita"].astype(str).apply(limpiar_equipo)
+
     df["home_short"] = df["Local"].apply(team_short)
     df["away_short"] = df["Visita"].apply(team_short)
-    # 🔥 NORMALIZACIÓN UNIVERSAL DE FECHAS
+
     df["Fecha_dt"] = (
         pd.to_datetime(df["Fecha"], errors="coerce", utc=True)
           .dt.tz_convert("UTC")
           .dt.tz_localize(None)
     )
+
     return df
 
 # ============================================================
@@ -241,10 +153,12 @@ def partido_hash(row):
     )
 
 def fusionar_cuotas():
-    print("Fusionando mucho más rápido...")
+    print("Fusionando con equivalencias externas (diccionario plano)...")
+
     df_list = []
     fuentes_ok = []
     fuentes_error = []
+
     for nombre, ruta in ARCHIVOS.items():
         df = cargar_json(ruta)
         if not df.empty:
@@ -253,41 +167,52 @@ def fusionar_cuotas():
             fuentes_ok.append(nombre)
         else:
             fuentes_error.append(nombre)
+
     if not df_list:
         print("F No hay datos.")
         return
+
     df = pd.concat(df_list, ignore_index=True)
+
     df = df[
         (df["home_short"] != "desconocido") &
         (df["away_short"] != "desconocido")
     ]
+
     buckets = {}
     for idx, row in df.iterrows():
         if pd.isna(row["Fecha_dt"]):
             continue
         key = partido_hash(row)
         buckets.setdefault(key, []).append(idx)
+
     usados = set()
     filas = []
     llaves_existentes = set()
+
     for key, indices in buckets.items():
         for i in indices:
             if i in usados:
                 continue
             row = df.loc[i]
             grupo = [i]
+
             for j in indices:
                 if j == i or j in usados:
                     continue
                 row2 = df.loc[j]
+
                 if abs((row["Fecha_dt"] - row2["Fecha_dt"]).total_seconds()) > 21600:
                     continue
+
                 if similitud(row["home_short"], row2["home_short"]) >= SIM_THRESHOLD and \
                    similitud(row["away_short"], row2["away_short"]) >= SIM_THRESHOLD:
                     grupo.append(j)
                     usados.add(j)
+
             subset = df.loc[grupo]
             usados.update(grupo)
+
             def mejor(col):
                 col_lower = col.lower()
                 if "empate" in col_lower:
@@ -296,28 +221,36 @@ def fusionar_cuotas():
                         return None, ""
                     idx = s[col].idxmax()
                     return float(s.loc[idx, col]), s.loc[idx, "Casa"]
+
                 s = subset[
                     subset[col].notna() &
-                    (~subset["Casa"].str.replace(" ", "").str.lower().isin(BOOKMAKERS_EXCLUIR_HA))
+                    (~subset["Casa"].str.replace(" ", "").str.lower()
+                    .isin(BOOKMAKERS_EXCLUIR_HA))
                 ]
+
                 if not s.empty:
                     idx = s[col].idxmax()
-                    return float(s.loc[idx, col]), s.loc[idx, "Casa"]
+                    return float(s[col].max()), s.loc[idx, "Casa"]
+
                 s_all = subset[subset[col].notna()]
                 if s_all.empty:
                     return None, ""
                 idx = s_all[col].idxmax()
                 return float(s_all.loc[idx, col]), s_all.loc[idx, "Casa"]
+
             bh, bh_bm = mejor("Local Odd")
             bd, bd_bm = mejor("Empate Odd")
             ba, ba_bm = mejor("Visita Odd")
+
             base = subset.iloc[0]
             fecha_dt = base["Fecha_dt"]
             fecha_str = fecha_dt.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(fecha_dt) else ""
+
             clave = (base["Liga"], fecha_str, base["Local"], base["Visita"])
             if clave in llaves_existentes:
                 continue
             llaves_existentes.add(clave)
+
             filas.append({
                 "Liga": base["Liga"],
                 "name": f"{base['Local'].title()} vs {base['Visita'].title()}",
@@ -348,14 +281,14 @@ def fusionar_cuotas():
         if liga == "metadata":
             continue
         try:
-            salida[liga].sort(key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d %H:%M UTC"))
+            salida[liga].sort(key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d %H:%M"))
         except:
             pass
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:
         json.dump(salida, f, indent=2, ensure_ascii=False)
 
-    print(f"Ok Archivo actualizado: {OUT_FILE}")
+    print(f"✔ Archivo actualizado: {OUT_FILE}")
 
 
 if __name__ == "__main__":

@@ -109,7 +109,7 @@ function renderMatches(leagueName) {
     console.log(`📊 Partidos en ${leagueName}:`, matches);
 
     if (matches.length === 0) {
-        matchesTableBody.innerHTML = `<tr><td colspan="6">No hay partidos disponibles</td></tr>`;
+        matchesTableBody.innerHTML = `<tr><td colspan="7">No hay partidos disponibles</td></tr>`;
         return;
     }
 
@@ -137,6 +137,19 @@ function renderMatches(leagueName) {
         row.appendChild(createOddCell(match.best_home));
         row.appendChild(createOddCell(match.best_draw));
         row.appendChild(createOddCell(match.best_away));
+
+        // Celda de calculadora
+        const calcCell = document.createElement('td');
+        const calcBtn = document.createElement('button');
+        calcBtn.className = "calc-btn";
+        calcBtn.title = "Calculadora de arbitraje";
+        calcBtn.textContent = "🧮";
+        calcBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            openArb(match);
+        });
+        calcCell.appendChild(calcBtn);
+        row.appendChild(calcCell);
 
         const lossCell = document.createElement('td');
         if (marginSure !== null) {
@@ -198,24 +211,177 @@ function isMatchInRange(dateStr) {
     return true;
 }
 
-// 🌙 MODO OSCURO
-document.getElementById("dark-toggle")?.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    darkBtn.textContent = document.body.classList.contains("dark-mode") ? "Modo Claro" : "Modo Oscuro";
-});
+// ================================
+// MODO OSCURO
+// ================================
+const darkBtn = document.getElementById("dark-toggle");
+if (darkBtn) {
+    darkBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        darkBtn.textContent = document.body.classList.contains("dark-mode")
+            ? "Modo Claro"
+            : "Modo Oscuro";
+    });
+}
 
-// ⭐ SOLO SUREBETS
-document.getElementById("surebet-toggle")?.addEventListener("click", () => {
-    showOnlySurebets = !showOnlySurebets;
-    surebetBtn.classList.toggle("active");
-    renderMatches(currentLeague);
-});
+// ================================
+// SOLO SUREBETS
+// ================================
+const surebetBtn = document.getElementById("surebet-toggle");
+if (surebetBtn) {
+    surebetBtn.addEventListener("click", () => {
+        showOnlySurebets = !showOnlySurebets;
+        surebetBtn.classList.toggle("active");
+        renderMatches(currentLeague);
+    });
+}
 
-// ⭐ FILTRO DE FECHA
-document.getElementById("date-filter")?.addEventListener("change", (e) => {
-    dateFilter = e.target.value;
-    renderMatches(currentLeague);
-});
+// ================================
+// FILTRO DE FECHA
+// ================================
+const dateFilterSelect = document.getElementById("date-filter");
+if (dateFilterSelect) {
+    dateFilterSelect.addEventListener("change", (e) => {
+        dateFilter = e.target.value;
+        renderMatches(currentLeague);
+    });
+}
+
+// ================================
+// CALCULADORA DE ARBITRAJE
+// ================================
+function openArb(match) {
+    const modal = document.getElementById("arbitrageModal");
+    const title = document.getElementById("arbMatchTitle");
+    const container = document.getElementById("arbContainer");
+
+    title.textContent = match.name || "Arbitraje";
+    container.innerHTML = "";
+
+    const legs = [];
+
+    if (match.best_home?.odd) {
+        legs.push({
+            market: "Local",
+            bookmaker: match.best_home.bookmaker,
+            odd: parseFloat(match.best_home.odd)
+        });
+    }
+    if (match.best_draw?.odd) {
+        legs.push({
+            market: "Empate",
+            bookmaker: match.best_draw.bookmaker,
+            odd: parseFloat(match.best_draw.odd)
+        });
+    }
+    if (match.best_away?.odd) {
+        legs.push({
+            market: "Visita",
+            bookmaker: match.best_away.bookmaker,
+            odd: parseFloat(match.best_away.odd)
+        });
+    }
+
+    if (!legs.length) {
+        container.innerHTML = "<p>No hay cuotas disponibles para este partido.</p>";
+    } else {
+        legs.forEach(leg => {
+            const row = document.createElement("div");
+            row.className = "arb-row";
+            row.innerHTML = `
+                <div>
+                    <div class="arb-bm">${leg.bookmaker}</div>
+                    <div class="arb-market">${leg.market}</div>
+                </div>
+                <div>
+                    <label>Cuota</label>
+                    <input type="number" class="arb-odd" step="0.01" value="${leg.odd.toFixed(3)}">
+                </div>
+                <div>
+                    <label>Apuesta</label>
+                    <input type="number" class="arb-stake" step="0.01">
+                </div>
+                <div>
+                    <label>Beneficio</label>
+                    <input type="text" class="arb-profit" readonly>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    // listeners para recalcular cuando cambien cuotas
+    container.querySelectorAll(".arb-odd").forEach(inp => {
+        inp.addEventListener("input", recalculateArb);
+    });
+
+    const totalInput = document.getElementById("arbTotalStake");
+    totalInput.removeEventListener("input", recalculateArb); // por si acaso
+    totalInput.addEventListener("input", recalculateArb);
+
+    const currencySelect = document.getElementById("arbCurrency");
+    currencySelect.removeEventListener("change", recalculateArb);
+    currencySelect.addEventListener("change", recalculateArb);
+
+    modal.style.display = "flex";
+    recalculateArb();
+}
+
+function closeArb() {
+    const modal = document.getElementById("arbitrageModal");
+    if (modal) modal.style.display = "none";
+}
+
+function getCurrencySymbol() {
+    const currency = document.getElementById("arbCurrency")?.value || "USD";
+    if (currency === "PEN") return "S/";
+    return "$";
+}
+
+function recalculateArb() {
+    const total = parseFloat(document.getElementById("arbTotalStake").value || 0);
+    const rows = document.querySelectorAll("#arbContainer .arb-row");
+
+    if (!rows.length || !total || total <= 0) {
+        document.getElementById("arbGuaranteedProfit").textContent = "--";
+        return;
+    }
+
+    const rowData = [];
+    rows.forEach(row => {
+        const oddInp = row.querySelector(".arb-odd");
+        const odd = parseFloat(oddInp.value || 0);
+        if (odd > 0) {
+            rowData.push({ row, odd });
+        }
+    });
+
+    if (!rowData.length) {
+        document.getElementById("arbGuaranteedProfit").textContent = "--";
+        return;
+    }
+
+    const sumInverse = rowData.reduce((acc, item) => acc + (1 / item.odd), 0);
+    let guaranteedProfit = null;
+
+    rowData.forEach(item => {
+        const stake = (total / item.odd) / sumInverse;
+        const profit = stake * item.odd - total;
+
+        item.row.querySelector(".arb-stake").value = stake.toFixed(2);
+        item.row.querySelector(".arb-profit").value = profit.toFixed(2);
+
+        if (guaranteedProfit === null) {
+            guaranteedProfit = profit;
+        }
+    });
+
+    if (guaranteedProfit !== null) {
+        const symbol = getCurrencySymbol();
+        document.getElementById("arbGuaranteedProfit").textContent =
+            `${symbol}${guaranteedProfit.toFixed(2)}`;
+    }
+}
 
 // AUTO UPDATE
 setInterval(fetchCuotas, 120000);

@@ -38,7 +38,7 @@ LIGAS_OLIMPO = [
     ("La Liga 2", "football/spain/la_liga_2", False),
 
     ("Serie A", "football/italy/serie_a", False),
-    ("Copa de Italia", "football/italy/coppa_italia", False),
+    ("Copa Italia", "football/italy/coppa_italia", False),
 
     ("Bundesliga", "football/germany/bundesliga", False),
     ("Copa Alemana", "football/germany/dfb_pokal", False),
