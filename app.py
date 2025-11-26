@@ -23,10 +23,12 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.pop("logged_in", None)
     return redirect(url_for("login"))
+
 
 # ---------- UI PROTEGIDA ----------
 @app.route("/")
@@ -35,26 +37,24 @@ def index():
         return redirect(url_for("login"))
     return render_template("index.html")
 
+
 @app.route("/calculadora")
 def calculadora():
+    # Protección con login
     if "logged_in" not in session:
         return redirect(url_for("login"))
-    return render_template("calculadora.html")
 
-from flask import Flask, render_template, request
-
-@app.route("/calculadora")
-def calculadora():
+    # Parámetros opcionales que vienen por querystring
     name = request.args.get("name", "")
     date = request.args.get("date", "")
     league = request.args.get("league", "")
-    
+
     homeOdd = request.args.get("homeOdd", "")
     homeBook = request.args.get("homeBook", "")
-    
+
     drawOdd = request.args.get("drawOdd", "")
     drawBook = request.args.get("drawBook", "")
-    
+
     awayOdd = request.args.get("awayOdd", "")
     awayBook = request.args.get("awayBook", "")
 
@@ -68,16 +68,13 @@ def calculadora():
         drawOdd=drawOdd,
         drawBook=drawBook,
         awayOdd=awayOdd,
-        awayBook=awayBook
+        awayBook=awayBook,
     )
 
-# ---------- API ABIERTA (puedes protegerla si quieres) ----------
+
+# ---------- API ABIERTA ----------
 @app.route("/api/cuotas")
 def api_cuotas():
-    # OPCIONAL: proteger la API
-    # if "logged_in" not in session:
-    #     return jsonify({"error": "no autorizado"})
-
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             try:
@@ -92,6 +89,7 @@ def api_cuotas():
                 return jsonify({"error": "formato inválido"})
     print("⚠️ Archivo cuotas.json no encontrado")
     return jsonify({})
-    
+
+
 if __name__ == "__main__":
     app.run()
