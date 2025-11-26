@@ -110,6 +110,25 @@ def main():
     print(f"Ciclo completado a las {datetime.datetime.now().strftime('%H:%M:%S')}")
     print("==============================\n")
 
+# =============================================
+# SMART ALERTS - Enviar alertas inteligentes
+# =============================================
+print("[INFO] Lanzando: smart_alerts.py")
+os.system(f"{PYTHON} smart_alerts.py")
+
+# =============================================
+# HISTORICO BET365
+# =============================================
+
+print("[INFO] Histórico Bet365")
+os.system(f"{PYTHON} historico_bet365.py")
+
+# =============================================
+# MOVIMIENTOS BET365
+# =============================================
+
+print("[INFO] Movimientos bruscos Bet365")
+os.system(f"{PYTHON} movimientos_bet365.py")
 
 if __name__ == "__main__":
     main()

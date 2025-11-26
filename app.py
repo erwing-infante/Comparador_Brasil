@@ -35,6 +35,12 @@ def index():
         return redirect(url_for("login"))
     return render_template("index.html")
 
+@app.route("/calculadora")
+def calculadora():
+    if "logged_in" not in session:
+        return redirect(url_for("login"))
+    return render_template("calculadora.html")
+
 from flask import Flask, render_template, request
 
 @app.route("/calculadora")

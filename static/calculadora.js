@@ -1,95 +1,190 @@
-function getParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name) || "";
+// ======== CALCULADORA MANCORABET CON D/F ========
+function parseQuery() {
+    const params = {};
+    const q = window.location.search.substring(1).split('&');
+    for (const part of q) {
+        if (!part) continue;
+        const [k, v] = part.split('=');
+
+        // === FIX 1: quitar "+" ===
+        const cleaned = (v || '').replace(/\+/g, ' ');
+
+        params[decodeURIComponent(k)] = decodeURIComponent(cleaned);
+    }
+    return params;
 }
 
-function initCalculator() {
-    const name  = getParam("name");
-    const date  = getParam("date");
-    const league = getParam("league");
-    const margin = parseFloat(getParam("margin") || "0");
+document.addEventListener('DOMContentLoaded', () => {
+    const qs = parseQuery();
 
-    const homeOdd  = parseFloat(getParam("homeOdd") || "0");
-    const drawOdd  = parseFloat(getParam("drawOdd") || "0");
-    const awayOdd  = parseFloat(getParam("awayOdd") || "0");
+    // Rellenar cabecera
+    const matchName = document.getElementById('match-name');
+    const leagueDate = document.getElementById('match-league-date');
 
-    document.getElementById("match-name").textContent = name || "Partido";
-    document.getElementById("match-league-date").textContent =
-        (league ? league + " · " : "") + (date || "");
+    const name  = qs.name  || '';
+    const date  = qs.date  || '';
+    const league = qs.league || '';
 
-    document.getElementById("home-book").value = getParam("homeBook");
-    document.getElementById("draw-book").value = getParam("drawBook");
-    document.getElementById("away-book").value = getParam("awayBook");
+    if (matchName) matchName.textContent = name || 'Partido';
+    if (leagueDate) leagueDate.textContent = (league ? league + ' · ' : '') + (date || '');
 
-    if (homeOdd) document.getElementById("home-odd").value = homeOdd;
-    if (drawOdd) document.getElementById("draw-odd").value = drawOdd;
-    if (awayOdd) document.getElementById("away-odd").value = awayOdd;
+    // Rellenar casas y cuotas desde query
+    const homeBook = document.getElementById('home-book');
+    const drawBook = document.getElementById('draw-book');
+    const awayBook = document.getElementById('away-book');
 
-    const marginLabel = document.getElementById("margin-label");
-    if (!isNaN(margin) && margin !== 0) {
-        marginLabel.textContent = margin.toFixed(3) + "%";
-        marginLabel.classList.add(margin > 0 ? "positive" : "negative");
-    } else {
-        marginLabel.textContent = "--";
+    const homeOddInput = document.getElementById('home-odd');
+    const drawOddInput = document.getElementById('draw-odd');
+    const awayOddInput = document.getElementById('away-odd');
+
+    if (homeBook) homeBook.value = qs.homeBook || '';
+    if (drawBook) drawBook.value = qs.drawBook || '';
+    if (awayBook) awayBook.value = qs.awayBook || '';
+
+    if (homeOddInput) homeOddInput.value = qs.homeOdd || '';
+    if (drawOddInput) drawOddInput.value = qs.drawOdd || '';
+    if (awayOddInput) awayOddInput.value = qs.awayOdd || '';
+
+    // Referencias a stakes
+    const homeStake = document.getElementById('home-stake');
+    const drawStake = document.getElementById('draw-stake');
+    const awayStake = document.getElementById('away-stake');
+
+    // Totales
+    const totalPayoutInput = document.getElementById('total-payout');
+
+    const homeProfitSpan = document.getElementById('home-profit');
+    const drawProfitSpan = document.getElementById('draw-profit');
+    const awayProfitSpan = document.getElementById('away-profit');
+
+    const guaranteedProfitSpan = document.getElementById('guaranteed-profit');
+    const totalInvestSpan = document.getElementById('total-invest');
+
+    const recalcBtn = document.getElementById('recalc-btn');
+
+    // Radios D/F
+    const modes = {
+        home:  { D: document.getElementById('homeD'),  F: document.getElementById('homeF') },
+        draw:  { D: document.getElementById('drawD'),  F: document.getElementById('drawF') },
+        away:  { D: document.getElementById('awayD'),  F: document.getElementById('awayF') },
+        total: { D: document.getElementById('totalD'), F: document.getElementById('totalF') }
+    };
+
+    // Asegurar solo una F
+    function setExclusiveF(activeKey) {
+        for (const key of Object.keys(modes)) {
+            if (!modes[key].F) continue;
+            if (key === activeKey) {
+                modes[key].F.checked = true;
+            } else {
+                modes[key].D.checked = true;
+            }
+        }
     }
 
-    // Listeners
-    ["home-odd", "draw-odd", "away-odd", "total-stake"].forEach(id => {
-        document.getElementById(id).addEventListener("input", recalc);
+    for (const [key, pair] of Object.entries(modes)) {
+        if (!pair.F || !pair.D) continue;
+        pair.F.addEventListener('change', () => {
+            if (pair.F.checked) {
+                setExclusiveF(key);
+                recalc();
+            }
+        });
+        pair.D.addEventListener('change', recalc);
+    }
+
+    function currentMode() {
+        if (modes.total.F && modes.total.F.checked) return { type: 'total' };
+        if (modes.home.F && modes.home.F.checked)  return { type: 'stake', index: 0 };
+        if (modes.draw.F && modes.draw.F.checked)  return { type: 'stake', index: 1 };
+        if (modes.away.F && modes.away.F.checked)  return { type: 'stake', index: 2 };
+        return { type: 'none' };
+    }
+
+    function recalc() {
+        const odds = [
+            parseFloat(homeOddInput.value) || 0,
+            parseFloat(drawOddInput.value) || 0,
+            parseFloat(awayOddInput.value) || 0
+        ];
+
+        let stakes = [
+            parseFloat(homeStake.value) || 0,
+            parseFloat(drawStake.value) || 0,
+            parseFloat(awayStake.value) || 0
+        ];
+
+        let P = parseFloat(totalPayoutInput.value) || 0; // payout objetivo
+        const mode = currentMode();
+
+        // Si F en una apuesta: payout se define por esa apuesta fija
+        if (mode.type === 'stake') {
+            const i = mode.index;
+            const fixedStake = stakes[i];
+            if (fixedStake <= 0 || odds[i] <= 0) return;
+            P = fixedStake * odds[i];
+        }
+
+        // Si F en total: P ya viene del input
+        if (mode.type === 'total') {
+            if (P <= 0) return;
+        }
+
+        // Si ninguno es F: usamos P pero si no vale, ponemos 100
+        if (mode.type === 'none') {
+            if (P <= 0) P = 100;
+        }
+
+        // Calcular stakes según payout P
+        for (let i = 0; i < 3; i++) {
+            if (mode.type === 'stake' && i === mode.index) continue;
+            if (odds[i] > 0) {
+                stakes[i] = P / odds[i];
+            } else {
+                stakes[i] = 0;
+            }
+        }
+
+        // Actualizar stakes
+        homeStake.value = stakes[0].toFixed(2);
+        drawStake.value = stakes[1].toFixed(2);
+        awayStake.value = stakes[2].toFixed(2);
+
+        const T = stakes[0] + stakes[1] + stakes[2]; // inversión total
+        const B = P - T; // beneficio garantizado
+
+        totalPayoutInput.value = P.toFixed(2);
+
+        homeProfitSpan.textContent = B.toFixed(2);
+        drawProfitSpan.textContent = B.toFixed(2);
+        awayProfitSpan.textContent = B.toFixed(2);
+
+        guaranteedProfitSpan.textContent = B.toFixed(2);
+        totalInvestSpan.textContent  = T.toFixed(2);
+
+        // === FIX 2: CÁLCULO DE MARGEN Y ROI ===
+        const inv1 = odds[0] > 0 ? 1 / odds[0] : 0;
+        const invX = odds[1] > 0 ? 1 / odds[1] : 0;
+        const inv2 = odds[2] > 0 ? 1 / odds[2] : 0;
+
+        const roi = T > 0 ? (B / T) * 100 : 0;
+        document.getElementById("roi-label").textContent = roi.toFixed(3) + "%";
+    }
+
+    // Eventos
+    if (recalcBtn) recalcBtn.addEventListener('click', recalc);
+
+    [
+        homeOddInput, drawOddInput, awayOddInput,
+        homeStake, drawStake, awayStake,
+        totalPayoutInput
+    ].forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', recalc);
+        el.addEventListener('change', recalc);
+        el.addEventListener('blur', recalc);
     });
 
-    document.getElementById("recalc-btn").addEventListener("click", recalc);
-
+    // Primer cálculo
     recalc();
-}
-
-function recalc() {
-    const homeOdd = parseFloat(document.getElementById("home-odd").value);
-    const drawOdd = parseFloat(document.getElementById("draw-odd").value);
-    const awayOdd = parseFloat(document.getElementById("away-odd").value);
-    const totalStake = parseFloat(document.getElementById("total-stake").value);
-
-    const roiLabel = document.getElementById("roi-label");
-    const gProfitLabel = document.getElementById("guaranteed-profit");
-
-    roiLabel.textContent = "--";
-    roiLabel.classList.remove("positive", "negative");
-    gProfitLabel.textContent = "--";
-    gProfitLabel.classList.remove("positive", "negative");
-
-    if (!homeOdd || !drawOdd || !awayOdd || !totalStake) {
-        return;
-    }
-
-    const invSum = (1 / homeOdd) + (1 / drawOdd) + (1 / awayOdd);
-    if (invSum <= 0) return;
-
-    const stakeHome = totalStake / (homeOdd * invSum);
-    const stakeDraw = totalStake / (drawOdd * invSum);
-    const stakeAway = totalStake / (awayOdd * invSum);
-
-    document.getElementById("home-stake").value = stakeHome.toFixed(2);
-    document.getElementById("draw-stake").value = stakeDraw.toFixed(2);
-    document.getElementById("away-stake").value = stakeAway.toFixed(2);
-
-    const profitHome = stakeHome * homeOdd - totalStake;
-    const profitDraw = stakeDraw * drawOdd - totalStake;
-    const profitAway = stakeAway * awayOdd - totalStake;
-
-    document.getElementById("home-profit").textContent = profitHome.toFixed(2);
-    document.getElementById("draw-profit").textContent = profitDraw.toFixed(2);
-    document.getElementById("away-profit").textContent = profitAway.toFixed(2);
-
-    // deberían ser casi iguales, usamos la media
-    const avgProfit = (profitHome + profitDraw + profitAway) / 3;
-    const roi = (avgProfit / totalStake) * 100;
-
-    roiLabel.textContent = roi.toFixed(2) + "%";
-    gProfitLabel.textContent = avgProfit.toFixed(2);
-
-    const cls = roi >= 0 ? "positive" : "negative";
-    roiLabel.classList.add(cls);
-    gProfitLabel.classList.add(cls);
-}
-
-document.addEventListener("DOMContentLoaded", initCalculator);
+});

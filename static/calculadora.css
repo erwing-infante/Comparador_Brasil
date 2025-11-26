@@ -1,3 +1,4 @@
+/* ========= ESTILOS GENERALES ========= */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -5,14 +6,15 @@ body {
 }
 
 .calc-container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 20px auto;
     background: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
     padding: 20px;
 }
 
+/* CABECERA */
 .calc-header {
     display: flex;
     justify-content: space-between;
@@ -20,17 +22,23 @@ body {
 }
 
 .calc-subtitle {
+    margin: 0;
     color: #666;
     font-size: 0.9rem;
 }
 
+.calc-summary {
+    text-align: right;
+    font-size: 0.9rem;
+}
 .calc-summary span {
     font-weight: bold;
 }
 
+/* GRID PRINCIPAL (ESCRITORIO) */
 .calc-grid {
     display: grid;
-    grid-template-columns: repeat(3,1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     margin-top: 20px;
 }
@@ -42,45 +50,87 @@ body {
     background: #fafafa;
 }
 
-.calc-column h3 {
-    margin-top: 0;
+.calc-title {
     text-align: center;
-}
-
-.calc-row {
-    display: flex;
-    justify-content: space-between;
+    margin-top: 0;
     margin-bottom: 10px;
 }
 
-/* INPUTS NORMALES (las 3 columnas) */
+/* FILAS */
+.calc-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.calc-row label {
+    font-size: 0.9rem;
+    margin-right: 8px;
+}
+
 .calc-row input {
-    width: 55%;
-    padding: 4px;
+    padding: 4px 6px;
     border-radius: 4px;
     border: 1px solid #ccc;
-    text-align: right;
 }
 
-/* ========= FIX: APUESTA TOTAL ========= */
-#total-stake {
-    width: 120px !important;     /* antes heredaba 55% */
-    text-align: right;
-    padding: 4px;
+/* Alinear inputs a la derecha de la fila (especialmente totales) */
+.calc-row input:last-child {
+    margin-left: auto;
 }
 
-/* ========= FIN FIX ========= */
+/* INPUTS DE APUESTA */
+.stake-input {
+    width: 120px;
+}
 
-.calc-row.readonly span {
+/* SOLO LECTURA */
+.readonly span {
     font-weight: bold;
+    margin-left: auto;
 }
 
+/* BLOQUE D/F */
+.df-row {
+    gap: 6px;
+}
+
+.df-box {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 6px;
+}
+
+.df-box label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.8rem;
+}
+
+/* FOOTER */
 .calc-footer {
     margin-top: 20px;
     border-top: 1px solid #ddd;
     padding-top: 10px;
 }
 
+.total-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.total-row label {
+    width: 120px;
+}
+
+#total-payout {
+    width: 160px;
+}
+
+/* BOTONES */
 .calc-actions {
     margin-top: 15px;
     display: flex;
@@ -91,7 +141,7 @@ body {
     background: #0066cc;
     color: white;
     border: none;
-    padding: 7px 15px;
+    padding: 8px 18px;
     border-radius: 4px;
     cursor: pointer;
 }
@@ -103,62 +153,95 @@ body {
 .back-link {
     text-decoration: none;
     border: 1px solid #666;
-    padding: 7px 12px;
+    padding: 8px 14px;
     border-radius: 4px;
     color: #333;
 }
 
-/* =====================================================
-        📱 RESPONSIVE PARA CELULARES
-   ===================================================== */
+/* VALORES */
+#home-profit,
+#draw-profit,
+#away-profit,
+#guaranteed-profit,
+#total-invest {
+    min-width: 80px;
+    text-align: right;
+}
 
+/* ========== RESPONSIVE PARA CELULAR ========== */
 @media (max-width: 768px) {
 
     .calc-container {
+        margin: 10px;
         padding: 15px;
-    }
-
-    .calc-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .calc-column {
-        margin-bottom: 20px;
-    }
-
-    .calc-row input {
-        width: 60% !important;
-        font-size: 1rem;
-        padding: 8px;
-    }
-
-    /* FIX también aplica al responsive */
-    #total-stake {
-        width: 150px !important;
-        padding: 8px;
-        font-size: 1rem;
     }
 
     .calc-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 4px;
     }
 
     .calc-summary {
         text-align: left;
     }
 
+    .calc-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calc-column {
+        margin-bottom: 10px;
+    }
+
+    .calc-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .calc-row label {
+        margin-bottom: 4px;
+    }
+
+    .calc-row input {
+        width: 100%;
+        margin-left: 0;
+        box-sizing: border-box;
+    }
+
+    .readonly span {
+        align-self: flex-end;
+        margin-left: 0;
+    }
+
+    .df-row {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+    }
+
+    .df-row .df-box {
+        margin-left: 0;
+        margin-right: 6px;
+    }
+
+    .total-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    #total-payout {
+        flex: 1;
+        min-width: 120px;
+    }
+
     .calc-actions {
         flex-direction: column;
-        width: 100%;
     }
 
     .calc-actions button,
     .calc-actions .back-link {
         width: 100%;
         text-align: center;
-        padding: 10px;
-        font-size: 1rem;
     }
 }
