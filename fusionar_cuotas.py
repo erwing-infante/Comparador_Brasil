@@ -29,7 +29,7 @@ SIM_THRESHOLD = 0.40
 BOOKMAKERS_EXCLUIR_HA = {"betcris", "betsson", "1xbet", "pinnacle"}
 
 # ============================================================
-# NORMALIZACIÓN
+# NORMALIZACIÓN DE EQUIPOS
 # ============================================================
 
 STOP_TOKENS = {
@@ -45,30 +45,67 @@ def quitar_acentos(s: str) -> str:
         if not unicodedata.combining(c)
     )
 
+def similitud(a: str, b: str) -> float:
+    return SequenceMatcher(None, a, b).ratio()
+
+# ============================================================
+# 🔥 FUNCIÓN DEFINITIVA para normalización con similitud
+# ============================================================
+
 def limpiar_equipo(nombre: str) -> str:
     if not isinstance(nombre, str):
         return ""
 
+    # ============================================================
+    # 1) NOMBRE EXACTO DEL SCRAPER
+    # ============================================================
     original = nombre.strip()
 
-    # 🔥 1) BÚSQUEDA DIRECTA EN EL DICCIONARIO PLANO EXTERNO (exacto)
-    if original in EQUIVALENCIAS_EQUIPOS:
-        return EQUIVALENCIAS_EQUIPOS[original]
+    # lookup normalizado a minúsculas (solo para buscar)
+    lookup = quitar_acentos(original).lower().strip()
 
-    # 🔥 2) Fallback → limpieza automática
-    nombre = quitar_acentos(original).lower()
-    nombre = nombre.replace("\t", " ").replace("\n", " ")
-    nombre = nombre.replace("-", " ").replace("_", " ").replace("/", " ")
+    # ------------ Buscar EXACTO en equivalencias ------------
+    if lookup in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[lookup]
 
-    tokens = [t for t in nombre.split() if t not in STOP_TOKENS]
-    limpio = " ".join(tokens).strip()
+    # ------------ Buscar por similitud ------------
+    for key in EQUIVALENCIAS_EQUIPOS:
+        if similitud(lookup, key) >= 0.88:
+            return EQUIVALENCIAS_EQUIPOS[key]
 
-    # Si este limpio coincide con una clave del diccionario → normalizar
-    if limpio in EQUIVALENCIAS_EQUIPOS:
-        return EQUIVALENCIAS_EQUIPOS[limpio]
+    # ============================================================
+    # 2) Limpieza ligera (acentos + basura)
+    # ============================================================
+    limpio = quitar_acentos(original).lower()
 
-    # Último fallback → devolver limpio
-    return limpio or original
+    for bad in ["t/t", "t//t", "//", "/", "\\", "\t", "\n", "|"]:
+        limpio = limpio.replace(bad, " ")
+
+    limpio = " ".join(limpio.split()).strip()
+
+    # ============================================================
+    # 3) Fallback → quitar tokens (fc, sc, mg, rj...)
+    # ============================================================
+    tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
+    fallback = " ".join(tokens).strip()
+
+    # ------------ Buscar fallback EXACTO ------------
+    if fallback in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[fallback]
+
+    # ------------ Buscar fallback por similitud ------------
+    for key in EQUIVALENCIAS_EQUIPOS:
+        if similitud(fallback, key) >= 0.88:
+            return EQUIVALENCIAS_EQUIPOS[key]
+
+    # ============================================================
+    # 4) Último recurso
+    # ============================================================
+    return fallback or original
+
+# ============================================================
+# TEAM SHORT NAME
+# ============================================================
 
 def team_short(name: str) -> str:
     limpio = limpiar_equipo(name)
@@ -78,9 +115,6 @@ def team_short(name: str) -> str:
     if not tokens:
         return "desconocido"
     return max(tokens, key=len)
-
-def similitud(a: str, b: str) -> float:
-    return SequenceMatcher(None, a, b).ratio()
 
 # ============================================================
 # CARGA JSON
@@ -125,8 +159,8 @@ def cargar_json(ruta: str) -> pd.DataFrame:
             df.loc[vacios, "Local"] = equipos[0].str.strip()
             df.loc[vacios, "Visita"] = equipos[1].str.strip()
 
-    # 🔥 NORMALIZACIÓN EXTERNA DEFINITIVA
-    df["Local"] = df["Local"].astype(str).apply(limpiar_equipo)
+    # 🔥 NORMALIZACIÓN FINAL
+    df["Local"]  = df["Local"].astype(str).apply(limpiar_equipo)
     df["Visita"] = df["Visita"].astype(str).apply(limpiar_equipo)
 
     df["home_short"] = df["Local"].apply(team_short)
@@ -141,7 +175,7 @@ def cargar_json(ruta: str) -> pd.DataFrame:
     return df
 
 # ============================================================
-# FUSIÓN CON BUCKETS
+# FUSIÓN DE CUOTAS
 # ============================================================
 
 def partido_hash(row):
@@ -153,7 +187,7 @@ def partido_hash(row):
     )
 
 def fusionar_cuotas():
-    print("Fusionando con equivalencias externas (diccionario plano)...")
+    print("Fusionando con equivalencias externas + similitud...")
 
     df_list = []
     fuentes_ok = []
@@ -262,10 +296,6 @@ def fusionar_cuotas():
                 "best_away": {"odd": ba, "bookmaker": ba_bm},
             })
 
-    # ============================================================
-    # SALIDA FINAL
-    # ============================================================
-
     salida = {
         "metadata": {
             "updated": datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S"),
@@ -289,7 +319,6 @@ def fusionar_cuotas():
         json.dump(salida, f, indent=2, ensure_ascii=False)
 
     print(f"✔ Archivo actualizado: {OUT_FILE}")
-
 
 if __name__ == "__main__":
     fusionar_cuotas()
