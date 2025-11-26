@@ -18,8 +18,8 @@ ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas.json")
 TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
 CHAT_ID = int(os.getenv("SMART_BOT_CHAT_ID"))
 
-# UMBRAL → ALARMAR SI margen_jugador >= -1%
-UMBRAL_JUGADOR = -1.0   # -1%
+# UMBRAL → ALARMAR SI margen_jugador >= -1.25%
+UMBRAL_JUGADOR = -1.25   # -1.25%
 
 
 # ================================================================

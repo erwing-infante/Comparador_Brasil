@@ -1,4 +1,4 @@
-// ======== CALCULADORA MANCORABET CON D/F ========
+// ======== CALCULADORA MANCORABET CON D/F oks ========
 function parseQuery() {
     const params = {};
     const q = window.location.search.substring(1).split('&');
