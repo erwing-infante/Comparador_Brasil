@@ -8,8 +8,8 @@ import requests
 # ================================================================
 # CONFIGURACIÓN DEL BOT DE MOVIMIENTOS
 # ================================================================
-TELEGRAM_TOKEN = "8410540459:AAGSji8uIRoNb1J8L1x9LW27PYVCq0674EM"
-CHAT_ID = 1925286468
+TELEGRAM_TOKEN = os.getenv("MOV_BOT_TOKEN")
+CHAT_ID = int(os.getenv("MOV_BOT_CHAT_ID"))
 
 # Umbral del movimiento brusco (5%)
 MOVIMIENTO_UMBRAL = 0.05    # 5%

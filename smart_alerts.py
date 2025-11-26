@@ -15,8 +15,8 @@ CUOTAS_FILE = os.path.join(DATA_DIR, "cuotas.json")
 ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas.json")
 
 # Bot Telegram
-TELEGRAM_TOKEN = "8437333293:AAFvIuvAG8-qU_nJiRJksGQS1C3nqKtS9r4"
-CHAT_ID = 1925286468
+TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
+CHAT_ID = int(os.getenv("SMART_BOT_CHAT_ID"))
 
 # UMBRAL → ALARMAR SI margen_jugador >= -1%
 UMBRAL_JUGADOR = -1.0   # -1%
