@@ -35,6 +35,36 @@ def index():
         return redirect(url_for("login"))
     return render_template("index.html")
 
+from flask import Flask, render_template, request
+
+@app.route("/calculadora")
+def calculadora():
+    name = request.args.get("name", "")
+    date = request.args.get("date", "")
+    league = request.args.get("league", "")
+    
+    homeOdd = request.args.get("homeOdd", "")
+    homeBook = request.args.get("homeBook", "")
+    
+    drawOdd = request.args.get("drawOdd", "")
+    drawBook = request.args.get("drawBook", "")
+    
+    awayOdd = request.args.get("awayOdd", "")
+    awayBook = request.args.get("awayBook", "")
+
+    return render_template(
+        "calculadora.html",
+        name=name,
+        date=date,
+        league=league,
+        homeOdd=homeOdd,
+        homeBook=homeBook,
+        drawOdd=drawOdd,
+        drawBook=drawBook,
+        awayOdd=awayOdd,
+        awayBook=awayBook
+    )
+
 # ---------- API ABIERTA (puedes protegerla si quieres) ----------
 @app.route("/api/cuotas")
 def api_cuotas():
