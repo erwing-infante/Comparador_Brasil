@@ -16,7 +16,11 @@ ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas.json")
 
 # Bot Telegram
 TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
-CHAT_ID = int(os.getenv("SMART_BOT_CHAT_ID"))
+CHAT_IDS = [
+    int(os.getenv("MOV_BOT_CHAT_ID_1")),
+    int(os.getenv("MOV_BOT_CHAT_ID_2")),
+]
+CHAT_IDS = [cid for cid in CHAT_IDS if cid]   # limpia nulos
 
 # UMBRAL → ALARMAR SI margen_jugador >= -1.25%
 UMBRAL_JUGADOR = -1.25   # -1.25%
@@ -28,10 +32,11 @@ UMBRAL_JUGADOR = -1.25   # -1.25%
 
 def enviar_alerta(mensaje: str) -> None:
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    for cid in CHAT_IDS:
     payload = {
-        "chat_id": CHAT_ID,
-        "text": mensaje,
-        "parse_mode": "HTML",
+        "chat_id": cid,
+        "text": msg,
+        "parse_mode": "HTML"
     }
     try:
         r = requests.post(url, data=payload, timeout=10)
