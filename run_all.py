@@ -53,7 +53,7 @@ def main():
 
     procesos = []
 
-    # 1️⃣ Ejecutar extractores
+    # 1️⃣ Ejecutar extractores EN PARALELO
     print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
 
     for script in SCRIPTS_EXTRACTORES:
@@ -70,7 +70,7 @@ def main():
         )
         procesos.append((script, p))
 
-    # 2️⃣ Procesar resultados
+    # Procesar resultados de extractores
     for script, p in procesos:
         stdout, stderr = p.communicate()
 
@@ -79,7 +79,7 @@ def main():
         output = (stdout or "") + "\n" + (stderr or "")
         print(output)
 
-        # 🟨 Manejo de fallos de OddsAPI
+        # 🟨 Si OddsAPI falló → borrar archivo viejo
         if script == "cuotas_oddsapi.py" and oddsapi_fallo(output):
             ruta_odds = os.path.join(DATA_DIR, "cuotas_oddsapi.json")
 
@@ -94,7 +94,7 @@ def main():
             except Exception as e:
                 print(f"[ERROR] No se pudo eliminar archivo OddsAPI: {e}")
 
-    # 3️⃣ Ejecutar fusión
+    # 2️⃣ Ejecutar FUSIÓN → genera cuotas.json actualizado
     print("\n[INFO] Ejecutando fusión final...\n")
     fusion_path = os.path.join(BASE_DIR, SCRIPT_FUSION)
     stdout, stderr = ejecutar_script(fusion_path)
@@ -106,29 +106,28 @@ def main():
     else:
         print(stdout)
 
+    # =============================================
+    # 3️⃣ SMART ALERTS (ahora sí con cuotas.json actualizado)
+    # =============================================
+    print("[INFO] Lanzando: smart_alerts.py")
+    os.system(f"{PYTHON} smart_alerts.py")
+
+    # =============================================
+    # 4️⃣ HISTORICO BET365
+    # =============================================
+    print("[INFO] Histórico Bet365")
+    os.system(f"{PYTHON} historico_bet365.py")
+
+    # =============================================
+    # 5️⃣ MOVIMIENTOS BET365
+    # =============================================
+    print("[INFO] Movimientos bruscos Bet365")
+    os.system(f"{PYTHON} movimientos_bet365.py")
+
     print("\n==============================")
     print(f"Ciclo completado a las {datetime.datetime.now().strftime('%H:%M:%S')}")
     print("==============================\n")
 
-# =============================================
-# SMART ALERTS - Enviar alertas inteligentes
-# =============================================
-print("[INFO] Lanzando: smart_alerts.py")
-os.system(f"{PYTHON} smart_alerts.py")
-
-# =============================================
-# HISTORICO BET365
-# =============================================
-
-print("[INFO] Histórico Bet365")
-os.system(f"{PYTHON} historico_bet365.py")
-
-# =============================================
-# MOVIMIENTOS BET365
-# =============================================
-
-print("[INFO] Movimientos bruscos Bet365")
-os.system(f"{PYTHON} movimientos_bet365.py")
 
 if __name__ == "__main__":
     main()

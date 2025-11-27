@@ -42,9 +42,6 @@ def enviar_alerta(mensaje: str) -> None:
 
 
 def calcular_margen(c1: float, c2: float, c3: float):
-    """
-    Margen real del mercado (positivo = mala para jugador).
-    """
     try:
         return (1/c1 + 1/c2 + 1/c3) * 100 - 100
     except:
@@ -74,11 +71,28 @@ def generar_clave(liga, fecha, home, away):
 
 
 # ================================================================
+# 🔄 CONVERTIR FECHA UTC → AMERICA/LIMA
+# ================================================================
+
+def convertir_a_lima(fecha_str):
+    """
+    Entrada viene así:  '2025-11-27 17:45 UTC'
+    """
+    try:
+        fecha_str = fecha_str.replace(" UTC", "")
+        dt_utc = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M")
+        dt_utc = dt_utc.replace(tzinfo=ZoneInfo("UTC"))
+        dt_lima = dt_utc.astimezone(ZoneInfo("America/Lima"))
+        return dt_lima.strftime("%Y-%m-%d %H:%M")
+    except Exception:
+        return fecha_str  # fallback
+
+
+# ================================================================
 # ALERTAS INTELIGENTES
 # ================================================================
 
 def procesar_alertas():
-    # 1) Leer cuotas.json
     if not os.path.exists(CUOTAS_FILE):
         print(f"❌ No existe {CUOTAS_FILE}")
         return
@@ -86,13 +100,11 @@ def procesar_alertas():
     with open(CUOTAS_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # 2) Estado previo de cuotas (para detectar cambios)
     estado_prev = cargar_json(ESTADO_FILE, default={})
     estado_new = {}
 
     ahora = datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S")
 
-    # 3) Recorrer todas las ligas
     for liga, partidos in data.items():
         if liga == "metadata":
             continue
@@ -123,17 +135,14 @@ def procesar_alertas():
             except:
                 continue
 
-            # ==== 4) MARGEN REAL + MARGEN JUGADOR ====
             margen_real = calcular_margen(c1, c2, c3)
             if margen_real is None:
                 continue
 
-            # Margen que muestras en la web (invertido)
             margen_jugador = -1 * margen_real
 
             clave = generar_clave(liga, fecha, home, away)
 
-            # Guardar estado nuevo
             estado_actual = {
                 "home_odd": c1,
                 "draw_odd": c2,
@@ -143,39 +152,22 @@ def procesar_alertas():
             }
             estado_new[clave] = estado_actual
 
-            # =====================================================
-            # 🔥 CONDICIÓN PARA ALERTAR:
-            #
-            # margen_jugador >= -1%
-            #
-            # Ejemplos que SÍ alertan:
-            # -0.99%
-            # -0.50%
-            #  0.00%
-            # +0.50%
-            # +1.00%
-            # +10%
-            #
-            # =====================================================
             if margen_jugador < UMBRAL_JUGADOR:
                 continue
 
             prev = estado_prev.get(clave)
 
-            # 1) Primera vez que aparece
             if prev is None:
                 enviar_alerta_armada(liga, p, margen_jugador)
                 estado_actual["alert_enviada"] = True
                 continue
 
-            # 2) Detectar cambio en cuotas
             cambio_cuotas = (
                 round(prev.get("home_odd", 0), 3) != round(c1, 3) or
                 round(prev.get("draw_odd", 0), 3) != round(c2, 3) or
                 round(prev.get("away_odd", 0), 3) != round(c3, 3)
             )
 
-            # 3) Detectar cruce hacia el umbral
             cruce_umbral = (
                 prev.get("margen_jugador", -999) < UMBRAL_JUGADOR
                 and margen_jugador >= UMBRAL_JUGADOR
@@ -185,7 +177,6 @@ def procesar_alertas():
                 enviar_alerta_armada(liga, p, margen_jugador)
                 estado_actual["alert_enviada"] = True
 
-    # 5) Guardar estado actualizado
     guardar_json(ESTADO_FILE, estado_new)
     print(f"✔ smart_alerts ejecutado correctamente.")
 
@@ -197,7 +188,8 @@ def procesar_alertas():
 def enviar_alerta_armada(liga, p, margen_jugador):
     home = p.get("home")
     away = p.get("away")
-    fecha = p.get("date")
+    fecha_utc = p.get("date")
+    fecha_lima = convertir_a_lima(fecha_utc)
 
     bh = p.get("best_home") or {}
     bd = p.get("best_draw") or {}
@@ -208,7 +200,7 @@ def enviar_alerta_armada(liga, p, margen_jugador):
 
 <b>{home} vs {away}</b>
 Liga: <b>{liga}</b>
-Fecha: <b>{fecha}</b>
+Fecha: <b>{fecha_lima} (GMT-5)</b>
 
 Margen combinado: <b>{margen_jugador:.2f}%</b>
 
