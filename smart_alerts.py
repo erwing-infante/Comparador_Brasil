@@ -16,9 +16,10 @@ ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas.json")
 
 # Bot Telegram
 TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
+CHAT_ID = int(os.getenv("SMART_BOT_CHAT_ID"))
 CHAT_IDS = [
-    int(os.getenv("MOV_BOT_CHAT_ID_1")),
-    int(os.getenv("MOV_BOT_CHAT_ID_2")),
+    int(os.getenv("SMART_BOT_CHAT_ID_1")),
+    int(os.getenv("SMART_BOT_CHAT_ID_2")),
 ]
 CHAT_IDS = [cid for cid in CHAT_IDS if cid]   # limpia nulos
 
