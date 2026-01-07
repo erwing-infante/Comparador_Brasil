@@ -1,0 +1,953 @@
+{
+  "09:43:14": {
+    "fluminense rj vs sao paulo": {
+      "local": 1.72,
+      "empate": 3.3,
+      "visita": 5.5
+    },
+    "ec juventude rs vs ec bahia ba": {
+      "local": 3.6,
+      "empate": 3.2,
+      "visita": 2.15
+    },
+    "cr vao da gama rj vs internacional rs": {
+      "local": 2.15,
+      "empate": 3.25,
+      "visita": 3.6
+    },
+    "ec vitoria ba vs mirassol": {
+      "local": 2.4,
+      "empate": 3.2,
+      "visita": 3.0
+    },
+    "werder bremen vs 1 cologne": {
+      "local": 2.2,
+      "empate": 3.7,
+      "visita": 2.9
+    },
+    "tsg hoffenheim vs augsburg": {
+      "local": 1.7,
+      "empate": 4.33,
+      "visita": 4.2
+    },
+    "bayern munich vs st pauli": {
+      "local": 1.1,
+      "empate": 10.0,
+      "visita": 19.0
+    },
+    "union berlin vs 1 heidenheim": {
+      "local": 1.65,
+      "empate": 3.9,
+      "visita": 5.25
+    },
+    "bayer leverkusen vs borussia dortmund": {
+      "local": 2.55,
+      "empate": 3.6,
+      "visita": 2.62
+    },
+    "oxford united vs ipswich town": {
+      "local": 5.5,
+      "empate": 3.9,
+      "visita": 1.55
+    },
+    "portsmouth vs bristol city": {
+      "local": 2.5,
+      "empate": 3.3,
+      "visita": 2.62
+    },
+    "stoke city vs hull city": {
+      "local": 1.66,
+      "empate": 3.75,
+      "visita": 4.75
+    },
+    "sheffield wednesday vs preston north end": {
+      "local": 3.2,
+      "empate": 3.4,
+      "visita": 2.1
+    },
+    "millwall vs southampton": {
+      "local": 3.2,
+      "empate": 3.4,
+      "visita": 2.1
+    },
+    "west bromwich albion vs swansea city": {
+      "local": 1.85,
+      "empate": 3.4,
+      "visita": 4.0
+    },
+    "wrexham a vs blackburn rovers": {
+      "local": 2.2,
+      "empate": 3.3,
+      "visita": 3.1
+    },
+    "norwich city vs queens park rangers": {
+      "local": 2.3,
+      "empate": 3.5,
+      "visita": 2.75
+    },
+    "coventry city vs charlton athletic": {
+      "local": 1.4,
+      "empate": 4.2,
+      "visita": 7.5
+    },
+    "middlesbrough vs derby county": {
+      "local": 1.7,
+      "empate": 3.5,
+      "visita": 4.75
+    },
+    "se palmeiras vs cr flamengo rj": {
+      "local": 3.1,
+      "empate": 3.0,
+      "visita": 2.5
+    },
+    "pec zwolle vs heerenveen": {
+      "local": 3.6,
+      "empate": 3.9,
+      "visita": 1.85
+    },
+    "exlsior rotterdam vs nac breda": {
+      "local": 2.25,
+      "empate": 3.5,
+      "visita": 3.0
+    },
+    "fortuna sittard vs heracles almelo": {
+      "local": 2.05,
+      "empate": 3.6,
+      "visita": 3.4
+    },
+    "nec nijmegen vs arta rotterdam": {
+      "local": 1.61,
+      "empate": 4.33,
+      "visita": 4.75
+    },
+    "getafe cf vs elche cf": {
+      "local": 2.2,
+      "empate": 3.0,
+      "visita": 3.7
+    },
+    "rcd mallorca vs ca osasuna": {
+      "local": 2.3,
+      "empate": 3.1,
+      "visita": 3.25
+    },
+    "barlona vs deportivo alaves": {
+      "local": 1.2,
+      "empate": 7.0,
+      "visita": 13.0
+    },
+    "levante ud vs athletic bilbao": {
+      "local": 3.3,
+      "empate": 3.4,
+      "visita": 2.15
+    },
+    "atletico madrid vs real oviedo": {
+      "local": 1.2,
+      "empate": 6.0,
+      "visita": 13.0
+    },
+    "orting gijon vs andorra": {
+      "local": 2.0,
+      "empate": 3.3,
+      "visita": 3.7
+    },
+    "ad uta vs burgos cf": {
+      "local": 2.35,
+      "empate": 3.0,
+      "visita": 3.3
+    },
+    "cultural leonesa vs granada cf": {
+      "local": 2.62,
+      "empate": 3.1,
+      "visita": 2.7
+    },
+    "albate balompie vs rc deportivo la coruna": {
+      "local": 2.45,
+      "empate": 3.4,
+      "visita": 2.7
+    },
+    "ud almeria vs sd huea": {
+      "local": 1.57,
+      "empate": 3.75,
+      "visita": 5.75
+    },
+    "real valladolid vs malaga cf": {
+      "local": 1.7,
+      "empate": 3.4,
+      "visita": 5.25
+    },
+    "cf monterrey vs cf america": {
+      "local": 2.75,
+      "empate": 3.2,
+      "visita": 2.7
+    },
+    "club tijuana de caliente vs tigres uanl": {
+      "local": 3.5,
+      "empate": 3.5,
+      "visita": 2.05
+    },
+    "cd guadalajara vs cf cruz azul": {
+      "local": 2.37,
+      "empate": 3.4,
+      "visita": 3.0
+    },
+    "as monaco vs paris saint-germain": {
+      "local": 4.75,
+      "empate": 4.33,
+      "visita": 1.61
+    },
+    "paris vs aj auxerre": {
+      "local": 1.8,
+      "empate": 3.7,
+      "visita": 4.33
+    },
+    "olympique marseille vs toulouse": {
+      "local": 1.6,
+      "empate": 3.9,
+      "visita": 5.5
+    },
+    "inter miami cf vs new york city": {
+      "local": 1.48,
+      "empate": 4.5,
+      "visita": 5.75
+    },
+    "manchester city vs leeds united": {
+      "local": 1.25,
+      "empate": 6.0,
+      "visita": 11.0
+    },
+    "brentford vs burnley": {
+      "local": 1.45,
+      "empate": 4.2,
+      "visita": 7.5
+    },
+    "sunderland a vs a bournemouth": {
+      "local": 3.0,
+      "empate": 3.3,
+      "visita": 2.35
+    },
+    "everton vs newcastle united": {
+      "local": 2.75,
+      "empate": 3.2,
+      "visita": 2.55
+    },
+    "tottenham hotur vs fulham": {
+      "local": 2.05,
+      "empate": 3.4,
+      "visita": 3.5
+    },
+    "vitoria guimaraes vs avs futebol sad": {
+      "local": 1.61,
+      "empate": 3.8,
+      "visita": 5.5
+    },
+    "casa pia lisbon vs alverca sad": {
+      "local": 2.45,
+      "empate": 3.1,
+      "visita": 3.0
+    },
+    "moreirense vs famalicao": {
+      "local": 3.6,
+      "empate": 3.3,
+      "visita": 2.05
+    },
+    "nacional da madeira vs sl benfica": {
+      "local": 7.5,
+      "empate": 5.25,
+      "visita": 1.36
+    },
+    "gil vinte barlos vs cd tondela": {
+      "local": 1.6,
+      "empate": 3.6,
+      "visita": 6.0
+    },
+    "como 1907 vs sassuolo calcio": {
+      "local": 1.61,
+      "empate": 3.8,
+      "visita": 5.75
+    },
+    "genoa c vs hellas verona": {
+      "local": 2.05,
+      "empate": 3.0,
+      "visita": 4.2
+    },
+    "parma calcio vs udinese calcio": {
+      "local": 2.62,
+      "empate": 3.1,
+      "visita": 2.8
+    },
+    "juventus turin vs cagliari calcio": {
+      "local": 1.3,
+      "empate": 5.0,
+      "visita": 12.0
+    },
+    "ac milan vs lazio rome": {
+      "local": 1.57,
+      "empate": 4.1,
+      "visita": 5.75
+    },
+    "sk slovan bratislava vs rayo vallecano": {
+      "local": 4.75,
+      "empate": 3.9,
+      "visita": 1.66
+    },
+    "sk sigma olomouc vs nk lje": {
+      "local": 2.4,
+      "empate": 3.4,
+      "visita": 2.8
+    },
+    "az alkmaar vs shelbourne": {
+      "local": 1.16,
+      "empate": 7.0,
+      "visita": 17.0
+    },
+    "hamrun artans vs lincoln red imps": {
+      "local": 1.65,
+      "empate": 3.9,
+      "visita": 4.75
+    },
+    "kks lech poznan vs lausanne-ort": {
+      "local": 1.8,
+      "empate": 4.2,
+      "visita": 3.7
+    },
+    "ac omonia nicosia vs dynamo kyiv": {
+      "local": 2.2,
+      "empate": 3.4,
+      "visita": 3.1
+    },
+    "aberdeen vs noah yerevan": {
+      "local": 2.15,
+      "empate": 3.4,
+      "visita": 3.3
+    },
+    "shamrock rovers vs shakhtar donetsk": {
+      "local": 6.5,
+      "empate": 5.0,
+      "visita": 1.4
+    },
+    "kf drita vs shkendija tetovo": {
+      "local": 2.7,
+      "empate": 2.9,
+      "visita": 3.0
+    },
+    "strasbourg alsa vs crystal pala": {
+      "local": 3.7,
+      "empate": 3.4,
+      "visita": 2.0
+    },
+    "breidablik kopavogur vs samsunor": {
+      "local": 5.0,
+      "empate": 4.5,
+      "visita": 1.57
+    },
+    "hnk rijeka vs aek larnaca": {
+      "local": 2.15,
+      "empate": 3.3,
+      "visita": 3.3
+    },
+    "legia warszawa vs arta prague": {
+      "local": 2.6,
+      "empate": 3.4,
+      "visita": 2.62
+    },
+    "acf fiorentina vs aek athens": {
+      "local": 1.72,
+      "empate": 3.7,
+      "visita": 4.75
+    },
+    "viktoria plzen vs freiburg": {
+      "local": 3.25,
+      "empate": 3.4,
+      "visita": 2.2
+    },
+    "fenerbah istanbul vs ferencvarosi budapest": {
+      "local": 1.6,
+      "empate": 4.2,
+      "visita": 5.0
+    },
+    "as roma vs midtjylland": {
+      "local": 1.44,
+      "empate": 4.5,
+      "visita": 7.0
+    },
+    "porto vs ogc ni": {
+      "local": 1.4,
+      "empate": 5.0,
+      "visita": 7.0
+    },
+    "aston villa vs young boys bern": {
+      "local": 1.2,
+      "empate": 7.5,
+      "visita": 11.0
+    },
+    "feyenoord rotterdam vs ltic glasgow": {
+      "local": 1.7,
+      "empate": 4.2,
+      "visita": 4.5
+    },
+    "lille o vs gnk dinamo zagreb": {
+      "local": 1.53,
+      "empate": 4.33,
+      "visita": 5.75
+    },
+    "bologna vs salzburg": {
+      "local": 1.4,
+      "empate": 5.0,
+      "visita": 7.0
+    },
+    "krc genk vs basel 1893": {
+      "local": 1.9,
+      "empate": 4.0,
+      "visita": 3.5
+    },
+    "panathinaikos athens vs sk sturm graz": {
+      "local": 1.7,
+      "empate": 3.75,
+      "visita": 5.0
+    },
+    "glasgow rangers vs braga": {
+      "local": 3.25,
+      "empate": 3.4,
+      "visita": 2.25
+    },
+    "maccabi tel aviv vs olympique lyon": {
+      "local": 4.5,
+      "empate": 3.75,
+      "visita": 1.8
+    },
+    "real betis seville vs utrecht": {
+      "local": 1.36,
+      "empate": 5.25,
+      "visita": 8.0
+    },
+    "fk crvena zvezda belgrade vs fotbal club sb": {
+      "local": 1.48,
+      "empate": 4.5,
+      "visita": 6.5
+    },
+    "go ahead eagles vs vfb stuttgart": {
+      "local": 6.25,
+      "empate": 4.5,
+      "visita": 1.48
+    },
+    "nottingham forest vs malmo ff": {
+      "local": 1.2,
+      "empate": 6.5,
+      "visita": 13.0
+    }
+  },
+  "ULTIMO": {
+    "cr vao da gama rj vs mirassol": {
+      "local": 2.1,
+      "empate": 3.4,
+      "visita": 3.5
+    },
+    "gremio fb porto alegrense rs vs fluminense rj": {
+      "local": 3.0,
+      "empate": 3.2,
+      "visita": 2.45
+    },
+    "red bull bragantino vs ec vitoria ba": {
+      "local": 1.95,
+      "empate": 3.4,
+      "visita": 4.1
+    },
+    "fortaleza ec vs corinthians": {
+      "local": 1.8,
+      "empate": 3.5,
+      "visita": 4.75
+    },
+    "ec juventude rs vs santos": {
+      "local": 4.75,
+      "empate": 3.6,
+      "visita": 1.75
+    },
+    "sao paulo vs internacional rs": {
+      "local": 2.75,
+      "empate": 3.1,
+      "visita": 2.75
+    },
+    "atletico mineiro mg vs se palmeiras": {
+      "local": 3.2,
+      "empate": 3.1,
+      "visita": 2.4
+    },
+    "cr flamengo rj vs ara": {
+      "local": 1.25,
+      "empate": 5.5,
+      "visita": 13.0
+    },
+    "cruzeiro ec mg vs botafogo fr rj": {
+      "local": 2.05,
+      "empate": 3.2,
+      "visita": 4.0
+    },
+    "tranmere rovers vs fleetwood town": {
+      "local": 2.15,
+      "empate": 3.75,
+      "visita": 2.8
+    },
+    "stevenage vs walsall": {
+      "local": 2.2,
+      "empate": 3.3,
+      "visita": 3.0
+    },
+    "northampton town vs wycombe wanderers": {
+      "local": 2.8,
+      "empate": 3.4,
+      "visita": 2.2
+    },
+    "lincoln city vs huddersfield town": {
+      "local": 2.37,
+      "empate": 3.6,
+      "visita": 2.55
+    },
+    "leyton orient london vs plymouth argyle": {
+      "local": 2.1,
+      "empate": 3.7,
+      "visita": 2.87
+    },
+    "port vale vs barnsley": {
+      "local": 2.5,
+      "empate": 3.6,
+      "visita": 2.37
+    },
+    "luton town vs exeter city": {
+      "local": 1.48,
+      "empate": 3.9,
+      "visita": 6.25
+    },
+    "bolton wanderers vs bradford city": {
+      "local": 1.66,
+      "empate": 4.2,
+      "visita": 3.9
+    },
+    "salford city vs rotherham united": {
+      "local": 2.35,
+      "empate": 3.5,
+      "visita": 2.62
+    },
+    "bristol rovers vs cambridge united": {
+      "local": 2.8,
+      "empate": 2.9,
+      "visita": 2.55
+    },
+    "doncaster rovers vs chesterfield": {
+      "local": 1.66,
+      "empate": 4.2,
+      "visita": 3.9
+    },
+    "cardiff city vs a wimbledon": {
+      "local": 2.15,
+      "empate": 3.75,
+      "visita": 2.7
+    },
+    "harrogate town vs blackpool": {
+      "local": 3.1,
+      "empate": 3.4,
+      "visita": 2.1
+    },
+    "swindon town vs peterborough united": {
+      "local": 2.55,
+      "empate": 3.6,
+      "visita": 2.35
+    },
+    "crewe alexandra vs stockport county": {
+      "local": 3.4,
+      "empate": 3.7,
+      "visita": 1.9
+    },
+    "blackburn rovers vs ipswich town": {
+      "local": 4.0,
+      "empate": 3.5,
+      "visita": 1.95
+    },
+    "hertha b vs 1 kaiserslautern": {
+      "local": 1.9,
+      "empate": 3.4,
+      "visita": 3.3
+    },
+    "rb leipzig vs 1 magdeburg": {
+      "local": 1.28,
+      "empate": 6.5,
+      "visita": 7.5
+    },
+    "borussia dortmund vs bayer leverkusen": {
+      "local": 1.8,
+      "empate": 4.0,
+      "visita": 3.8
+    },
+    "freiburg vs sv darmstadt 98": {
+      "local": 1.6,
+      "empate": 4.2,
+      "visita": 4.75
+    },
+    "vfl bochum vs vfb stuttgart": {
+      "local": 6.25,
+      "empate": 5.0,
+      "visita": 1.4
+    },
+    "union berlin vs bayern munich": {
+      "local": 8.0,
+      "empate": 6.5,
+      "visita": 1.27
+    },
+    "hamburger sv vs holstein kiel": {
+      "local": 1.72,
+      "empate": 4.1,
+      "visita": 4.2
+    },
+    "juventus turin vs udinese calcio": {
+      "local": 1.36,
+      "empate": 5.0,
+      "visita": 7.0
+    },
+    "atalanta bc vs genoa c": {
+      "local": 1.55,
+      "empate": 3.8,
+      "visita": 7.0
+    },
+    "s napoli vs cagliari calcio": {
+      "local": 1.4,
+      "empate": 4.33,
+      "visita": 8.5
+    },
+    "inter milano vs venezia": {
+      "local": 1.14,
+      "empate": 9.0,
+      "visita": 13.0
+    },
+    "bologna vs parma calcio": {
+      "local": 1.5,
+      "empate": 3.9,
+      "visita": 7.0
+    },
+    "lazio rome vs ac milan": {
+      "local": 3.3,
+      "empate": 3.25,
+      "visita": 2.2
+    },
+    "barlona vs atletico madrid": {
+      "local": 1.75,
+      "empate": 4.2,
+      "visita": 4.1
+    },
+    "athletic bilbao vs real madrid": {
+      "local": 4.2,
+      "empate": 3.9,
+      "visita": 1.8
+    },
+    "orting cristal vs alianza lima": {
+      "local": 2.35,
+      "empate": 3.1,
+      "visita": 3.1
+    },
+    "fulham vs manchester city": {
+      "local": 4.5,
+      "empate": 4.1,
+      "visita": 1.66
+    },
+    "a bournemouth vs everton": {
+      "local": 2.2,
+      "empate": 3.25,
+      "visita": 3.3
+    },
+    "newcastle united vs tottenham hotur": {
+      "local": 1.83,
+      "empate": 3.8,
+      "visita": 4.2
+    },
+    "arsenal vs brentford": {
+      "local": 1.36,
+      "empate": 5.0,
+      "visita": 8.5
+    },
+    "brighton & hove albion vs aston villa": {
+      "local": 2.05,
+      "empate": 3.5,
+      "visita": 3.5
+    },
+    "burnley vs crystal pala": {
+      "local": 4.5,
+      "empate": 3.9,
+      "visita": 1.72
+    },
+    "wolverhampton wanderers vs nottingham forest": {
+      "local": 3.2,
+      "empate": 3.4,
+      "visita": 2.25
+    },
+    "leeds united vs chelsea": {
+      "local": 4.2,
+      "empate": 4.1,
+      "visita": 1.75
+    },
+    "liverpool vs sunderland a": {
+      "local": 1.33,
+      "empate": 5.5,
+      "visita": 7.5
+    },
+    "manchester united vs west ham united": {
+      "local": 1.45,
+      "empate": 5.0,
+      "visita": 6.0
+    }
+  },
+  "11:31:32": {
+    "cr vao da gama rj vs mirassol": {
+      "local": 2.1,
+      "empate": 3.4,
+      "visita": 3.5
+    },
+    "gremio fb porto alegrense rs vs fluminense rj": {
+      "local": 3.0,
+      "empate": 3.2,
+      "visita": 2.45
+    },
+    "red bull bragantino vs ec vitoria ba": {
+      "local": 1.95,
+      "empate": 3.4,
+      "visita": 4.1
+    },
+    "fortaleza ec vs corinthians": {
+      "local": 1.8,
+      "empate": 3.5,
+      "visita": 4.75
+    },
+    "ec juventude rs vs santos": {
+      "local": 4.75,
+      "empate": 3.6,
+      "visita": 1.75
+    },
+    "sao paulo vs internacional rs": {
+      "local": 2.75,
+      "empate": 3.1,
+      "visita": 2.75
+    },
+    "atletico mineiro mg vs se palmeiras": {
+      "local": 3.2,
+      "empate": 3.1,
+      "visita": 2.4
+    },
+    "cr flamengo rj vs ara": {
+      "local": 1.25,
+      "empate": 5.5,
+      "visita": 13.0
+    },
+    "cruzeiro ec mg vs botafogo fr rj": {
+      "local": 2.05,
+      "empate": 3.2,
+      "visita": 4.0
+    },
+    "tranmere rovers vs fleetwood town": {
+      "local": 2.15,
+      "empate": 3.75,
+      "visita": 2.8
+    },
+    "stevenage vs walsall": {
+      "local": 2.2,
+      "empate": 3.3,
+      "visita": 3.0
+    },
+    "northampton town vs wycombe wanderers": {
+      "local": 2.8,
+      "empate": 3.4,
+      "visita": 2.2
+    },
+    "lincoln city vs huddersfield town": {
+      "local": 2.37,
+      "empate": 3.6,
+      "visita": 2.55
+    },
+    "leyton orient london vs plymouth argyle": {
+      "local": 2.1,
+      "empate": 3.7,
+      "visita": 2.87
+    },
+    "port vale vs barnsley": {
+      "local": 2.5,
+      "empate": 3.6,
+      "visita": 2.37
+    },
+    "luton town vs exeter city": {
+      "local": 1.48,
+      "empate": 3.9,
+      "visita": 6.25
+    },
+    "bolton wanderers vs bradford city": {
+      "local": 1.66,
+      "empate": 4.2,
+      "visita": 3.9
+    },
+    "salford city vs rotherham united": {
+      "local": 2.35,
+      "empate": 3.5,
+      "visita": 2.62
+    },
+    "bristol rovers vs cambridge united": {
+      "local": 2.8,
+      "empate": 2.9,
+      "visita": 2.55
+    },
+    "doncaster rovers vs chesterfield": {
+      "local": 1.66,
+      "empate": 4.2,
+      "visita": 3.9
+    },
+    "cardiff city vs a wimbledon": {
+      "local": 2.15,
+      "empate": 3.75,
+      "visita": 2.7
+    },
+    "harrogate town vs blackpool": {
+      "local": 3.1,
+      "empate": 3.4,
+      "visita": 2.1
+    },
+    "swindon town vs peterborough united": {
+      "local": 2.55,
+      "empate": 3.6,
+      "visita": 2.35
+    },
+    "crewe alexandra vs stockport county": {
+      "local": 3.4,
+      "empate": 3.7,
+      "visita": 1.9
+    },
+    "blackburn rovers vs ipswich town": {
+      "local": 4.0,
+      "empate": 3.5,
+      "visita": 1.95
+    },
+    "hertha b vs 1 kaiserslautern": {
+      "local": 1.9,
+      "empate": 3.4,
+      "visita": 3.3
+    },
+    "rb leipzig vs 1 magdeburg": {
+      "local": 1.28,
+      "empate": 6.5,
+      "visita": 7.5
+    },
+    "borussia dortmund vs bayer leverkusen": {
+      "local": 1.8,
+      "empate": 4.0,
+      "visita": 3.8
+    },
+    "freiburg vs sv darmstadt 98": {
+      "local": 1.6,
+      "empate": 4.2,
+      "visita": 4.75
+    },
+    "vfl bochum vs vfb stuttgart": {
+      "local": 6.25,
+      "empate": 5.0,
+      "visita": 1.4
+    },
+    "union berlin vs bayern munich": {
+      "local": 8.0,
+      "empate": 6.5,
+      "visita": 1.27
+    },
+    "hamburger sv vs holstein kiel": {
+      "local": 1.72,
+      "empate": 4.1,
+      "visita": 4.2
+    },
+    "juventus turin vs udinese calcio": {
+      "local": 1.36,
+      "empate": 5.0,
+      "visita": 7.0
+    },
+    "atalanta bc vs genoa c": {
+      "local": 1.55,
+      "empate": 3.8,
+      "visita": 7.0
+    },
+    "s napoli vs cagliari calcio": {
+      "local": 1.4,
+      "empate": 4.33,
+      "visita": 8.5
+    },
+    "inter milano vs venezia": {
+      "local": 1.14,
+      "empate": 9.0,
+      "visita": 13.0
+    },
+    "bologna vs parma calcio": {
+      "local": 1.5,
+      "empate": 3.9,
+      "visita": 7.0
+    },
+    "lazio rome vs ac milan": {
+      "local": 3.3,
+      "empate": 3.25,
+      "visita": 2.2
+    },
+    "barlona vs atletico madrid": {
+      "local": 1.75,
+      "empate": 4.2,
+      "visita": 4.1
+    },
+    "athletic bilbao vs real madrid": {
+      "local": 4.2,
+      "empate": 3.9,
+      "visita": 1.8
+    },
+    "orting cristal vs alianza lima": {
+      "local": 2.35,
+      "empate": 3.1,
+      "visita": 3.1
+    },
+    "fulham vs manchester city": {
+      "local": 4.5,
+      "empate": 4.1,
+      "visita": 1.66
+    },
+    "a bournemouth vs everton": {
+      "local": 2.2,
+      "empate": 3.25,
+      "visita": 3.3
+    },
+    "newcastle united vs tottenham hotur": {
+      "local": 1.83,
+      "empate": 3.8,
+      "visita": 4.2
+    },
+    "arsenal vs brentford": {
+      "local": 1.36,
+      "empate": 5.0,
+      "visita": 8.5
+    },
+    "brighton & hove albion vs aston villa": {
+      "local": 2.05,
+      "empate": 3.5,
+      "visita": 3.5
+    },
+    "burnley vs crystal pala": {
+      "local": 4.5,
+      "empate": 3.9,
+      "visita": 1.72
+    },
+    "wolverhampton wanderers vs nottingham forest": {
+      "local": 3.2,
+      "empate": 3.4,
+      "visita": 2.25
+    },
+    "leeds united vs chelsea": {
+      "local": 4.2,
+      "empate": 4.1,
+      "visita": 1.75
+    },
+    "liverpool vs sunderland a": {
+      "local": 1.33,
+      "empate": 5.5,
+      "visita": 7.5
+    },
+    "manchester united vs west ham united": {
+      "local": 1.45,
+      "empate": 5.0,
+      "visita": 6.0
+    }
+  }
+}

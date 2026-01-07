@@ -1,303 +1,400 @@
-import requests
-import pandas as pd
-import time
-import random
 import os
 import re
 import json
+import time
 import unicodedata
-from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
 
-# === CONFIGURACIÓN ===
+# ================= CONFIG =================
+BASE = "https://prod20392.msjxk.com"
+
 OUT_DIR = "data"
 os.makedirs(OUT_DIR, exist_ok=True)
+
+OUT_JSON  = os.path.join(OUT_DIR, "cuotas_apuestatotal.json")
 ERROR_LOG = os.path.join(OUT_DIR, "error_log.txt")
+TOKENS_FILE = os.path.join(OUT_DIR, "msjxk_tokens.json")
 
-API_EVENTS  = "https://sb2frontend-altenar2.biahosted.com/api/Sportsbook/GetEvents"
-API_DETAILS = "https://sb2frontend-altenar2.biahosted.com/api/widget/GetEventDetails"
+DEBUG_SAMPLE_FILE = os.path.join(OUT_DIR, "debug_markets_all_sample.json")
 
-HEADERS = {
-    "accept": "application/json, text/plain, */*",
-    "origin": "https://www.apuestatotal.com",
-    "referer": "https://www.apuestatotal.com/",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+LEAGUE_EVENTS_URL = f"{BASE}/api/eventlist/eu/events/v2/league-events"
+MARKETS_ALL_URL   = f"{BASE}/api/eventlist/eu/markets/all"
 
-PARAMS_EVENTS = {
-    "culture": "es-ES",
-    "timezoneOffset": "300",
-    "integration": "apuestatotal1",
-    "deviceType": "1",
-    "numFormat": "en-GB",
-    "countryCode": "PE",
-    "sportids": "66"
-}
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
 
+CHUNK_SIZE = 25
+MARKET_CODES = ["ML0"]  # 1X2
+
+# ========= TUS LIGAS (NO SE TOCAN) =========
 LIGAS_EQUIVALENCIAS = [
-    ("Premier League", "Inglaterra", "Premier League"),
-    ("FA Cup", "Inglaterra", "FA Cup"),
-    ("EFL Trophy", "Inglaterra", "Carabao Cup"),
-    ("Championship", "Inglaterra", "Championship"),
-    ("LaLiga", "España", "La Liga"),
-    ("LaLiga 2", "España", "La Liga 2"),
-    ("Serie A", "Italia", "Serie A"),
-    ("Copa Italia", "Italia", "Copa Italia"),
-    ("Supercopa", "Italia", "Supercopa de Italia"),
-    ("Bundesliga", "Alemania", "Bundesliga"),
-    ("DFB Pokal", "Alemania", "Copa Alemana"),
-    ("Copa de Alemania", "Alemania", "Copa Alemana"),
-    ("Ligue 1", "Francia", "Ligue 1"),
-    ("Brasileirao", "Brasil", "Brasileirao"),
-    ("Copa de Brasil", "Brasil", "Copa de Brasil"),
-    ("Liga MX", "México", "Liga MX"),
-    ("MLS", "Estados Unidos", "MLS"),
-    ("Liga 1", "Perú", "Liga 1 Perú"),
-    ("Primeira Liga", "Portugal", "Primeira Liga"),
-    ("Eredivisie", "Países Bajos", "Eredivisie"),
-    ("UEFA Champions League", "Europa", "UEFA Champions League"),
-    ("UEFA Europa League", "Europa", "UEFA Europa League"),
-    ("UEFA Conference League", "Europa", "UEFA Conference League"),
-    ("Copa Libertadores", "Americas", "Copa Libertadores"),
-    ("Copa Sudamericana", "Americas", "Copa Sudamericana"),
-    ("Eliminatorias Africanas", "Africa", "Eliminatorias Africa - WC26"),
-    ("Eliminatorias Asiáticas", "Asia", "Eliminatorias Asia AFC - WC26"),
-    ("Eliminatorias CONCACAF", "Americas", "Eliminatorias CONCACAF - WC26"),
-    ("Eliminatorias Europeas", "Europa", "Eliminatorias Europa - WC26"),
+    ("Premier League", "Inglaterra", "24", "Premier League"),
+    ("Copa FA", "Inglaterra", "89", "FA Cup"),
+    ("Copa EFL de Inglaterra", "Inglaterra", "197992793078919000", "Carabao Cup"),
+    ("Championship", "Inglaterra", "43", "Championship"),
+    ("La Liga", "España", "38", "La Liga"),
+    ("Segunda División", "España", "39", "La Liga 2"),
+    ("Serie A", "Italia", "74", "Serie A"),
+    ("Copa Italia", "Italia", "255821541135360000", "Copa Italia"),
+    ("Bundesliga", "Alemania", "110", "Bundesliga"),
+    ("Copa DFB Alemania", "Alemania", "5768", "Copa Alemana"),
+    ("Ligue 1", "Francia", "25", "Ligue 1"),
+    ("Brasileirao, Serie A", "Brasil", "530", "Brasileirao"),
+    ("Liga MX", "México", "632", "Liga MX"),
+    ("Liga 1", "Perú", "203110137349808000", "Liga 1 Perú"),
+    ("Primeira Liga", "Portugal", "32", "Primeira Liga"),
+    ("Eredivisie", "Países Bajos", "111", "Eredivisie"),
+    ("UEFA Champions League", "Europa", "125", "UEFA Champions League"),
+    ("UEFA Europa League", "Europa", "2719", "UEFA Europa League"),
+    ("UEFA Europa Conference League", "Europa", "203553622255214000", "UEFA Conference League"),
+    ("Clasificación Copa Libertadores", "Sudamérica", "7322", "Copa Libertadores"),
+    ("Copa Sudamericana Clasificatoria", "Sudamérica", "552510194681483000", "Copa Sudamericana"),
+    ("Eliminatorias europeas", "Internacional", "466", "Eliminatorias Europa - WC26"),
 ]
 
-NOMBRES_1X2 = {"1x2", "resultado final", "match result", "ft result", "ganador"}
-
-
-# === NUEVO: FUNCIÓN PARA FILTRAR POR 3 DÍAS ===
-def dentro_de_3_dias(fecha_raw):
-    try:
-        fecha = pd.to_datetime(fecha_raw).tz_convert(None)
-        ahora = datetime.utcnow()
-        return ahora <= fecha.to_pydatetime() <= ahora + timedelta(days=3)
-    except:
-        return False
-
-
-# === FUNCIONES ===
-
+# ================= HELPERS =================
 def log_error(msg: str):
     with open(ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
-
-def normalizar_nombre_equipo(s: str) -> str:
+def norm(s: str) -> str:
     if not s:
         return ""
     s = unicodedata.normalize("NFKD", str(s))
     s = s.encode("ascii", "ignore").decode("ascii")
     s = s.lower()
-    s = s.replace("ß", "ss").replace("œ", "oe").replace("æ", "ae")
-    s = re.sub(r'[\"\'´`¨]', "", s)
-    s = re.sub(r"[\t\r\n]", " ", s)
-    s = re.sub(r"[^a-z0-9 ]", " ", s)
-    return re.sub(r"\s+", " ", s).strip()
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
 
+def chunked(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i+n]
 
-def format_nombre_equipo(s: str) -> str:
-    base = normalizar_nombre_equipo(s)
-    parts = base.split(" ")
-    parts = [p.capitalize() for p in parts if p != ""]
-    return " ".join(parts)
+# ISO datetime tipo: 2026-01-06T17:00:00.000Z (o sin .000)
+ISO_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z)?")
 
+def normalize_fecha_iso(s: str) -> str:
+    """
+    Convierte:
+      2026-01-06T17:00:00.000Z -> 2026-01-06T17:00:00.000
+      2026-01-06T17:00:00Z     -> 2026-01-06T17:00:00
+    Mantiene formato ISO y SOLO quita la Z.
+    """
+    if not isinstance(s, str):
+        return ""
+    s = s.strip()
+    if s.endswith("Z"):
+        s = s[:-1]
+    return s
 
-def auditar_nombres_equipo(raw: str, cleaned: str):
-    if raw and raw != cleaned:
-        log_error(f"NOMBRE AJUSTADO: '{raw}' -> '{cleaned}'")
+def find_fecha_in_row(row) -> str:
+    """
+    MSJXK a veces cambia el índice donde viene la fecha.
+    Buscamos el primer string ISO dentro del row.
+    """
+    if not isinstance(row, list):
+        return ""
+    for it in row:
+        if isinstance(it, str):
+            m = ISO_RE.search(it)
+            if m:
+                return normalize_fecha_iso(m.group(0))
+        # a veces viene dentro de dict/list
+        if isinstance(it, dict):
+            for v in it.values():
+                if isinstance(v, str):
+                    m = ISO_RE.search(v)
+                    if m:
+                        return normalize_fecha_iso(m.group(0))
+        if isinstance(it, list):
+            for v in it:
+                if isinstance(v, str):
+                    m = ISO_RE.search(v)
+                    if m:
+                        return normalize_fecha_iso(m.group(0))
+    return ""
 
+# ================= TOKENS =================
+def load_tokens():
+    if not os.path.exists(TOKENS_FILE):
+        raise RuntimeError("Falta data/msjxk_tokens.json (primero genera el JWT con tu bootstrap).")
+    with open(TOKENS_FILE, "r", encoding="utf-8") as f:
+        t = json.load(f)
+    if not t.get("jwt"):
+        raise RuntimeError("msjxk_tokens.json no tiene 'jwt'.")
+    return t
 
-def mapear_liga(champ: str, cat: str):
-    n_champ = normalizar_nombre_equipo(champ)
-    n_cat = normalizar_nombre_equipo(cat)
-    for champ_ref, cat_ref, canon in LIGAS_EQUIVALENCIAS:
-        if normalizar_nombre_equipo(champ_ref) == n_champ and normalizar_nombre_equipo(cat_ref) == n_cat:
-            return canon
-    return None
+def make_session(tokens):
+    s = requests.Session()
+    if isinstance(tokens.get("cookies"), dict) and tokens["cookies"]:
+        s.cookies.update(tokens["cookies"])
+    if tokens.get("operatorToken"):
+        s.cookies.set("operatorToken", tokens["operatorToken"])
+    return s
 
+def make_headers(tokens):
+    jwt = tokens["jwt"]
+    h = {
+        "user-agent": UA,
+        "accept": "application/json",
+        "accept-language": "es-PE,es;q=0.9,en;q=0.6",
+        "origin": BASE,
+        "referer": f"{BASE}/es-pe/spbkv3/",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "authorization": jwt,
+        "session": jwt,
+    }
+    if tokens.get("operatorToken"):
+        h["operatorToken"] = tokens["operatorToken"]
+    return h
 
-def extraer_eventos(nodos):
+# ================= EVENTOS =================
+def get_events_by_league(s, h, league_id: str):
+    r = s.get(LEAGUE_EVENTS_URL, headers=h, params={"leagueId": str(league_id)}, timeout=60)
+    if r.status_code != 200:
+        log_error(f"LEAGUE_EVENTS HTTP {r.status_code} leagueId={league_id} body={r.text[:300]}")
+        return {}
+    return r.json()
+
+def parse_events(data):
+    """
+    IMPORTANTÍSIMO:
+    data["data"] viene como lista de listas.
+    El índice de fecha NO es fijo, así que la buscamos por patrón ISO.
+    """
     evs = []
-    for n in nodos:
-        if "Events" in n:
-            evs += [e for e in n["Events"] if e.get("SportId") == 66]
-        if "Items" in n:
-            evs += extraer_eventos(n["Items"])
+    payload = data.get("data", [])
+    if not isinstance(payload, list):
+        return evs
+
+    for row in payload:
+        if not isinstance(row, list) or len(row) < 2:
+            continue
+
+        eid = str(row[0]) if row[0] is not None else ""
+        if not eid:
+            continue
+
+        home = ""
+        away = ""
+
+        # Competitors usualmente en row[8], pero si cambia, igual no rompemos
+        comps = row[8] if len(row) > 8 else None
+        if isinstance(comps, list):
+            for c in comps:
+                if isinstance(c, list) and len(c) >= 3:
+                    name_obj = c[1]
+                    side = str(c[2]).lower()
+                    name = ""
+                    if isinstance(name_obj, dict) and name_obj:
+                        name = name_obj.get("ES-PE") or name_obj.get("es-PE") or next(iter(name_obj.values()), "")
+                    elif isinstance(name_obj, str):
+                        name = name_obj
+
+                    if "home" in side:
+                        home = name
+                    elif "away" in side:
+                        away = name
+
+        # ✅ FECHA: buscar string ISO en todo el row
+        start_time = find_fecha_in_row(row)
+
+        evs.append({
+            "EventId": eid,
+            "Local": home,
+            "Visita": away,
+            "Fecha": start_time
+        })
+
     return evs
 
+# ================= MARKETS (BULK + RETRY) =================
+def get_markets(s, h, event_ids, max_retries=6):
+    markets_param = "|".join(event_ids) + ":" + "|".join(MARKET_CODES)
+    params = {"markets": markets_param}
 
-def obtener_cuotas(event_id: int):
-    params = {
-        "culture": "es-ES", "timezoneOffset": "300",
-        "integration": "apuestatotal1", "deviceType": "1",
-        "numFormat": "en-GB", "countryCode": "PE",
-        "eventId": str(event_id), "showNonBoosts": "false"
-    }
+    last_status = None
+    last_text = ""
 
-    for intento in range(3):
+    for attempt in range(1, max_retries + 1):
         try:
-            r = requests.get(API_DETAILS, params=params, headers=HEADERS, timeout=20)
+            r = s.get(MARKETS_ALL_URL, headers=h, params=params, timeout=60)
+            last_status = r.status_code
+            last_text = r.text[:300]
+
             if r.status_code == 200:
-                data = r.json()
-                break
-        except Exception as e:
-            log_error(f"Error conexión detalle evento {event_id}: {e}")
-            time.sleep(5 * (intento + 1))
-    else:
-        return {"Local": "", "Empate": "", "Visita": ""}
+                return r.json()
 
-    try:
-        markets = data.get("markets", []) or data.get("Markets", [])
-        odds_all = data.get("odds", []) or data.get("Odds", [])
+            if r.status_code in (429, 500, 502, 503, 504):
+                wait = min(2 ** attempt, 30) + (0.2 * attempt)
+                log_error(f"MARKETS_ALL {r.status_code} (attempt {attempt}/{max_retries}) -> sleep {wait:.1f}s")
+                time.sleep(wait)
+                continue
 
-        market_1x2 = next(
-            (m for m in markets if any(k in normalizar_nombre_equipo(m.get("name", "")) for k in NOMBRES_1X2)),
-            None
-        )
+            log_error(f"MARKETS_ALL HTTP {r.status_code}: {last_text}")
+            return {}
 
-        if not market_1x2:
-            return {"Local": "", "Empate": "", "Visita": ""}
+        except requests.exceptions.RequestException as e:
+            wait = min(2 ** attempt, 30) + (0.2 * attempt)
+            log_error(f"MARKETS_ALL EXC (attempt {attempt}/{max_retries}): {e} -> sleep {wait:.1f}s")
+            time.sleep(wait)
 
-        odd_ids = []
-        for key in ("desktopOddIds", "oddIds"):
-            for item in market_1x2.get(key, []):
-                if isinstance(item, list) and item:
-                    odd_ids.append(item[0])
-                elif isinstance(item, (int, str)):
-                    try:
-                        odd_ids.append(int(item))
-                    except:
-                        pass
+    log_error(f"MARKETS_ALL FAIL definitivo. Last status={last_status} body={last_text}")
+    return {}
 
-        cuotas = {"Local": "", "Empate": "", "Visita": ""}
+# ================= EXTRACT 1X2 (MSJXK REAL) =================
+def extract_1x2_msjxk(root):
+    out = {}
 
-        if odd_ids:
-            mapa = {o.get("id"): o for o in odds_all if o.get("id") in odd_ids}
+    markets = root
+    if isinstance(root, dict):
+        if isinstance(root.get("data"), list):
+            markets = root["data"]
+        elif isinstance(root.get("Data"), list):
+            markets = root["Data"]
 
-            for oid, o in mapa.items():
-                nombre_raw = o.get("name", "")
-                nombre = normalizar_nombre_equipo(nombre_raw)
-                tipo = o.get("typeId")
-                price = o.get("price", "")
+    if not isinstance(markets, list):
+        return out
 
-                if tipo == 1 or "local" in nombre or nombre in {"1"}:
-                    cuotas["Local"] = price
-                elif tipo == 2 or "empate" in nombre or nombre in {"x"}:
-                    cuotas["Empate"] = price
-                elif tipo == 3 or "visit" in nombre or nombre in {"2"}:
-                    cuotas["Visita"] = price
+    for m in markets:
+        if not isinstance(m, dict):
+            continue
 
-                if nombre_raw and nombre_raw != nombre:
-                    log_error(f"ODD NAME AJUSTADO (event {event_id}): '{nombre_raw}' -> '{nombre}'")
+        mt = m.get("MarketType") or {}
+        mt_id = str(mt.get("_id") or "") if isinstance(mt, dict) else ""
 
-        time.sleep(random.uniform(0.3, 0.7))
-        return cuotas
+        if mt_id != "ML0":
+            continue
 
-    except Exception as e:
-        log_error(f"Error procesando cuotas evento {event_id}: {e}")
-        return {"Local": "", "Empate": "", "Visita": ""}
+        eid = str(m.get("EventId") or "").strip()
+        if not eid:
+            continue
 
+        sels = m.get("Selections") or []
+        if not isinstance(sels, list):
+            continue
 
-# === FUNCIÓN ENVUELTA PARA MULTIHILO ===
-def procesar_evento(ev):
-    try:
-        champ_raw = ev.get("ChampName", "")
-        cat_raw   = ev.get("CategoryName", "")
-        liga_canon = mapear_liga(champ_raw, cat_raw)
+        L = E = V = ""
 
-        if not liga_canon:
-            log_error(f"LIGA NO MAPEADA: champ='{champ_raw}' cat='{cat_raw}'")
-            return None
+        for s in sels:
+            if not isinstance(s, dict):
+                continue
 
-        eid = ev.get("Id")
-        cuotas = obtener_cuotas(eid)
+            outcome = norm(s.get("OutcomeType") or "")
+            side = s.get("Side")
 
-        comps = ev.get("Competitors", [{"Name": ""}, {"Name": ""}])
-        local_raw = comps[0].get("Name", "")
-        visita_raw = comps[1].get("Name", "")
+            dec = ""
+            odds = s.get("DisplayOdds") or {}
+            if isinstance(odds, dict):
+                dec = str(odds.get("Decimal") or "").strip()
 
-        local_clean  = normalizar_nombre_equipo(local_raw)
-        visita_clean = normalizar_nombre_equipo(visita_raw)
+            if not dec and isinstance(s.get("TrueOdds"), (int, float)):
+                dec = str(s.get("TrueOdds"))
 
-        auditar_nombres_equipo(local_raw,  local_clean)
-        auditar_nombres_equipo(visita_raw, visita_clean)
+            if not dec:
+                continue
 
-        local_fmt  = format_nombre_equipo(local_clean)
-        visita_fmt = format_nombre_equipo(visita_clean)
+            if outcome == "local" or side == 1:
+                L = dec
+            elif outcome == "empate" or side == 2:
+                E = dec
+            elif outcome == "visita" or side == 3:
+                V = dec
 
-        fecha_raw = ev.get("EventDate", "")
-        try:
-            fecha_local = pd.to_datetime(fecha_raw).tz_convert(None).strftime("%Y-%m-%d %H:%M:%S")
-        except:
-            fecha_local = fecha_raw
+        if L and E and V:
+            out[eid] = {"Local": L, "Empate": E, "Visita": V}
 
-        return {
-            "Liga": liga_canon,
-            "Fecha": fecha_local,
-            "Partido": f"{local_fmt} vs {visita_fmt}",
-            "Casa": "Apuesta Total",
-            "Cuota Local": cuotas["Local"],
-            "Cuota Empate": cuotas["Empate"],
-            "Cuota Visita": cuotas["Visita"],
-            "EventId": eid
-        }
+    return out
 
-    except Exception as e:
-        log_error(f"Error en procesar_evento: {e}")
-        return None
-
-
-# === MAIN FAST ===
+# ================= MAIN =================
 def main():
-    for intento in range(3):
-        try:
-            r = requests.get(API_EVENTS, params=PARAMS_EVENTS, headers=HEADERS, timeout=20)
-            if r.status_code == 200:
-                data = r.json().get("Result", {}).get("Items", [])
-                break
-        except Exception as e:
-            log_error(f"Error conexión GetEvents: {e}")
-            time.sleep(5 * (intento + 1))
-    else:
-        log_error("Fallo definitivo GetEvents")
+    try:
+        tokens = load_tokens()
+    except Exception as e:
+        print(f"❌ {e}")
         return
 
-    try:
-        eventos = extraer_eventos(data)
-        print(f" Eventos encontrados (sin filtrar): {len(eventos)}")
+    s = make_session(tokens)
+    h = make_headers(tokens)
 
-        # === FILTRO NUEVO: SOLO PARTIDOS DENTRO DE 3 DÍAS ===
-        eventos = [ev for ev in eventos if dentro_de_3_dias(ev.get("EventDate", ""))]
-        print(f" Eventos dentro de 3 días: {len(eventos)}")
+    eventos = []
+    liga_por_evento = {}
 
-        registros = []
-        
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(procesar_evento, ev) for ev in eventos]
+    # 1) eventos por liga
+    for _, _, league_id, liga_out in LIGAS_EQUIVALENCIAS:
+        data = get_events_by_league(s, h, league_id)
+        evs = parse_events(data)
+        print(f"✅ {liga_out}: {len(evs)} eventos")
+        for e in evs:
+            liga_por_evento[e["EventId"]] = liga_out
+        eventos.extend(evs)
 
-            for future in as_completed(futures):
-                result = future.result()
-                if result:
-                    registros.append(result)
+    # dedupe por EventId
+    uniq = {}
+    for e in eventos:
+        uniq[e["EventId"]] = e
+    eventos = list(uniq.values())
 
-        if not registros:
-            print(" No se encontraron cuotas válidas.")
-            return
+    event_ids = [e["EventId"] for e in eventos]
+    if not event_ids:
+        print("❌ No hay eventos. Revisa error_log.txt")
+        return
 
-        out_json = os.path.join(OUT_DIR, "cuotas_apuestatotal.json")
-        with open(out_json, "w", encoding="utf-8") as f:
-            json.dump(registros, f, indent=2, ensure_ascii=False)
+    # 2) cuotas bulk
+    cuotas = {}
+    total_chunks = 0
+    ok_chunks = 0
+    saved_sample = False
 
-        print(f" Archivo actualizado: {out_json}")
-        print(f" {len(registros)} partidos procesados.")
+    for ch in chunked(event_ids, CHUNK_SIZE):
+        total_chunks += 1
+        mj = get_markets(s, h, ch)
+        if mj:
+            ok_chunks += 1
 
-    except Exception as e:
-        log_error(f"Error general: {e}")
+            if not saved_sample:
+                try:
+                    with open(DEBUG_SAMPLE_FILE, "w", encoding="utf-8") as f:
+                        json.dump(mj, f, ensure_ascii=False, indent=2)
+                    saved_sample = True
+                except Exception as e:
+                    log_error(f"No pude guardar debug sample: {e}")
 
+            cuotas.update(extract_1x2_msjxk(mj))
+
+        time.sleep(0.10)
+
+    print(f"✅ chunks OK: {ok_chunks}/{total_chunks}")
+    print(f"✅ 1X2 detectadas: {len(cuotas)}")
+
+    # 3) salida final (con Fecha correcta)
+    salida = []
+    for e in eventos:
+        eid = e["EventId"]
+        c = cuotas.get(eid)
+        if not c:
+            continue
+
+        local = e.get("Local", "")
+        visita = e.get("Visita", "")
+
+        salida.append({
+            "Liga": liga_por_evento.get(eid, ""),
+            "Partido": f"{local} vs {visita}",
+            "Fecha": e.get("Fecha", ""),
+            "Casa": "Apuesta Total",
+            "Local": local,
+            "Visita": visita,
+            "Cuota Local": c["Local"],
+            "Cuota Empate": c["Empate"],
+            "Cuota Visita": c["Visita"],
+            "EventId": int(eid) if str(eid).isdigit() else eid
+        })
+
+    with open(OUT_JSON, "w", encoding="utf-8") as f:
+        json.dump(salida, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ {len(salida)} partidos guardados -> {OUT_JSON}")
 
 if __name__ == "__main__":
     main()
