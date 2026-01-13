@@ -31,11 +31,12 @@ HEADERS = {
 LIGAS_OLIMPO = [
     ("Premier League", "football/england/premier_league", False),
     ("FA Cup", "football/england/fa_cup", False),
-    ("Carabao", "football/england/efl_trophy", False),
+    ("EFL Cup", "football/england/efl_cup", False),
     ("Championship", "football/england/the_championship", False),
 
     ("La Liga", "football/spain/la_liga", False),
     ("La Liga 2", "football/spain/la_liga_2", False),
+    ("Copa del Rey", "football/spain/copa_del_rey", False),
 
     ("Serie A", "football/italy/serie_a", False),
     ("Copa Italia", "football/italy/coppa_italia", False),
@@ -44,6 +45,7 @@ LIGAS_OLIMPO = [
     ("Copa Alemana", "football/germany/dfb_pokal", False),
 
     ("Ligue 1", "football/france/ligue_1", False),
+    ("Copa Francia", "football/france/coupe_de_france", False),
 
     ("Brasileirao", "football/brazil/brasileirao_serie_a", False),
     ("Copa de Brasil", "football/brazil/copa_do_brasil", False),

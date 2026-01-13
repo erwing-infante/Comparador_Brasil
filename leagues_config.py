@@ -4,7 +4,6 @@
 BOOKMAKERS = [
     "Bet365",
     "Betsson",
-    "Pinnacle",
     "1xbet",
     "Betcris"
 ]
@@ -13,11 +12,12 @@ BOOKMAKERS = [
 LEAGUES = {
     "Premier League": {"provider": "odds-api.io", "league_id": "england-premier-league"},
     "FA Cup": {"provider": "odds-api.io", "league_id": "england-fa-cup"},
-    "Carabao Cup": {"provider": "odds-api.io", "league_id": "england-efl-trophy"},
+    "EFL Cup": {"provider": "odds-api.io", "league_id": "england-efl-cup"},
     "Championship": {"provider": "odds-api.io", "league_id": "england-championship"},
 
     "La Liga": {"provider": "odds-api.io", "league_id": "spain-laliga"},
     "La Liga 2": {"provider": "odds-api.io", "league_id": "spain-laliga-2"},
+    "Copa del Rey": {"provider": "odds-api.io", "league_id": "spain-copa-del-rey"},
 
     "Serie A": {"provider": "odds-api.io", "league_id": "italy-serie-a"},
     "Copa Italia": {"provider": "odds-api.io", "league_id": "italy-coppa-italia"},
@@ -26,6 +26,7 @@ LEAGUES = {
     "Copa Alemana": {"provider": "odds-api.io", "league_id": "germany-dfb-pokal"},
 
     "Ligue 1": {"provider": "odds-api.io", "league_id": "france-ligue-1"},
+    "Copa Francia": {"provider": "odds-api.io", "league_id": "france-coupe-de-france"},
 
     "Brasileirao": {"provider": "odds-api.io", "league_id": "brazil-brasileiro-serie-a"},
     "Copa de Brasil": {"provider": "odds-api.io", "league_id": "brazil-copa-do-brasil"},
