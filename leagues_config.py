@@ -31,7 +31,7 @@ LEAGUES = {
     "Brasileirao": {"provider": "odds-api.io", "league_id": "brazil-brasileiro-serie-a"},
     "Copa de Brasil": {"provider": "odds-api.io", "league_id": "brazil-copa-do-brasil"},
 
-    "Liga MX": {"provider": "odds-api.io", "league_id": "mexico-liga-mx-apertura"},
+    "Liga MX": {"provider": "odds-api.io", "league_id": "mexico-liga-mx-clausura"},
     "MLS": {"provider": "odds-api.io", "league_id": "usa-mls"},
     "Liga 1 Perú": {"provider": "odds-api.io", "league_id": "peru-liga-1"},
     "Primeira Liga": {"provider": "odds-api.io", "league_id": "portugal-liga-portugal"},

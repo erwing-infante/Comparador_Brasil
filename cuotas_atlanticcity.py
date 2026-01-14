@@ -48,7 +48,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Bundesliga", "Alemania", "Bundesliga"),
     ("DFB Pokal", "Alemania", "Copa Alemana"),
     ("Copa de Alemania", "Alemania", "Copa Alemana"),
-    ("Ligue 1", "Francia", "Ligue 1"),    
+    ("Ligue 1", "Francia", "Ligue 1"),
     ("Coupe de France", "Francia", "Copa Francia"),
     ("Brasileirao Serie A", "Brasil", "Brasileirao"),
     ("Copa de Brasil", "Brasil", "Copa de Brasil"),
