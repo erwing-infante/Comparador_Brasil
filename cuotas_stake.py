@@ -23,7 +23,13 @@ ERROR_LOG = os.path.join(OUT_DIR, "error_stake_log.txt")
 DEBUG_DIR = os.path.join(OUT_DIR, "debug_stake")
 os.makedirs(DEBUG_DIR, exist_ok=True)
 
-CURL = r"C:\Windows\System32\curl.exe"
+import shutil
+import os
+
+# Detecta curl en Linux/Windows automáticamente
+CURL = os.environ.get("CURL_BIN") or shutil.which("curl") or shutil.which("curl.exe")
+if not CURL:
+    raise RuntimeError("No se encontró 'curl'. Instala curl (Ubuntu: apt install -y curl).")
 
 # ✅ usa el hidenseek que YA comprobaste que funciona
 HIDENSEEK_FIXED = "c657b189ad9052496b210c3532578db50afd486b"
@@ -163,28 +169,58 @@ def fetch_json(url: str, canon: str, tid: int) -> dict:
 # PARSEO (tu estructura real)
 # ============================================================
 def parse_events(payload: dict):
-    """
-    En tu JSON real: payload['events'] es LISTA.
-    """
     evs = payload.get("events")
     if isinstance(evs, list):
         return [e for e in evs if isinstance(e, dict)]
-    # fallback si alguna liga viniera distinto
     if isinstance(evs, dict):
         return [e for e in evs.values() if isinstance(e, dict)]
     return []
 
 def extract_teams(ev: dict):
+    # Caso A: teams como dict home/away
     teams = ev.get("teams")
-    # en tu JSON: teams = {"home":"...", "away":"..."}
     if isinstance(teams, dict):
         home = teams.get("home") or teams.get("Home")
         away = teams.get("away") or teams.get("Away")
         if home and away:
             return str(home), str(away)
-    # fallback raro
+
+    # Caso B: teams como lista
     if isinstance(teams, list) and len(teams) >= 2:
-        return str(teams[0]), str(teams[1])
+        # lista de strings
+        if all(isinstance(x, str) for x in teams[:2]):
+            return teams[0], teams[1]
+        # lista de dicts
+        if all(isinstance(x, dict) for x in teams[:2]):
+            home = teams[0].get("name") or teams[0].get("Name")
+            away = teams[1].get("name") or teams[1].get("Name")
+            if home and away:
+                return str(home), str(away)
+
+    # Caso C: dentro de info
+    info = ev.get("info")
+    if isinstance(info, dict):
+        # algunos feeds usan team1/team2 o home/away
+        home = info.get("home") or info.get("team1") or info.get("Home") or info.get("Team1")
+        away = info.get("away") or info.get("team2") or info.get("Away") or info.get("Team2")
+        if home and away:
+            return str(home), str(away)
+
+        t2 = info.get("teams")
+        if isinstance(t2, dict):
+            home = t2.get("home") or t2.get("Home")
+            away = t2.get("away") or t2.get("Away")
+            if home and away:
+                return str(home), str(away)
+        if isinstance(t2, list) and len(t2) >= 2:
+            if all(isinstance(x, str) for x in t2[:2]):
+                return t2[0], t2[1]
+            if all(isinstance(x, dict) for x in t2[:2]):
+                home = t2[0].get("name") or t2[0].get("Name")
+                away = t2[1].get("name") or t2[1].get("Name")
+                if home and away:
+                    return str(home), str(away)
+
     return "", ""
 
 def extract_1x2_from_main_odds(ev: dict):
