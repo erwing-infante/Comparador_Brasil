@@ -20,6 +20,9 @@ CHAT_IDS = [
 
 UMBRAL_JUGADOR = -1.25  # -1.25%
 
+# ✅ Ventana de alertas: próximos 1.5 días = 36 horas
+MAX_HORAS_ADELANTE = 36.0
+
 
 def enviar_alerta(msg: str):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -69,6 +72,33 @@ def generar_clave(liga, fecha, home, away):
     return f"{liga} | {fecha} | {home} vs {away}"
 
 
+def parse_fecha_utc_a_lima(fecha_str: str):
+    """
+    Entrada típica del fusionador: '2025-11-27 17:45 UTC'
+    Retorna datetime aware en America/Lima o None si no se puede parsear.
+    """
+    if not fecha_str or not isinstance(fecha_str, str):
+        return None
+    try:
+        s = fecha_str.replace(" UTC", "").strip()
+        dt_utc = datetime.strptime(s, "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo("UTC"))
+        return dt_utc.astimezone(ZoneInfo("America/Lima"))
+    except:
+        return None
+
+
+def dentro_ventana_partido(fecha_str: str, ahora_lima: datetime) -> bool:
+    """
+    True si el partido ocurre entre ahora y las próximas MAX_HORAS_ADELANTE.
+    """
+    dt_lima = parse_fecha_utc_a_lima(fecha_str)
+    if dt_lima is None:
+        return False
+
+    horas = (dt_lima - ahora_lima).total_seconds() / 3600.0
+    return 0 <= horas <= MAX_HORAS_ADELANTE
+
+
 def enviar_alerta_armada(liga, p, margen_jugador):
     home = p.get("home")
     away = p.get("away")
@@ -106,7 +136,8 @@ def procesar_alertas():
     estado_prev = cargar_json(ESTADO_FILE, default={})
     estado_new = {}
 
-    ahora = datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S")
+    ahora_lima = datetime.now(ZoneInfo("America/Lima"))
+    ahora_str = ahora_lima.strftime("%Y-%m-%d %H:%M:%S")
 
     for liga, partidos in data.items():
         if liga == "metadata":
@@ -117,6 +148,10 @@ def procesar_alertas():
             home = p.get("home")
             away = p.get("away")
             fecha = p.get("date", "")
+
+            # ✅ FILTRO: solo próximos 1.5 días
+            if not dentro_ventana_partido(fecha, ahora_lima):
+                continue
 
             bh = p.get("best_home") or {}
             bd = p.get("best_draw") or {}
@@ -149,7 +184,7 @@ def procesar_alertas():
                 "draw_odd": c2,
                 "away_odd": c3,
                 "margen_jugador": margen_jugador,
-                "ultima_actualizacion": ahora,
+                "ultima_actualizacion": ahora_str,
             }
 
             if margen_jugador < UMBRAL_JUGADOR:
