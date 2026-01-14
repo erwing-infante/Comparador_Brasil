@@ -1,12 +1,12 @@
 venv/
 .venv/
+env/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 *.log
 data/*.json
+data/historico_bet365/
 data/*.txt
 data/cuotas.json
-# generated
-__pycache__/
-*.pyc
-data/historico_bet365/
