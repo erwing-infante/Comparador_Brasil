@@ -12,6 +12,8 @@ const BOOKMAKER_LOGOS = {
     "Betsson": "/static/img/bookmakers/betsson.png",
     "Olimpobet": "/static/img/bookmakers/olimpobet.png",
     "Pinnacle": "/static/img/bookmakers/pinnacle.png"
+    "Gangabet": "/static/img/bookmakers/gangabet.png"
+    "Stake": "/static/img/bookmakers/stake.png"
 };
 
 // Icono SVG de calculadora (tipo BetBurger)
