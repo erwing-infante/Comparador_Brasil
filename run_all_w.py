@@ -15,8 +15,8 @@ SCRIPTS_EXTRACTORES = [
     "cuotas_apuestatotal.py",
     "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
-    "cuotas_olimpobet.py"
-    "cuotas_gangabet.py"
+    "cuotas_olimpobet.py",
+    "cuotas_gangabet.py",
     "cuotas_stake.py"
 ]
 

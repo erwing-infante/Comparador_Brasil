@@ -7,3 +7,4 @@ data/*.json
 data/*.txt
 data/cuotas.json
 data/historico_bet365
+__pycache__
