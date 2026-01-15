@@ -13,6 +13,7 @@ const BOOKMAKER_LOGOS = {
     "Olimpobet": "/static/img/bookmakers/olimpobet.png",
     "Pinnacle": "/static/img/bookmakers/pinnacle.png",
     "GangaBet": "/static/img/bookmakers/gangabet.png"
+};
 
 // Icono SVG de calculadora (tipo BetBurger)
 const CALC_ICON_SVG = `
