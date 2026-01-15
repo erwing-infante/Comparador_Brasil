@@ -1,8 +1,14 @@
+# movimientos_bet365.py
 import os
 import json
+import time
+import unicodedata
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import requests
+from difflib import SequenceMatcher
+
+from equivalencias_equipos import EQUIVALENCIAS_EQUIPOS
 
 # ================================================================
 # CONFIG
@@ -22,33 +28,25 @@ CHAT_IDS = [env_int("MOV_BOT_CHAT_ID_1"), env_int("MOV_BOT_CHAT_ID_2")]
 CHAT_IDS = [x for x in CHAT_IDS if x is not None]
 
 MOVIMIENTO_UMBRAL = 0.04  # 4%
-MAX_HORAS_ADELANTE = 36.0  # ventana de alertas
+MAX_HORAS_ADELANTE = 36.0
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 HIST_DIR = os.path.join(DATA_DIR, "historico_bet365")
-CUOTAS_FILE = os.path.join(DATA_DIR, "cuotas.json")
+CUOTAS_JSON = os.path.join(DATA_DIR, "cuotas.json")
+
+ERROR_LOG = os.path.join(DATA_DIR, "error_movimientos_bet365.txt")
 
 
 # ================================================================
-# UTILIDADES
+# HELPERS
 # ================================================================
-def enviar_alerta(mensaje: str):
-    if not TELEGRAM_TOKEN or not CHAT_IDS:
-        print("❌ Faltan MOV_BOT_TOKEN o MOV_BOT_CHAT_ID_1/2 (en systemd o en tu shell).")
-        return
-
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-
-    for cid in CHAT_IDS:
-        payload = {"chat_id": cid, "text": mensaje, "parse_mode": "HTML"}
-        try:
-            r = requests.post(url, data=payload, timeout=10)
-            if not r.ok:
-                print(f"❌ Error Telegram {r.status_code}: {r.text}")
-        except Exception as e:
-            print(f"❌ Error enviando Telegram: {e}")
-
+def log_error(msg: str):
+    try:
+        with open(ERROR_LOG, "a", encoding="utf-8") as f:
+            f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+    except:
+        pass
 
 def cargar_json(path, default):
     if not os.path.exists(path):
@@ -60,17 +58,96 @@ def cargar_json(path, default):
         return default
 
 
-def parse_fecha_a_lima(fecha_str: str):
-    """
-    Soporta formatos de tu cuotas.json y otros:
-    - '2025-11-27 17:45 UTC'
-    - '2025-11-27 17:45:00 UTC'
-    - '2026-01-15T03:06:00.000'
-    - '2026-01-15T03:06:00'
-    - '2026-01-15 03:06:00.000'
-    - con o sin 'Z'
-    Asume UTC cuando no hay zona.
-    """
+# ================================================================
+# TELEGRAM
+# ================================================================
+def enviar_alerta(mensaje: str):
+    if not TELEGRAM_TOKEN or not CHAT_IDS:
+        print("❌ Faltan MOV_BOT_TOKEN o MOV_BOT_CHAT_ID_1/2 (systemd/env).")
+        return
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+
+    for cid in CHAT_IDS:
+        payload = {"chat_id": cid, "text": mensaje, "parse_mode": "HTML"}
+        try:
+            r = requests.post(url, data=payload, timeout=10)
+            if not r.ok:
+                print(f"❌ Error Telegram {r.status_code}: {r.text[:200]}")
+        except Exception as e:
+            print(f"❌ Error enviando Telegram: {e}")
+
+
+# ================================================================
+# NORMALIZACIÓN (misma idea del fusionador)
+# ================================================================
+STOP_TOKENS = {
+    "fc", "cf", "sc", "ec", "ac",
+    "u19", "u20", "u21", "u23",
+    "de", "the", "club",
+    "sa", "sp", "mg", "ba", "ce", "rj", "rs"
+}
+
+def quitar_acentos(s: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+def similitud(a: str, b: str) -> float:
+    return SequenceMatcher(None, a, b).ratio()
+
+def limpiar_equipo(nombre: str) -> str:
+    if not isinstance(nombre, str):
+        return ""
+
+    original = nombre.strip()
+    lookup = quitar_acentos(original).lower().strip()
+
+    if lookup in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[lookup]
+
+    for key in EQUIVALENCIAS_EQUIPOS:
+        if similitud(lookup, key) >= 0.88:
+            return EQUIVALENCIAS_EQUIPOS[key]
+
+    limpio = quitar_acentos(original).lower()
+    for bad in ["t/t", "t//t", "//", "/", "\\", "\t", "\n", "|"]:
+        limpio = limpio.replace(bad, " ")
+    limpio = " ".join(limpio.split()).strip()
+
+    tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
+    fallback = " ".join(tokens).strip()
+
+    if fallback in EQUIVALENCIAS_EQUIPOS:
+        return EQUIVALENCIAS_EQUIPOS[fallback]
+
+    for key in EQUIVALENCIAS_EQUIPOS:
+        if similitud(fallback, key) >= 0.88:
+            return EQUIVALENCIAS_EQUIPOS[key]
+
+    return fallback or original
+
+def team_short(name: str) -> str:
+    limpio = limpiar_equipo(name)
+    if not limpio:
+        return "desconocido"
+    tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
+    if not tokens:
+        return "desconocido"
+    return max(tokens, key=len)
+
+def split_vs(partido: str):
+    if not isinstance(partido, str):
+        return ("", "")
+    p = " ".join(partido.strip().lower().split())
+    if " vs " in p:
+        a, b = p.split(" vs ", 1)
+        return (a.strip(), b.strip())
+    return ("", "")
+
+
+# ================================================================
+# FECHAS (cuotas.json date normalmente: "YYYY-MM-DD HH:MM UTC")
+# ================================================================
+def parse_fecha_utc_a_lima(fecha_str: str):
     if not fecha_str or not isinstance(fecha_str, str):
         return None
 
@@ -87,7 +164,6 @@ def parse_fecha_a_lima(fecha_str: str):
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%dT%H:%M:%S.%f",
     ]
-
     for fmt in fmts:
         try:
             dt_utc = datetime.strptime(s, fmt).replace(tzinfo=ZoneInfo("UTC"))
@@ -97,23 +173,23 @@ def parse_fecha_a_lima(fecha_str: str):
 
     return None
 
-
-def dentro_ventana_partido(fecha_str: str, ahora_lima: datetime) -> bool:
-    dt_lima = parse_fecha_a_lima(fecha_str)
+def dentro_ventana(fecha_partido_str: str, ahora_lima_dt: datetime) -> bool:
+    dt_lima = parse_fecha_utc_a_lima(fecha_partido_str)
     if dt_lima is None:
         return False
-    horas = (dt_lima - ahora_lima).total_seconds() / 3600.0
+    horas = (dt_lima - ahora_lima_dt).total_seconds() / 3600.0
     return 0 <= horas <= MAX_HORAS_ADELANTE
 
 
-def obtener_fecha_partido_desde_cuotas(partido: str):
-    """
-    Busca el partido 'home vs away' del histórico bet365 en data/cuotas.json
-    y retorna p['date'].
-    """
-    data = cargar_json(CUOTAS_FILE, default={})
-    if not data:
-        return None
+# ================================================================
+# CARGA CUOTAS.JSON (index candidatos para match)
+# ================================================================
+def construir_index_cuotas_json():
+    data = cargar_json(CUOTAS_JSON, default={})
+    candidatos = []
+
+    if not isinstance(data, dict):
+        return candidatos
 
     for liga, partidos in data.items():
         if liga == "metadata":
@@ -122,35 +198,143 @@ def obtener_fecha_partido_desde_cuotas(partido: str):
             continue
 
         for p in partidos:
-            home = (p.get("home") or "").strip().lower()
-            away = (p.get("away") or "").strip().lower()
-            if partido.strip().lower() == f"{home} vs {away}":
-                return p.get("date", None)
+            home = (p.get("home") or "").strip()
+            away = (p.get("away") or "").strip()
+            date = (p.get("date") or "").strip()
 
-    return None
+            # date puede faltar si algo se coló; igual lo guardamos para fallback
+            if not home or not away:
+                continue
+
+            candidatos.append({
+                "liga": liga,
+                "date": date,
+                "home": home,
+                "away": away,
+                "home_short": team_short(home),
+                "away_short": team_short(away),
+                "name": p.get("name") or f"{home} vs {away}",
+                "best_home": p.get("best_home") or {},
+                "best_draw": p.get("best_draw") or {},
+                "best_away": p.get("best_away") or {},
+            })
+
+    return candidatos
+
+
+def encontrar_partido_en_cuotas(partido_hist_key: str, candidatos: list, ahora_lima_dt: datetime):
+    """
+    partido_hist_key viene del historico_bet365: clave 'home vs away' normalizada.
+    Match con cuotas.json por similitud en home_short/away_short.
+    Si encuentra match y tiene fecha, se usa filtro 36h.
+    """
+    h_raw, a_raw = split_vs(partido_hist_key)
+    if not h_raw or not a_raw:
+        return None
+
+    h_short = team_short(h_raw)
+    a_short = team_short(a_raw)
+
+    best = None
+    best_score = -1.0
+
+    for c in candidatos:
+        sh = similitud(h_short, c["home_short"])
+        sa = similitud(a_short, c["away_short"])
+        score = (sh + sa) / 2.0
+
+        if score < 0.60:
+            continue
+
+        if score > best_score:
+            best = c
+            best_score = score
+
+    # si hay match y tiene fecha, aplicamos ventana 36h
+    if best and best.get("date"):
+        if not dentro_ventana(best["date"], ahora_lima_dt):
+            return None
+
+    return best
 
 
 # ================================================================
-# FORMATO DE ALERTA
+# FORMATO MENSAJE
 # ================================================================
-def formato_alerta(partido, mercado, antes, despues, var, fecha):
+def fmt_best(label: str, obj: dict) -> str:
+    odd = obj.get("odd")
+    bm = obj.get("bookmaker") or "-"
+    if odd is None or odd == "":
+        return f"• <b>{label}:</b> -"
+    return f"• <b>{label}:</b> {odd} — <b>{bm}</b>"
+
+def formato_alerta_completo(
+    partido_mostrar: str,
+    liga: str,
+    fecha_partido_str: str,
+    mercado: str,
+    antes: float,
+    despues: float,
+    var: float,
+    hora_alerta: str,
+    best_home: dict,
+    best_draw: dict,
+    best_away: dict,
+):
     porc = round(var * 100, 2)
     flecha = "📉" if var < 0 else "📈"
 
-    return f"""
-🔥 <b>MOVIMIENTO BRUSCO BET365 (+/-4%)</b>
+    dt_lima = parse_fecha_utc_a_lima(fecha_partido_str) if fecha_partido_str else None
+    fecha_partido_txt = dt_lima.strftime("%Y-%m-%d %H:%M") + " (Perú)" if dt_lima else (fecha_partido_str or "(no encontrada)")
 
-<b>{partido}</b>
-<b>MERCADO AFECTADO:</b> <code>{mercado.upper()}</code>
-<b>CAMBIO:</b> <code>{antes} → {despues}</code>
-<b>VARIACIÓN:</b> <code>{porc}%</code> {flecha}
+    liga_txt = liga or "(no encontrada)"
 
-⏱ {fecha}
-""".strip()
+    return (
+        f"🔥 <b>MOVIMIENTO BRUSCO BET365 (+/-4%)</b>\n\n"
+        f"<b>{partido_mostrar}</b>\n"
+        f"<b>Liga:</b> {liga_txt}\n"
+        f"<b>Fecha:</b> {fecha_partido_txt}\n\n"
+        f"<b>MOVIMIENTO (Bet365)</b>\n"
+        f"• <b>Mercado:</b> {mercado.upper()}\n"
+        f"• <b>Cambio:</b> {antes} → {despues}\n"
+        f"• <b>Variación:</b> {porc}% {flecha}\n\n"
+        f"<b>MEJOR 1X2 ACTUAL</b>\n"
+        f"{fmt_best('Local', best_home)}\n"
+        f"{fmt_best('Empate', best_draw)}\n"
+        f"{fmt_best('Visita', best_away)}\n\n"
+        f"⏱ <code>{hora_alerta}</code> (hora alerta)"
+    )
+
+def formato_alerta_fallback(
+    partido_key: str,
+    mercado: str,
+    antes: float,
+    despues: float,
+    var: float,
+    hora_alerta: str,
+):
+    porc = round(var * 100, 2)
+    flecha = "📉" if var < 0 else "📈"
+
+    return (
+        f"🔥 <b>MOVIMIENTO BRUSCO BET365 (+/-4%)</b>\n\n"
+        f"<b>{partido_key}</b>\n"
+        f"<b>Liga:</b> (no encontrada)\n"
+        f"<b>Fecha:</b> (no encontrada)\n\n"
+        f"<b>MOVIMIENTO (Bet365)</b>\n"
+        f"• <b>Mercado:</b> {mercado.upper()}\n"
+        f"• <b>Cambio:</b> {antes} → {despues}\n"
+        f"• <b>Variación:</b> {porc}% {flecha}\n\n"
+        f"<b>MEJOR 1X2 ACTUAL</b>\n"
+        f"• <b>Local:</b> -\n"
+        f"• <b>Empate:</b> -\n"
+        f"• <b>Visita:</b> -\n\n"
+        f"⏱ <code>{hora_alerta}</code> (hora alerta)"
+    )
 
 
 # ================================================================
-# PROCESO PRINCIPAL
+# MAIN
 # ================================================================
 def detectar_movimientos_bet365():
     fecha_hoy = datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d")
@@ -174,15 +358,12 @@ def detectar_movimientos_bet365():
     ahora_lima_dt = datetime.now(ZoneInfo("America/Lima"))
     ahora_str = ahora_lima_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    for partido, cuotas_nuevas in ultimo.items():
-        # ✅ filtro 36h
-        fecha_partido = obtener_fecha_partido_desde_cuotas(partido)
-        if not fecha_partido:
-            continue
-        if not dentro_ventana_partido(fecha_partido, ahora_lima_dt):
-            continue
+    candidatos = construir_index_cuotas_json()
+    if not candidatos:
+        print("⚠️ cuotas.json vacío/no válido. Enviaré solo fallback (sin fecha/ligas).")
 
-        cuotas_antes = anterior.get(partido)
+    for partido_key, cuotas_nuevas in ultimo.items():
+        cuotas_antes = anterior.get(partido_key)
         if not cuotas_antes:
             continue
 
@@ -202,12 +383,44 @@ def detectar_movimientos_bet365():
         mov_empate = variacion(e1, e2)
         mov_visita = variacion(v1, v2)
 
+        # Solo si hay movimiento
+        movimientos = []
         if abs(mov_local) >= MOVIMIENTO_UMBRAL:
-            enviar_alerta(formato_alerta(partido, "Local", l1, l2, mov_local, ahora_str))
+            movimientos.append(("LOCAL", l1, l2, mov_local))
         if abs(mov_empate) >= MOVIMIENTO_UMBRAL:
-            enviar_alerta(formato_alerta(partido, "Empate", e1, e2, mov_empate, ahora_str))
+            movimientos.append(("EMPATE", e1, e2, mov_empate))
         if abs(mov_visita) >= MOVIMIENTO_UMBRAL:
-            enviar_alerta(formato_alerta(partido, "Visita", v1, v2, mov_visita, ahora_str))
+            movimientos.append(("VISITA", v1, v2, mov_visita))
+
+        if not movimientos:
+            continue
+
+        match = encontrar_partido_en_cuotas(partido_key, candidatos, ahora_lima_dt) if candidatos else None
+
+        # Si hay match, mandamos completo (y ya pasó filtro 36h dentro del matcher si había fecha)
+        if match:
+            liga = match.get("liga") or ""
+            fecha_partido = match.get("date") or ""
+            partido_mostrar = match.get("name") or partido_key
+
+            for mercado, antes, despues, var in movimientos:
+                enviar_alerta(
+                    formato_alerta_completo(
+                        partido_mostrar, liga, fecha_partido,
+                        mercado, antes, despues, var, ahora_str,
+                        match.get("best_home") or {},
+                        match.get("best_draw") or {},
+                        match.get("best_away") or {}
+                    )
+                )
+        else:
+            # Fallback: manda igual, sin liga/fecha/best
+            for mercado, antes, despues, var in movimientos:
+                enviar_alerta(
+                    formato_alerta_fallback(
+                        partido_key, mercado, antes, despues, var, ahora_str
+                    )
+                )
 
     print("✔ Movimientos revisados correctamente.")
 
