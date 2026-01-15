@@ -623,5 +623,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "o'higgins":"ohiggins",
     "bahia-ba":"bahia",
     "avs":"avs Futebol",
+    "dep la coruna":"deportivo la coruna",
     "Venezia": "venezia",
 }
