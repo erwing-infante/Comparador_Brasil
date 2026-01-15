@@ -108,7 +108,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "cf pachuca": "pachuca",
     "club tijuana de caliente": "xolos de tijuana",
     "fc juarez": "juarez",
-    "Deportivo Toluca": "toluca",
+    "deportivo toluca": "toluca",
     "pumas unam": "pumas unam",
     "tigres uanl": "tigres uanl",
     "aj auxerre": "auxerre",
