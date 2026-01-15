@@ -1,10 +1,9 @@
 # movimientos_bet365.py
-# - Detecta movimientos bruscos en Bet365 desde data/historico_bet365/<YYYY-MM-DD>.json
-# - Enriquiece alerta con Liga/Fecha/Best 1X2 desde data/cuotas.json (fusionado)
-# - Match usando la misma lógica del fusionador (equivalencias + similitud)
-# - Filtro de ventana 36h (cuando hay fecha en cuotas.json)
-# - Fallback: si no hay match en cuotas.json, manda alerta igual (sin liga/fecha/best)
-# - Anti-duplicados: guarda firmas enviadas en data/ultimo_estado_movimientos.json
+# ✅ CORRECCIÓN PUNTUAL: el match ahora canoniza el partido del histórico usando
+#    la MISMA lógica del fusionador: primero aplica equivalencias + similitud (limpiar_equipo),
+#    y recién luego calcula team_short. Con esto "cd guadalajara" -> "chivas guadalajara", etc.
+#
+# (Todo lo demás queda igual.)
 
 import os
 import json
@@ -77,7 +76,6 @@ def cargar_estado_mov():
     return cargar_json(ESTADO_MOV_FILE, default={"sent": [], "last_ts": ""})
 
 def firma_alerta(partido_key: str, mercado: str, antes: float, despues: float) -> str:
-    # redondeo para estabilidad de firma
     try:
         a = round(float(antes), 4)
         b = round(float(despues), 4)
@@ -112,6 +110,7 @@ def enviar_alerta(mensaje: str):
 # ================================================================
 STOP_TOKENS = {
     "fc", "cf", "sc", "ec", "ac",
+    "cd", "ca",  # ✅ añadido para casos tipo "cd guadalajara"
     "u19", "u20", "u21", "u23",
     "de", "the", "club",
     "sa", "sp", "mg", "ba", "ce", "rj", "rs"
@@ -130,24 +129,30 @@ def limpiar_equipo(nombre: str) -> str:
     original = nombre.strip()
     lookup = quitar_acentos(original).lower().strip()
 
+    # 1) equivalencia exacta
     if lookup in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[lookup]
 
+    # 2) equivalencia por similitud alta
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(lookup, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
 
+    # 3) limpieza ligera
     limpio = quitar_acentos(original).lower()
     for bad in ["t/t", "t//t", "//", "/", "\\", "\t", "\n", "|"]:
         limpio = limpio.replace(bad, " ")
     limpio = " ".join(limpio.split()).strip()
 
+    # 4) quitar tokens
     tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
     fallback = " ".join(tokens).strip()
 
+    # 5) equivalencia exacta con fallback
     if fallback in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[fallback]
 
+    # 6) equivalencia por similitud alta con fallback
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(fallback, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
@@ -251,15 +256,20 @@ def construir_index_cuotas_json():
 
 def encontrar_partido_en_cuotas(partido_hist_key: str, candidatos: list, ahora_lima_dt: datetime):
     """
-    Match por similitud en home_short/away_short.
-    Si el match tiene fecha, aplica filtro 36h.
+    ✅ CORRECCIÓN AQUÍ:
+    - Primero canoniza home/away del histórico con limpiar_equipo (equivalencias + similitud)
+    - Luego saca team_short y compara.
     """
     h_raw, a_raw = split_vs(partido_hist_key)
     if not h_raw or not a_raw:
         return None
 
-    h_short = team_short(h_raw)
-    a_short = team_short(a_raw)
+    # ✅ Canonización del histórico (equivalencias + similitud)
+    h_canon = limpiar_equipo(h_raw)
+    a_canon = limpiar_equipo(a_raw)
+
+    h_short = team_short(h_canon)
+    a_short = team_short(a_canon)
 
     best = None
     best_score = -1.0
@@ -447,7 +457,6 @@ def detectar_movimientos_bet365():
             enviadas.add(sig)
             total_enviadas += 1
 
-    # recortar memoria para que no crezca infinito
     sent_list = list(enviadas)
     if len(sent_list) > 2000:
         sent_list = sent_list[-2000:]
