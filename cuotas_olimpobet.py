@@ -1,7 +1,7 @@
 import requests
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 os.makedirs("data", exist_ok=True)
@@ -10,7 +10,6 @@ OUTPUT_FILE = os.path.join("data", "cuotas_olimpobet.json")
 # ============================================================
 # HEADERS reales (imprescindibles para OLIMPO)
 # ============================================================
-
 HEADERS = {
     "accept": "*/*",
     "accept-language": "es-PE,es-419;q=0.9,es;q=0.8",
@@ -27,7 +26,6 @@ HEADERS = {
 # ============================================================
 # LISTA COMPLETA DE LIGAS (actualizada)
 # ============================================================
-
 LIGAS_OLIMPO = [
     ("Premier League", "football/england/premier_league", False),
     ("FA Cup", "football/england/fa_cup", False),
@@ -70,10 +68,16 @@ LIGAS_OLIMPO = [
 ]
 
 # ============================================================
-# FORMATO DE FECHA
+# LÍMITE 3 DÍAS
 # ============================================================
+HORAS_ADELANTE = 72
+NOW_UTC = datetime.now(timezone.utc)
+CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 
-def parse_fecha(start_iso):
+# ============================================================
+# FECHA
+# ============================================================
+def parse_fecha(start_iso: str) -> str:
     """Convierte 2025-11-22T12:30:00Z → 2025-11-22T12:30:00.000"""
     try:
         dt = datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
@@ -81,21 +85,38 @@ def parse_fecha(start_iso):
     except:
         return start_iso
 
+def fecha_to_dt_utc(start_iso: str):
+    """Convierte start ISO (con Z) a datetime UTC."""
+    if not start_iso:
+        return None
+    try:
+        return datetime.fromisoformat(start_iso.replace("Z", "+00:00")).astimezone(timezone.utc)
+    except:
+        return None
 
 # ============================================================
-# PARSEAR EVENTO (OPCIÓN A: SIEMPRE INCLUIR)
+# PARSEAR EVENTO
 # ============================================================
-
 def parse_event(evt, liga_nombre):
-    """Extraer mercado 1X2. Si no existe, incluir evento con cuotas null."""
     event_info = evt.get("event", {})
     if not event_info:
         return None
 
     home = event_info.get("homeName")
     away = event_info.get("awayName")
-    fecha = parse_fecha(event_info.get("start", ""))
+    start = event_info.get("start", "")
     event_id = event_info.get("id")
+
+    # filtros mínimos
+    if not home or not away or not start:
+        return None
+
+    # ✅ filtro 72h
+    dt = fecha_to_dt_utc(start)
+    if dt is None or dt > CUTOFF_UTC:
+        return None
+
+    fecha = parse_fecha(start)
 
     cuota1 = cuotaX = cuota2 = None
 
@@ -107,12 +128,10 @@ def parse_event(evt, liga_nombre):
         for oc in bo.get("outcomes", []):
             label = oc.get("label")
             odds_raw = oc.get("odds")
-
             if odds_raw is None:
                 continue
 
-            odds = odds_raw / 1000  # Conversión correcta Kambi
-
+            odds = odds_raw / 1000  # Kambi
             if label == "1":
                 cuota1 = odds
             elif label == "X":
@@ -120,7 +139,7 @@ def parse_event(evt, liga_nombre):
             elif label == "2":
                 cuota2 = odds
 
-    # OPCIÓN A: incluir el partido aunque NO tenga mercado 1X2
+    # ✅ (Mantengo tu opción A) incluir aunque no tenga 1X2, pero solo dentro 72h
     return {
         "Liga": liga_nombre,
         "Partido": f"{home} vs {away}",
@@ -134,11 +153,9 @@ def parse_event(evt, liga_nombre):
         "EventId": event_id
     }
 
-
 # ============================================================
 # SCRAPER DE UNA LIGA
 # ============================================================
-
 def scrape_liga(nombre, path, internacional):
     base = "https://us1.offering-api.kambicdn.com/offering/v2018/nexuspe/listView"
 
@@ -156,30 +173,30 @@ def scrape_liga(nombre, path, internacional):
         data = r.json()
         events = data.get("events", [])
 
-        print(f"ok {nombre}: {len(events)} partidos")
+        parsed = []
+        for evt in events:
+            x = parse_event(evt, nombre)
+            if x:
+                parsed.append(x)
 
-        return [parse_event(evt, nombre) for evt in events]
+        print(f"ok {nombre}: {len(parsed)} partidos (<= {HORAS_ADELANTE}h)")
+        return parsed
 
     except Exception as e:
         print(f"X {nombre}: ERROR {e}")
         return []
 
-
 # ============================================================
-# PROCESO PRINCIPAL (MULTIHILO)
+# MAIN
 # ============================================================
-
 def main():
-    print("\n🔍 Descargando todas las ligas de OLIMPO (modo rápido)...\n")
+    print("\n🔍 Descargando ligas de OLIMPO (<= 72h)...\n")
 
     resultados = []
 
-    with ThreadPoolExecutor(max_workers=20) as ex:
-        futures = [
-            ex.submit(scrape_liga, nombre, path, intl)
-            for nombre, path, intl in LIGAS_OLIMPO
-        ]
-
+    # 10 workers suele ser estable
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        futures = [ex.submit(scrape_liga, nombre, path, intl) for nombre, path, intl in LIGAS_OLIMPO]
         for future in as_completed(futures):
             resultados.extend(future.result())
 
@@ -188,7 +205,6 @@ def main():
 
     print(f"\nOK Archivo generado: {OUTPUT_FILE}")
     print(f" TOTAL PARTIDOS: {len(resultados)}")
-
 
 if __name__ == "__main__":
     main()

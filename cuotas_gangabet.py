@@ -6,6 +6,7 @@ import os
 import re
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
 
 # === CONFIGURACIÓN ===
 OUT_DIR = "data"
@@ -15,7 +16,6 @@ ERROR_LOG = os.path.join(OUT_DIR, "error_gangabet_log.txt")
 API_EVENTS  = "https://sb2frontend-altenar2.biahosted.com/api/Sportsbook/GetEvents"
 API_DETAILS = "https://sb2frontend-altenar2.biahosted.com/api/widget/GetEventDetails"
 
-# === SOLO CAMBIA ESTO PARA GANGABET ===
 HEADERS = {
     "accept": "application/json, text/plain, */*",
     "origin": "https://gangabet.pe",
@@ -26,12 +26,17 @@ HEADERS = {
 PARAMS_EVENTS = {
     "culture": "es-ES",
     "timezoneOffset": "300",
-    "integration": "gangabet.pe",   # <- según tu link
+    "integration": "gangabet.pe",
     "deviceType": "1",
     "numFormat": "en-GB",
     "countryCode": "PE",
     "sportids": "66"
 }
+
+# === LÍMITE DE DÍAS ===
+HORAS_ADELANTE = 72  # 3 días
+NOW_UTC = datetime.now(timezone.utc)
+CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 
 # === LIGAS DE MÁNCORABET ===
 LIGAS_EQUIVALENCIAS = [
@@ -71,7 +76,6 @@ NOMBRES_1X2 = {"1x2", "resultado final", "match result", "ft result", "ganador"}
 
 
 # === FUNCIONES ===
-
 def log_error(msg: str):
     with open(ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
@@ -107,11 +111,6 @@ def format_nombre_equipo_title(s: str) -> str:
     return " ".join(out)
 
 
-def auditar_nombres_equipo(raw: str, cleaned: str):
-    if raw and raw != cleaned:
-        log_error(f"NOMBRE AJUSTADO: '{raw}' -> '{cleaned}'")
-
-
 def mapear_liga(champ: str, cat: str):
     n_champ = normalizar_nombre_equipo(champ)
     n_cat = normalizar_nombre_equipo(cat)
@@ -131,11 +130,23 @@ def extraer_eventos(nodos):
     return evs
 
 
+def parse_event_date_utc(fecha_raw: str):
+    if not fecha_raw:
+        return None
+    try:
+        dt = pd.to_datetime(fecha_raw, utc=True, errors="coerce")
+        if pd.isna(dt):
+            return None
+        return dt.to_pydatetime()
+    except:
+        return None
+
+
 def obtener_cuotas(event_id: int):
     params = {
         "culture": "es-ES",
         "timezoneOffset": "300",
-        "integration": "gangabet.pe",   # <- GANGABET
+        "integration": "gangabet.pe",
         "deviceType": "1",
         "numFormat": "en-GB",
         "countryCode": "PE",
@@ -143,16 +154,22 @@ def obtener_cuotas(event_id: int):
         "showNonBoosts": "false"
     }
 
+    data = None
     for intento in range(3):
         try:
             r = requests.get(API_DETAILS, params=params, headers=HEADERS, timeout=20)
             if r.status_code == 200:
                 data = r.json()
-                break
+                mk = data.get("markets", []) or data.get("Markets", [])
+                od = data.get("odds", []) or data.get("Odds", [])
+                if mk and od:
+                    break
+                time.sleep(0.7 * (intento + 1))
         except Exception as e:
             log_error(f"Error conexión detalle evento {event_id}: {e}")
-            time.sleep(5 * (intento + 1))
-    else:
+            time.sleep(2 * (intento + 1))
+
+    if not data:
         return {"Local": "", "Empate": "", "Visita": ""}
 
     try:
@@ -181,10 +198,8 @@ def obtener_cuotas(event_id: int):
 
         if odd_ids:
             mapa = {o.get("id"): o for o in odds_all if o.get("id") in odd_ids}
-
-            for oid, o in mapa.items():
-                nombre_raw = o.get("name", "")
-                nombre = normalizar_nombre_equipo(nombre_raw)
+            for _, o in mapa.items():
+                nombre = normalizar_nombre_equipo(o.get("name", ""))
                 tipo = o.get("typeId")
                 price = o.get("price", "")
 
@@ -195,10 +210,7 @@ def obtener_cuotas(event_id: int):
                 elif tipo == 3 or "visit" in nombre or "away" in nombre or nombre in {"2"}:
                     cuotas["Visita"] = price
 
-                if nombre_raw and nombre_raw != nombre:
-                    log_error(f"ODD NAME AJUSTADO (event {event_id}): '{nombre_raw}' -> '{nombre}'")
-
-        time.sleep(random.uniform(0.3, 0.7))
+        time.sleep(random.uniform(0.10, 0.25))
         return cuotas
 
     except Exception as e:
@@ -208,10 +220,14 @@ def obtener_cuotas(event_id: int):
 
 def procesar_evento(ev):
     try:
+        # --- filtro 72h ---
+        dt_utc = parse_event_date_utc(ev.get("EventDate", ""))
+        if dt_utc and dt_utc > CUTOFF_UTC:
+            return None
+
         champ_raw, cat_raw = ev.get("ChampName", ""), ev.get("CategoryName", "")
         liga_canon = mapear_liga(champ_raw, cat_raw)
         if not liga_canon:
-            log_error(f"LIGA NO MAPEADA: champ='{champ_raw}' cat='{cat_raw}'")
             return None
 
         eid = ev.get("Id")
@@ -221,18 +237,12 @@ def procesar_evento(ev):
         local_raw = comps[0].get("Name", "") if len(comps) > 0 else ""
         visita_raw = comps[1].get("Name", "") if len(comps) > 1 else ""
 
-        local_clean = normalizar_nombre_equipo(local_raw)
-        visita_clean = normalizar_nombre_equipo(visita_raw)
-
-        auditar_nombres_equipo(local_raw, local_clean)
-        auditar_nombres_equipo(visita_raw, visita_clean)
-
-        local_fmt = format_nombre_equipo_title(local_clean)
-        visita_fmt = format_nombre_equipo_title(visita_clean)
+        local_fmt = format_nombre_equipo_title(local_raw)
+        visita_fmt = format_nombre_equipo_title(visita_raw)
 
         fecha_raw = ev.get("EventDate", "")
         try:
-            fecha_local = pd.to_datetime(fecha_raw).tz_convert(None).strftime("%Y-%m-%d %H:%M:%S")
+            fecha_local = pd.to_datetime(fecha_raw, utc=True, errors="coerce").tz_convert(None).strftime("%Y-%m-%d %H:%M:%S")
         except Exception:
             fecha_local = fecha_raw
 
@@ -263,40 +273,46 @@ def main():
                 break
         except Exception as e:
             log_error(f"Error conexión GetEvents: {e}")
-            time.sleep(5 * (intento + 1))
+            time.sleep(3 * (intento + 1))
     else:
         log_error("Fallo definitivo en conexión GetEvents después de 3 intentos.")
         return
 
-    try:
-        eventos = extraer_eventos(data)
-        print(f"🔍 Total eventos detectados: {len(eventos)}")
+    eventos = extraer_eventos(data)
 
-        registros = []
+    # filtro 72h antes de threads (ahorra muchísimo)
+    eventos_filtrados = []
+    for ev in eventos:
+        dt_utc = parse_event_date_utc(ev.get("EventDate", ""))
+        if dt_utc and dt_utc <= CUTOFF_UTC:
+            eventos_filtrados.append(ev)
 
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(procesar_evento, ev) for ev in eventos]
-            for future in as_completed(futures):
-                result = future.result()
-                if result:
-                    registros.append(result)
+    print(f"🔍 Total eventos detectados: {len(eventos)}")
+    print(f"⏳ Eventos dentro de {HORAS_ADELANTE}h: {len(eventos_filtrados)}")
 
-        if not registros:
-            print(" No se encontraron eventos válidos.")
-            return
+    registros = []
 
-        df = pd.DataFrame(registros)
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.tz_localize(None)
-        df = df.sort_values(["Liga", "Fecha"])
+    # workers moderados para evitar vacíos
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        futures = [executor.submit(procesar_evento, ev) for ev in eventos_filtrados]
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                registros.append(result)
 
-        out_json = os.path.join(OUT_DIR, "cuotas_gangabet.json")
-        df.to_json(out_json, orient="records", indent=2, date_format="iso", force_ascii=False)
+    if not registros:
+        print("No se encontraron eventos válidos.")
+        return
 
-        print(f"✅ Archivo generado: {out_json}")
-        print(f"✅ Total partidos: {len(df)}")
+    df = pd.DataFrame(registros)
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.tz_localize(None)
+    df = df.sort_values(["Liga", "Fecha"])
 
-    except Exception as e:
-        log_error(f"Error general: {e}")
+    out_json = os.path.join(OUT_DIR, "cuotas_gangabet.json")
+    df.to_json(out_json, orient="records", indent=2, date_format="iso", force_ascii=False)
+
+    print(f"✅ Archivo generado: {out_json}")
+    print(f"✅ Total partidos: {len(df)}")
 
 
 if __name__ == "__main__":

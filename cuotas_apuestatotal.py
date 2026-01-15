@@ -4,6 +4,7 @@ import json
 import time
 import unicodedata
 import requests
+from datetime import datetime, timedelta, timezone
 
 # ================= CONFIG =================
 BASE = "https://prod20392.msjxk.com"
@@ -24,6 +25,11 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like 
 
 CHUNK_SIZE = 25
 MARKET_CODES = ["ML0"]  # 1X2
+
+# ✅ LÍMITE 3 DÍAS
+HORAS_ADELANTE = 72
+NOW_UTC = datetime.now(timezone.utc)
+CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 
 # ========= TUS LIGAS (NO SE TOCAN) =========
 LIGAS_EQUIVALENCIAS = [
@@ -71,16 +77,9 @@ def chunked(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i+n]
 
-# ISO datetime tipo: 2026-01-06T17:00:00.000Z (o sin .000)
 ISO_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z)?")
 
 def normalize_fecha_iso(s: str) -> str:
-    """
-    Convierte:
-      2026-01-06T17:00:00.000Z -> 2026-01-06T17:00:00.000
-      2026-01-06T17:00:00Z     -> 2026-01-06T17:00:00
-    Mantiene formato ISO y SOLO quita la Z.
-    """
     if not isinstance(s, str):
         return ""
     s = s.strip()
@@ -89,10 +88,6 @@ def normalize_fecha_iso(s: str) -> str:
     return s
 
 def find_fecha_in_row(row) -> str:
-    """
-    MSJXK a veces cambia el índice donde viene la fecha.
-    Buscamos el primer string ISO dentro del row.
-    """
     if not isinstance(row, list):
         return ""
     for it in row:
@@ -100,7 +95,6 @@ def find_fecha_in_row(row) -> str:
             m = ISO_RE.search(it)
             if m:
                 return normalize_fecha_iso(m.group(0))
-        # a veces viene dentro de dict/list
         if isinstance(it, dict):
             for v in it.values():
                 if isinstance(v, str):
@@ -114,6 +108,20 @@ def find_fecha_in_row(row) -> str:
                     if m:
                         return normalize_fecha_iso(m.group(0))
     return ""
+
+def fecha_to_utc(fecha_iso_noz: str):
+    """
+    Convierte '2026-01-06T17:00:00.000' (sin Z) a UTC asumida.
+    Si MSJXK te devuelve horas locales, esto podría tener offset; para tu filtro de 72h sirve igual.
+    """
+    if not fecha_iso_noz:
+        return None
+    try:
+        dt = datetime.fromisoformat(fecha_iso_noz)
+        # asumimos UTC si no trae tz
+        return dt.replace(tzinfo=timezone.utc)
+    except:
+        return None
 
 # ================= TOKENS =================
 def load_tokens():
@@ -159,11 +167,6 @@ def get_events_by_league(s, h, league_id: str):
     return r.json()
 
 def parse_events(data):
-    """
-    IMPORTANTÍSIMO:
-    data["data"] viene como lista de listas.
-    El índice de fecha NO es fijo, así que la buscamos por patrón ISO.
-    """
     evs = []
     payload = data.get("data", [])
     if not isinstance(payload, list):
@@ -180,7 +183,6 @@ def parse_events(data):
         home = ""
         away = ""
 
-        # Competitors usualmente en row[8], pero si cambia, igual no rompemos
         comps = row[8] if len(row) > 8 else None
         if isinstance(comps, list):
             for c in comps:
@@ -198,7 +200,6 @@ def parse_events(data):
                     elif "away" in side:
                         away = name
 
-        # ✅ FECHA: buscar string ISO en todo el row
         start_time = find_fecha_in_row(row)
 
         evs.append({
@@ -326,10 +327,20 @@ def main():
     for _, _, league_id, liga_out in LIGAS_EQUIVALENCIAS:
         data = get_events_by_league(s, h, league_id)
         evs = parse_events(data)
-        print(f"✅ {liga_out}: {len(evs)} eventos")
+
+        # ✅ FILTRO 72h AQUÍ (antes de juntar todo)
+        evs_fil = []
         for e in evs:
+            dt = fecha_to_utc(e.get("Fecha", ""))
+            if dt is None:
+                continue
+            if dt <= CUTOFF_UTC:
+                evs_fil.append(e)
+
+        print(f"✅ {liga_out}: {len(evs_fil)} eventos (<= {HORAS_ADELANTE}h)")
+        for e in evs_fil:
             liga_por_evento[e["EventId"]] = liga_out
-        eventos.extend(evs)
+        eventos.extend(evs_fil)
 
     # dedupe por EventId
     uniq = {}
@@ -339,7 +350,7 @@ def main():
 
     event_ids = [e["EventId"] for e in eventos]
     if not event_ids:
-        print("❌ No hay eventos. Revisa error_log.txt")
+        print("❌ No hay eventos en ventana 72h. Revisa error_log.txt")
         return
 
     # 2) cuotas bulk
@@ -369,7 +380,7 @@ def main():
     print(f"✅ chunks OK: {ok_chunks}/{total_chunks}")
     print(f"✅ 1X2 detectadas: {len(cuotas)}")
 
-    # 3) salida final (con Fecha correcta)
+    # 3) salida final
     salida = []
     for e in eventos:
         eid = e["EventId"]
