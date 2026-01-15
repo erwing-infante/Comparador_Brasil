@@ -20,8 +20,7 @@ ARCHIVOS = {
     "doradobet": os.path.join(DATA_DIR, "cuotas_doradobet.json"),
     "atlanticcity": os.path.join(DATA_DIR, "cuotas_atlanticcity.json"),
     "olimpobet": os.path.join(DATA_DIR, "cuotas_olimpobet.json"),
-    "gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
-    "stake": os.path.join(DATA_DIR, "cuotas_stake.json")
+    "gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json")
 }
 
 # Similitud mínima
