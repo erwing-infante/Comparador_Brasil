@@ -1,10 +1,4 @@
 # movimientos_bet365.py
-# ✅ CORRECCIÓN PUNTUAL: el match ahora canoniza el partido del histórico usando
-#    la MISMA lógica del fusionador: primero aplica equivalencias + similitud (limpiar_equipo),
-#    y recién luego calcula team_short. Con esto "cd guadalajara" -> "chivas guadalajara", etc.
-#
-# (Todo lo demás queda igual.)
-
 import os
 import json
 import time
@@ -16,9 +10,6 @@ from difflib import SequenceMatcher
 
 from equivalencias_equipos import EQUIVALENCIAS_EQUIPOS
 
-# ================================================================
-# CONFIG
-# ================================================================
 TELEGRAM_TOKEN = os.getenv("MOV_BOT_TOKEN")
 
 def env_int(name: str):
@@ -45,9 +36,7 @@ ERROR_LOG = os.path.join(DATA_DIR, "error_movimientos_bet365.txt")
 ESTADO_MOV_FILE = os.path.join(DATA_DIR, "ultimo_estado_movimientos.json")
 
 
-# ================================================================
-# HELPERS JSON / LOG
-# ================================================================
+# ---------------- JSON / LOG ----------------
 def log_error(msg: str):
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -85,16 +74,13 @@ def firma_alerta(partido_key: str, mercado: str, antes: float, despues: float) -
     return f"{partido_key}::{mercado}::{a}->{b}"
 
 
-# ================================================================
-# TELEGRAM
-# ================================================================
+# ---------------- Telegram ----------------
 def enviar_alerta(mensaje: str):
     if not TELEGRAM_TOKEN or not CHAT_IDS:
         print("❌ Faltan MOV_BOT_TOKEN o MOV_BOT_CHAT_ID_1/2 (systemd/env).")
         return
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-
     for cid in CHAT_IDS:
         payload = {"chat_id": cid, "text": mensaje, "parse_mode": "HTML"}
         try:
@@ -105,12 +91,10 @@ def enviar_alerta(mensaje: str):
             print(f"❌ Error enviando Telegram: {e}")
 
 
-# ================================================================
-# NORMALIZACIÓN (misma idea del fusionador)
-# ================================================================
+# ---------------- Normalización (igual idea fusionador) ----------------
 STOP_TOKENS = {
     "fc", "cf", "sc", "ec", "ac",
-    "cd", "ca",  # ✅ añadido para casos tipo "cd guadalajara"
+    "cd", "ca",  # importante para casos como "cd guadalajara"
     "u19", "u20", "u21", "u23",
     "de", "the", "club",
     "sa", "sp", "mg", "ba", "ce", "rj", "rs"
@@ -129,30 +113,24 @@ def limpiar_equipo(nombre: str) -> str:
     original = nombre.strip()
     lookup = quitar_acentos(original).lower().strip()
 
-    # 1) equivalencia exacta
     if lookup in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[lookup]
 
-    # 2) equivalencia por similitud alta
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(lookup, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
 
-    # 3) limpieza ligera
     limpio = quitar_acentos(original).lower()
     for bad in ["t/t", "t//t", "//", "/", "\\", "\t", "\n", "|"]:
         limpio = limpio.replace(bad, " ")
     limpio = " ".join(limpio.split()).strip()
 
-    # 4) quitar tokens
     tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
     fallback = " ".join(tokens).strip()
 
-    # 5) equivalencia exacta con fallback
     if fallback in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[fallback]
 
-    # 6) equivalencia por similitud alta con fallback
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(fallback, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
@@ -178,9 +156,7 @@ def split_vs(partido: str):
     return ("", "")
 
 
-# ================================================================
-# FECHAS
-# ================================================================
+# ---------------- Fechas ----------------
 def parse_fecha_utc_a_lima(fecha_str: str):
     if not fecha_str or not isinstance(fecha_str, str):
         return None
@@ -204,7 +180,6 @@ def parse_fecha_utc_a_lima(fecha_str: str):
             return dt_utc.astimezone(ZoneInfo("America/Lima"))
         except:
             pass
-
     return None
 
 def dentro_ventana(fecha_partido_str: str, ahora_lima_dt: datetime) -> bool:
@@ -215,13 +190,10 @@ def dentro_ventana(fecha_partido_str: str, ahora_lima_dt: datetime) -> bool:
     return 0 <= horas <= MAX_HORAS_ADELANTE
 
 
-# ================================================================
-# CUOTAS.JSON -> candidatos
-# ================================================================
+# ---------------- cuotas.json candidatos ----------------
 def construir_index_cuotas_json():
     data = cargar_json(CUOTAS_JSON, default={})
     candidatos = []
-
     if not isinstance(data, dict):
         return candidatos
 
@@ -251,20 +223,19 @@ def construir_index_cuotas_json():
                 "best_draw": p.get("best_draw") or {},
                 "best_away": p.get("best_away") or {},
             })
-
     return candidatos
 
-def encontrar_partido_en_cuotas(partido_hist_key: str, candidatos: list, ahora_lima_dt: datetime):
+
+def encontrar_partido_en_cuotas(partido_hist_key: str, candidatos: list):
     """
-    ✅ CORRECCIÓN AQUÍ:
-    - Primero canoniza home/away del histórico con limpiar_equipo (equivalencias + similitud)
-    - Luego saca team_short y compara.
+    Match usando equivalencias+similitud ANTES de comparar (igual idea fusionador).
+    Retorna (match, in_window) para que el main decida si alerta o no.
     """
     h_raw, a_raw = split_vs(partido_hist_key)
     if not h_raw or not a_raw:
-        return None
+        return (None, False)
 
-    # ✅ Canonización del histórico (equivalencias + similitud)
+    # Canoniza histórico con equivalencias + similitud (la clave del fix)
     h_canon = limpiar_equipo(h_raw)
     a_canon = limpiar_equipo(a_raw)
 
@@ -286,16 +257,14 @@ def encontrar_partido_en_cuotas(partido_hist_key: str, candidatos: list, ahora_l
             best = c
             best_score = score
 
-    if best and best.get("date"):
-        if not dentro_ventana(best["date"], ahora_lima_dt):
-            return None
+    if not best:
+        return (None, False)
 
-    return best
+    # ventana se calcula fuera (para no forzar fallback)
+    return (best, True)
 
 
-# ================================================================
-# FORMATO MENSAJE
-# ================================================================
+# ---------------- Mensajes ----------------
 def fmt_best(label: str, obj: dict) -> str:
     odd = obj.get("odd")
     bm = obj.get("bookmaker") or "-"
@@ -303,53 +272,34 @@ def fmt_best(label: str, obj: dict) -> str:
         return f"• <b>{label}:</b> -"
     return f"• <b>{label}:</b> {odd} — <b>{bm}</b>"
 
-def formato_alerta_completo(
-    partido_mostrar: str,
-    liga: str,
-    fecha_partido_str: str,
-    mercado: str,
-    antes: float,
-    despues: float,
-    var: float,
-    hora_alerta: str,
-    best_home: dict,
-    best_draw: dict,
-    best_away: dict,
-):
+def formato_alerta_completo(match: dict, mercado: str, antes: float, despues: float, var: float, hora_alerta: str):
     porc = round(var * 100, 2)
     flecha = "📉" if var < 0 else "📈"
 
+    liga = match.get("liga") or "(no encontrada)"
+    fecha_partido_str = match.get("date") or ""
     dt_lima = parse_fecha_utc_a_lima(fecha_partido_str) if fecha_partido_str else None
     fecha_partido_txt = dt_lima.strftime("%Y-%m-%d %H:%M") + " (Perú)" if dt_lima else (fecha_partido_str or "(no encontrada)")
-    liga_txt = liga or "(no encontrada)"
 
     return (
         f"🔥 <b>MOVIMIENTO BRUSCO BET365 (+/-4%)</b>\n\n"
-        f"<b>{partido_mostrar}</b>\n"
-        f"<b>Liga:</b> {liga_txt}\n"
+        f"<b>{match.get('name') or (match.get('home','') + ' vs ' + match.get('away',''))}</b>\n"
+        f"<b>Liga:</b> {liga}\n"
         f"<b>Fecha:</b> {fecha_partido_txt}\n\n"
         f"<b>MOVIMIENTO (Bet365)</b>\n"
         f"• <b>Mercado:</b> {mercado.upper()}\n"
         f"• <b>Cambio:</b> {antes} → {despues}\n"
         f"• <b>Variación:</b> {porc}% {flecha}\n\n"
         f"<b>MEJOR 1X2 ACTUAL</b>\n"
-        f"{fmt_best('Local', best_home)}\n"
-        f"{fmt_best('Empate', best_draw)}\n"
-        f"{fmt_best('Visita', best_away)}\n\n"
+        f"{fmt_best('Local', match.get('best_home') or {})}\n"
+        f"{fmt_best('Empate', match.get('best_draw') or {})}\n"
+        f"{fmt_best('Visita', match.get('best_away') or {})}\n\n"
         f"⏱ <code>{hora_alerta}</code> (hora alerta)"
     )
 
-def formato_alerta_fallback(
-    partido_key: str,
-    mercado: str,
-    antes: float,
-    despues: float,
-    var: float,
-    hora_alerta: str,
-):
+def formato_alerta_fallback(partido_key: str, mercado: str, antes: float, despues: float, var: float, hora_alerta: str):
     porc = round(var * 100, 2)
     flecha = "📉" if var < 0 else "📈"
-
     return (
         f"🔥 <b>MOVIMIENTO BRUSCO BET365 (+/-4%)</b>\n\n"
         f"<b>{partido_key}</b>\n"
@@ -431,7 +381,12 @@ def detectar_movimientos_bet365():
         if not movimientos:
             continue
 
-        match = encontrar_partido_en_cuotas(partido_key, candidatos, ahora_lima_dt) if candidatos else None
+        match, _ = encontrar_partido_en_cuotas(partido_key, candidatos)
+
+        # ✅ Si hay match pero está fuera de 36h -> NO alertar
+        if match and match.get("date"):
+            if not dentro_ventana(match["date"], ahora_lima_dt):
+                continue
 
         for mercado, antes, despues, var in movimientos:
             sig = firma_alerta(partido_key, mercado, antes, despues)
@@ -439,21 +394,12 @@ def detectar_movimientos_bet365():
                 continue
 
             if match:
-                mensaje = formato_alerta_completo(
-                    match.get("name") or partido_key,
-                    match.get("liga") or "",
-                    match.get("date") or "",
-                    mercado,
-                    antes, despues, var,
-                    ahora_str,
-                    match.get("best_home") or {},
-                    match.get("best_draw") or {},
-                    match.get("best_away") or {},
-                )
+                msg = formato_alerta_completo(match, mercado, antes, despues, var, ahora_str)
             else:
-                mensaje = formato_alerta_fallback(partido_key, mercado, antes, despues, var, ahora_str)
+                # ✅ fallback solo si NO hay match (no podemos conocer fecha)
+                msg = formato_alerta_fallback(partido_key, mercado, antes, despues, var, ahora_str)
 
-            enviar_alerta(mensaje)
+            enviar_alerta(msg)
             enviadas.add(sig)
             total_enviadas += 1
 
