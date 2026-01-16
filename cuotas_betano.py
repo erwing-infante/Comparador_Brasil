@@ -5,7 +5,10 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 
-TZ_LOCAL = ZoneInfo("America/Lima")
+# ===========================
+# 🔹 USAR UTC (GMT 0)
+# ===========================
+TZ_UTC = timezone.utc
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -116,9 +119,11 @@ def log_error(msg: str):
     with open(ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(msg.rstrip() + "\n")
 
-def ms_to_lima(ms: int) -> datetime:
-    dt_utc = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
-    return dt_utc.astimezone(TZ_LOCAL)
+# ===========================
+# 🔹 MS → UTC (GMT 0)
+# ===========================
+def ms_to_utc(ms: int) -> datetime:
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
 
 def to_iso_like(dt: datetime) -> str:
     return dt.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S.000")
@@ -210,13 +215,11 @@ def warmup_access(page):
     return False
 
 def main():
-    try:
-        if os.path.exists(ERROR_LOG):
-            os.remove(ERROR_LOG)
-    except Exception:
-        pass
+    if os.path.exists(ERROR_LOG):
+        os.remove(ERROR_LOG)
 
-    now = datetime.now(TZ_LOCAL)
+    # 🔹 NOW en UTC
+    now = datetime.now(timezone.utc)
     end = now + timedelta(days=DIAS_A_FUTURO)
 
     resultados = []
