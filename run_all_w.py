@@ -16,7 +16,9 @@ SCRIPTS_EXTRACTORES = [
     "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
     "cuotas_olimpobet.py",
-    "cuotas_gangabet.py"
+    "cuotas_gangabet.py",
+    "cuotas_teapuesto.py",
+    "cuotas_betano.py"
 ]
 
 SCRIPT_FUSION = "fusionar_cuotas.py"
@@ -53,21 +55,32 @@ def main():
     print(f"Iniciando ciclo {datetime.datetime.now()}")
     print("==============================\n")
 
+    # Asegurar Xvfb para Betano (DISPLAY :99)
+    os.system("pgrep Xvfb >/dev/null || (Xvfb :99 -screen 0 1280x800x24 >/tmp/xvfb.log 2>&1 &)")
+    os.environ["DISPLAY"] = ":99"
+
     procesos = []
 
-    print("[INFO] Ejecutando extractores de cuotas...\n")
+    # 1️⃣ Ejecutar extractores EN PARALELO
+    print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
 
     for script in SCRIPTS_EXTRACTORES:
         full_path = os.path.join(BASE_DIR, script)
         print(f"[INFO] Lanzando: {script}")
 
+        env = os.environ.copy()
+        if script == "cuotas_betano.py":
+            env["DISPLAY"] = ":99"
+            env["BETANO_HEADFUL"] = "1"
+            
         p = subprocess.Popen(
             [PYTHON, full_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
             encoding="utf-8",
-            errors="replace"
+            errors="replace",
+            env=env
         )
         procesos.append((script, p))
 

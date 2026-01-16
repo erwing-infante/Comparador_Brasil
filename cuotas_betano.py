@@ -21,59 +21,95 @@ REQ = "la,s,stnf,c,mb"
 BT = "matchresult"
 DIAS_A_FUTURO = 3  # ✅ próximos 3 días
 
-# Warmup: probamos Serie A hasta que devuelva JSON (tú resuelves el consent en la ventana)
-WARMUP_LEAGUE_PAGE = "https://www.betano.pe/sport/futbol/italia/serie-a/1635r/?bt=matchresult"
-WARMUP_API = "https://www.betano.pe/api/sport/futbol/italia/serie-a/1635/"
+# ===========================
+# ✅ BETANO ALEMANIA (.de)
+# ===========================
+HOME_URL = "https://www.betano.de/"
+
+# Warmup: Premier League (ejemplo que sí existe en betano.de)
+WARMUP_LEAGUE_PAGE = "https://www.betano.de/sport/fussball/england/premier-league/1/?bt=matchresult"
+WARMUP_API = "https://www.betano.de/api/sport/fussball/england/premier-league/1/"
 
 LIGAS = [
-    {"name": "Premier League", "page": "https://www.betano.pe/sport/futbol/inglaterra/premier-league/1r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/inglaterra/premier-league/1/"},
-    {"name": "FA Cup", "page": "https://www.betano.pe/sport/futbol/inglaterra/copa-de-la-fa/218r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/inglaterra/copa-de-la-fa/218/"},
-    {"name": "EFL Cup", "page": "https://www.betano.pe/sport/futbol/inglaterra/efl-cup/10215r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/inglaterra/efl-cup/10215/"},
-    {"name": "Championship", "page": "https://www.betano.pe/sport/futbol/inglaterra/championship/2r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/inglaterra/championship/2/"},
-    {"name": "La Liga", "page": "https://www.betano.pe/sport/futbol/espana/laliga/5r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/espana/laliga/5/"},
-    {"name": "La Liga 2", "page": "https://www.betano.pe/sport/futbol/espana/segunda-division/10000r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/espana/segunda-division/10000/"},
-    {"name": "Copa del Rey", "page": "https://www.betano.pe/sport/futbol/espana/copa-del-rey/10067r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/espana/copa-del-rey/10067/"},
-    {"name": "Serie A", "page": "https://www.betano.pe/sport/futbol/italia/serie-a/1635r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/italia/serie-a/1635/"},
-    {"name": "Copa Italia", "page": "https://www.betano.pe/sport/futbol/italia/coppa-italia/10815r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/italia/coppa-italia/10815/"},
-    {"name": "Bundesliga", "page": "https://www.betano.pe/sport/futbol/alemania/bundesliga/216r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/alemania/bundesliga/216/"},
-    {"name": "Copa Alemana", "page": "https://www.betano.pe/sport/futbol/alemania/dfb-pokal/10486r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/alemania/dfb-pokal/10486/"},
-    {"name": "Ligue 1", "page": "https://www.betano.pe/sport/futbol/francia/ligue-1/215r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/francia/ligue-1/215/"},
-    {"name": "Brasileirao", "page": "https://www.betano.pe/sport/futbol/brasil/brasileirao-serie-a-betano/10016r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/brasil/brasileirao-serie-a-betano/10016/"},
-    {"name": "Copa de Brasil", "page": "https://www.betano.pe/sport/futbol/brasil/copa-betano-do-brasil/10008r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/brasil/copa-betano-do-brasil/10008/"},
-    {"name": "Liga MX", "page": "https://www.betano.pe/sport/futbol/mexico/liga-mx/17264r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/mexico/liga-mx/17264/"},
-    {"name": "MLS", "page": "https://www.betano.pe/sport/futbol/ee-uu/mls/17103r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/ee-uu/mls/17103/"},
-    {"name": "Liga 1 Perú", "page": "https://www.betano.pe/sport/futbol/peru/liga-1/17079r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/peru/liga-1/17079/"},
-    {"name": "Primeira Liga", "page": "https://www.betano.pe/sport/futbol/portugal/primeira-liga/17083r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/portugal/primeira-liga/17083/"},
-    {"name": "Eredivisie", "page": "https://www.betano.pe/sport/futbol/paises-bajos/eredivisie/17067r/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/paises-bajos/eredivisie/17067/"},
-    {"name": "UEFA Champions League", "page": "https://www.betano.pe/sport/futbol/campeonatos/champions-league/188566/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/campeonatos/champions-league/188566/"},
-    {"name": "UEFA Europa League", "page": "https://www.betano.pe/sport/futbol/campeonatos/europa-league/188567/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/campeonatos/europa-league/188567/"},
-    {"name": "UEFA Conference League", "page": "https://www.betano.pe/sport/futbol/campeonatos/conference-league/189602/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/campeonatos/conference-league/189602/"},
-    {"name": "Copa Libertadores", "page": "https://www.betano.pe/sport/futbol/campeonatos/copa-libertadores/189817/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/campeonatos/copa-libertadores/189817/"},
-    {"name": "Copa Sudamericana", "page": "https://www.betano.pe/sport/futbol/campeonatos/copa-sudamericana/189818/?bt=matchresult",
-     "api": "https://www.betano.pe/api/sport/futbol/campeonatos/copa-sudamericana/189818/"},
+    {"name": "Premier League",
+     "page": "https://www.betano.de/sport/fussball/england/premier-league/1/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/england/premier-league/1/"},
+    {"name": "FA Cup",
+     "page": "https://www.betano.de/sport/fussball/england/copa-de-la-fa/218/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/england/copa-de-la-fa/218/"},
+    {"name": "EFL Cup",
+     "page": "https://www.betano.de/sport/fussball/england/efl-cup/10215/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/england/efl-cup/10215/"},
+    {"name": "Championship",
+     "page": "https://www.betano.de/sport/fussball/england/championship/2/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/england/championship/2/"},
+
+    {"name": "La Liga",
+     "page": "https://www.betano.de/sport/fussball/espana/laliga/5/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/espana/laliga/5/"},
+    {"name": "La Liga 2",
+     "page": "https://www.betano.de/sport/fussball/espana/segunda-division/10000/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/espana/segunda-division/10000/"},
+    {"name": "Copa del Rey",
+     "page": "https://www.betano.de/sport/fussball/espana/copa-del-rey/10067/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/espana/copa-del-rey/10067/"},
+
+    {"name": "Serie A",
+     "page": "https://www.betano.de/sport/fussball/italia/serie-a/1635/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/italia/serie-a/1635/"},
+    {"name": "Copa Italia",
+     "page": "https://www.betano.de/sport/fussball/italia/coppa-italia/10815/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/italia/coppa-italia/10815/"},
+
+    {"name": "Bundesliga",
+     "page": "https://www.betano.de/sport/fussball/alemania/bundesliga/216/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/alemania/bundesliga/216/"},
+    {"name": "Copa Alemana",
+     "page": "https://www.betano.de/sport/fussball/alemania/dfb-pokal/10486/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/alemania/dfb-pokal/10486/"},
+
+    {"name": "Ligue 1",
+     "page": "https://www.betano.de/sport/fussball/francia/ligue-1/215/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/francia/ligue-1/215/"},
+
+    {"name": "Brasileirao",
+     "page": "https://www.betano.de/sport/fussball/brasil/brasileirao-serie-a-betano/10016/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/brasil/brasileirao-serie-a-betano/10016/"},
+    {"name": "Copa de Brasil",
+     "page": "https://www.betano.de/sport/fussball/brasil/copa-betano-do-brasil/10008/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/brasil/copa-betano-do-brasil/10008/"},
+
+    {"name": "Liga MX",
+     "page": "https://www.betano.de/sport/fussball/mexico/liga-mx/17264/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/mexico/liga-mx/17264/"},
+    {"name": "MLS",
+     "page": "https://www.betano.de/sport/fussball/ee-uu/mls/17103/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/ee-uu/mls/17103/"},
+    {"name": "Liga 1 Perú",
+     "page": "https://www.betano.de/sport/fussball/peru/liga-1/17079/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/peru/liga-1/17079/"},
+    {"name": "Primeira Liga",
+     "page": "https://www.betano.de/sport/fussball/portugal/primeira-liga/17083/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/portugal/primeira-liga/17083/"},
+    {"name": "Eredivisie",
+     "page": "https://www.betano.de/sport/fussball/paises-bajos/eredivisie/17067/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/paises-bajos/eredivisie/17067/"},
+
+    {"name": "UEFA Champions League",
+     "page": "https://www.betano.de/sport/fussball/campeonatos/champions-league/188566/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/campeonatos/champions-league/188566/"},
+    {"name": "UEFA Europa League",
+     "page": "https://www.betano.de/sport/fussball/campeonatos/europa-league/188567/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/campeonatos/europa-league/188567/"},
+    {"name": "UEFA Conference League",
+     "page": "https://www.betano.de/sport/fussball/campeonatos/conference-league/189602/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/campeonatos/conference-league/189602/"},
+    {"name": "Copa Libertadores",
+     "page": "https://www.betano.de/sport/fussball/campeonatos/copa-libertadores/189817/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/campeonatos/copa-libertadores/189817/"},
+    {"name": "Copa Sudamericana",
+     "page": "https://www.betano.de/sport/fussball/campeonatos/copa-sudamericana/189818/?bt=matchresult",
+     "api":  "https://www.betano.de/api/sport/fussball/campeonatos/copa-sudamericana/189818/"},
 ]
 
 def log_error(msg: str):
@@ -101,7 +137,7 @@ def pick_1x2(markets):
         if str(m.get("type", "")).upper() == "MRES":
             return m
     for m in markets or []:
-        if str(m.get("name", "")).strip().lower() in ("resultado del partido", "match result", "resultado"):
+        if str(m.get("name", "")).strip().lower() in ("resultado del partido", "match result", "resultado", "spielergebnis"):
             return m
     return None
 
@@ -150,17 +186,12 @@ def fetch_raw(page, url: str):
     )
 
 def fetch_json_with_retry(page, api_base: str, league_page: str):
-    """
-    1) intenta fetch
-    2) si 403 splash -> navega a league_page y reintenta
-    """
     url = f"{api_base}?bt={BT}&req={REQ}"
 
     resp = fetch_raw(page, url)
     if resp["status"] == 200 and "application/json" in (resp["ct"] or "").lower():
         return json.loads(resp["text"])
 
-    # fallback: navegar a liga + reintentar
     page.goto(league_page, wait_until="domcontentloaded")
     resp = fetch_raw(page, url)
     if resp["status"] == 200 and "application/json" in (resp["ct"] or "").lower():
@@ -170,19 +201,12 @@ def fetch_json_with_retry(page, api_base: str, league_page: str):
     raise RuntimeError(f"HTTP {resp['status']} | {resp['ct']} | {snippet}")
 
 def warmup_access(page):
-    """
-    En modo visible, te deja la ventana abierta para que el sitio setee cookies/challenge.
-    Sin ENTER: simplemente reintenta el API hasta que sea JSON.
-    """
     page.goto(WARMUP_LEAGUE_PAGE, wait_until="domcontentloaded")
-
-    # intentos rápidos; si no está listo todavía, reintenta
-    for _ in range(60):  # ~60 reintentos
+    for _ in range(60):
         resp = fetch_raw(page, f"{WARMUP_API}?bt={BT}&req={REQ}")
         if resp["status"] == 200 and "application/json" in (resp["ct"] or "").lower():
             return True
         time.sleep(1)
-
     return False
 
 def main():
@@ -202,19 +226,18 @@ def main():
         context = p.chromium.launch_persistent_context(
             user_data_dir=PROFILE_DIR,
             headless=not HEADFUL,
-            locale="es-PE",
+            locale="de-DE",  # ✅ mejor para betano.de
             viewport={"width": 1280, "height": 800},
             args=["--disable-blink-features=AutomationControlled"],
         )
         page = context.new_page()
         page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
 
-        page.goto("https://www.betano.pe/", wait_until="domcontentloaded")
+        page.goto(HOME_URL, wait_until="domcontentloaded")
 
-        # ✅ Warmup: asegura que el API ya responde JSON (sin pedir ENTER)
         ok = warmup_access(page)
         if not ok:
-            print("⚠️ Betano: no se habilitó el acceso al API (splash). Revisa betano_errors.log.")
+            print("⚠️ Betano.de: no se habilitó el acceso al API (splash/consent). Revisa betano_errors.log.")
             context.close()
             with open(OUT_PATH, "w", encoding="utf-8") as f:
                 f.write("[]")
