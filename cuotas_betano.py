@@ -2,13 +2,12 @@ import json
 import os
 import time
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 
 # ===========================
-# 🔹 USAR UTC (GMT 0)
+# ✅ FECHA EN GMT 0 (UTC)
 # ===========================
-TZ_UTC = timezone.utc
+TZ_LOCAL = timezone.utc
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -22,14 +21,14 @@ HEADFUL = os.getenv("BETANO_HEADFUL", "") == "1"
 
 REQ = "la,s,stnf,c,mb"
 BT = "matchresult"
-DIAS_A_FUTURO = 3  # ✅ próximos 3 días
+DIAS_A_FUTURO = 3  # próximos 3 días
 
 # ===========================
 # ✅ BETANO ALEMANIA (.de)
 # ===========================
 HOME_URL = "https://www.betano.de/"
 
-# Warmup: Premier League (ejemplo que sí existe en betano.de)
+# Warmup: Premier League
 WARMUP_LEAGUE_PAGE = "https://www.betano.de/sport/fussball/england/premier-league/1/?bt=matchresult"
 WARMUP_API = "https://www.betano.de/api/sport/fussball/england/premier-league/1/"
 
@@ -119,11 +118,10 @@ def log_error(msg: str):
     with open(ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(msg.rstrip() + "\n")
 
-# ===========================
-# 🔹 MS → UTC (GMT 0)
-# ===========================
-def ms_to_utc(ms: int) -> datetime:
-    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+# ✅ ahora devuelve UTC
+def ms_to_lima(ms: int) -> datetime:
+    dt_utc = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+    return dt_utc.astimezone(TZ_LOCAL)
 
 def to_iso_like(dt: datetime) -> str:
     return dt.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S.000")
@@ -215,10 +213,13 @@ def warmup_access(page):
     return False
 
 def main():
-    if os.path.exists(ERROR_LOG):
-        os.remove(ERROR_LOG)
+    try:
+        if os.path.exists(ERROR_LOG):
+            os.remove(ERROR_LOG)
+    except Exception:
+        pass
 
-    # 🔹 NOW en UTC
+    # ✅ now/end en UTC
     now = datetime.now(timezone.utc)
     end = now + timedelta(days=DIAS_A_FUTURO)
 
@@ -229,7 +230,7 @@ def main():
         context = p.chromium.launch_persistent_context(
             user_data_dir=PROFILE_DIR,
             headless=not HEADFUL,
-            locale="de-DE",  # ✅ mejor para betano.de
+            locale="de-DE",
             viewport={"width": 1280, "height": 800},
             args=["--disable-blink-features=AutomationControlled"],
         )
@@ -261,6 +262,8 @@ def main():
                     ms = ev.get("startTime")
                     if ms is None:
                         continue
+
+                    # ✅ dt en UTC
                     dt = ms_to_lima(int(ms))
                     if not (now <= dt <= end):
                         continue
@@ -278,7 +281,7 @@ def main():
                     resultados.append({
                         "Liga": name,
                         "Partido": f"{home} vs {away}" if home and away else ev_name,
-                        "Fecha": to_iso_like(dt),
+                        "Fecha": to_iso_like(dt),  # ✅ UTC
                         "Casa": "Betano",
                         "Local": home,
                         "Visita": away,
