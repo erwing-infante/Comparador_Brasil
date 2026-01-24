@@ -1,0 +1,274 @@
+[
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115765",
+    "eventName": "Le Havre v Monaco",
+    "marketId": "1.252356305",
+    "startTimeMs": 1769277600000,
+    "date": "2026-01-24 18:00 UTC",
+    "home": "le havre",
+    "away": "monaco",
+    "name": "Le Havre vs Monaco",
+    "orbitx": {
+      "home_id": 70446,
+      "away_id": 361706,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115754",
+    "eventName": "Marseille v Lens",
+    "marketId": "1.252356425",
+    "startTimeMs": 1769285100000,
+    "date": "2026-01-24 20:05 UTC",
+    "home": "marsella",
+    "away": "lens",
+    "name": "Marsella vs Lens",
+    "orbitx": {
+      "home_id": 52457652,
+      "away_id": 44793,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115768",
+    "eventName": "Rennes v Lorient",
+    "marketId": "1.252356071",
+    "startTimeMs": 1769270400000,
+    "date": "2026-01-24 16:00 UTC",
+    "home": "rennes",
+    "away": "lorient",
+    "name": "Rennes vs Lorient",
+    "orbitx": {
+      "home_id": 44799,
+      "away_id": 44794,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115762",
+    "eventName": "Brest v Toulouse",
+    "marketId": "1.252356785",
+    "startTimeMs": 1769357700000,
+    "date": "2026-01-25 16:15 UTC",
+    "home": "brest",
+    "away": "toulouse",
+    "name": "Brest vs Toulouse",
+    "orbitx": {
+      "home_id": 669348,
+      "away_id": 305969,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115764",
+    "eventName": "Lille v Strasbourg",
+    "marketId": "1.252356926",
+    "startTimeMs": 1769370300000,
+    "date": "2026-01-25 19:45 UTC",
+    "home": "lille",
+    "away": "estrasburgo",
+    "name": "Lille vs Estrasburgo",
+    "orbitx": {
+      "home_id": 44790,
+      "away_id": 51404,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35121903",
+    "eventName": "Metz v Lyon",
+    "marketId": "1.252426549",
+    "startTimeMs": 1769357700000,
+    "date": "2026-01-25 16:15 UTC",
+    "home": "metz",
+    "away": "lyon",
+    "name": "Metz vs Lyon",
+    "orbitx": {
+      "home_id": 44795,
+      "away_id": 55271,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115751",
+    "eventName": "Nantes v Nice",
+    "marketId": "1.252356545",
+    "startTimeMs": 1769349600000,
+    "date": "2026-01-25 14:00 UTC",
+    "home": "nantes",
+    "away": "niza",
+    "name": "Nantes vs Niza",
+    "orbitx": {
+      "home_id": 10774,
+      "away_id": 189829,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115831",
+    "eventName": "Paris FC v Angers",
+    "marketId": "1.252356665",
+    "startTimeMs": 1769357700000,
+    "date": "2026-01-25 16:15 UTC",
+    "home": "paris fc",
+    "away": "angers",
+    "name": "Paris Fc vs Angers",
+    "orbitx": {
+      "home_id": 5168454,
+      "away_id": 473963,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165859",
+    "eventName": "Lens v Le Havre",
+    "marketId": "1.252916051",
+    "startTimeMs": 1769802300000,
+    "date": "2026-01-30 19:45 UTC",
+    "home": "lens",
+    "away": "le havre",
+    "name": "Lens vs Le Havre",
+    "orbitx": {
+      "home_id": 44793,
+      "away_id": 70446,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165856",
+    "eventName": "Lorient v Nantes",
+    "marketId": "1.252914631",
+    "startTimeMs": 1769882400000,
+    "date": "2026-01-31 18:00 UTC",
+    "home": "lorient",
+    "away": "nantes",
+    "name": "Lorient vs Nantes",
+    "orbitx": {
+      "home_id": 44794,
+      "away_id": 10774,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165832",
+    "eventName": "Monaco v Rennes",
+    "marketId": "1.252914752",
+    "startTimeMs": 1769889900000,
+    "date": "2026-01-31 20:05 UTC",
+    "home": "monaco",
+    "away": "rennes",
+    "name": "Monaco vs Rennes",
+    "orbitx": {
+      "home_id": 361706,
+      "away_id": 44799,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165840",
+    "eventName": "Paris FC v Marseille",
+    "marketId": "1.252914510",
+    "startTimeMs": 1769875200000,
+    "date": "2026-01-31 16:00 UTC",
+    "home": "paris fc",
+    "away": "marsella",
+    "name": "Paris Fc vs Marsella",
+    "orbitx": {
+      "home_id": 5168454,
+      "away_id": 52457652,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165834",
+    "eventName": "Angers v Metz",
+    "marketId": "1.252914994",
+    "startTimeMs": 1769962500000,
+    "date": "2026-02-01 16:15 UTC",
+    "home": "angers",
+    "away": "metz",
+    "name": "Angers vs Metz",
+    "orbitx": {
+      "home_id": 473963,
+      "away_id": 44795,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165824",
+    "eventName": "Lyon v Lille",
+    "marketId": "1.252914873",
+    "startTimeMs": 1769954400000,
+    "date": "2026-02-01 14:00 UTC",
+    "home": "lyon",
+    "away": "lille",
+    "name": "Lyon vs Lille",
+    "orbitx": {
+      "home_id": 55271,
+      "away_id": 44790,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165872",
+    "eventName": "Nice v Brest",
+    "marketId": "1.252915930",
+    "startTimeMs": 1769962500000,
+    "date": "2026-02-01 16:15 UTC",
+    "home": "niza",
+    "away": "brest",
+    "name": "Niza vs Brest",
+    "orbitx": {
+      "home_id": 189829,
+      "away_id": 669348,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165823",
+    "eventName": "Strasbourg v Paris St-G",
+    "marketId": "1.252915236",
+    "startTimeMs": 1769975100000,
+    "date": "2026-02-01 19:45 UTC",
+    "home": "estrasburgo",
+    "away": "paris saint germain",
+    "name": "Estrasburgo vs Paris Saint Germain",
+    "orbitx": {
+      "home_id": 51404,
+      "away_id": 489720,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35165830",
+    "eventName": "Toulouse v Auxerre",
+    "marketId": "1.252915115",
+    "startTimeMs": 1769962500000,
+    "date": "2026-02-01 16:15 UTC",
+    "home": "toulouse",
+    "away": "auxerre",
+    "name": "Toulouse vs Auxerre",
+    "orbitx": {
+      "home_id": 305969,
+      "away_id": 44800,
+      "draw_id": 58805
+    }
+  }
+]

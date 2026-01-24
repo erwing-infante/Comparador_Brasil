@@ -1,0 +1,50 @@
+[
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115768",
+    "eventName": "Rennes v Lorient",
+    "marketId": "1.252356071",
+    "startTimeMs": 1769270400000,
+    "date": "2026-01-24 16:00 UTC",
+    "home": "rennes",
+    "away": "lorient",
+    "name": "Rennes vs Lorient",
+    "orbitx": {
+      "home_id": 44799,
+      "away_id": 44794,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115765",
+    "eventName": "Le Havre v Monaco",
+    "marketId": "1.252356305",
+    "startTimeMs": 1769277600000,
+    "date": "2026-01-24 18:00 UTC",
+    "home": "le havre",
+    "away": "monaco",
+    "name": "Le Havre vs Monaco",
+    "orbitx": {
+      "home_id": 70446,
+      "away_id": 361706,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Ligue 1",
+    "eventId": "35115754",
+    "eventName": "Marseille v Lens",
+    "marketId": "1.252356425",
+    "startTimeMs": 1769285100000,
+    "date": "2026-01-24 20:05 UTC",
+    "home": "marsella",
+    "away": "lens",
+    "name": "Marsella vs Lens",
+    "orbitx": {
+      "home_id": 52457652,
+      "away_id": 44793,
+      "draw_id": 58805
+    }
+  }
+]

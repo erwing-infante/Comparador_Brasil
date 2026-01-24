@@ -1,0 +1,50 @@
+[
+  {
+    "Liga": "Serie A",
+    "eventId": "35154377",
+    "eventName": "Como v Torino",
+    "marketId": "1.252780816",
+    "startTimeMs": 1769263200000,
+    "date": "2026-01-24 14:00 UTC",
+    "home": "como",
+    "away": "torino",
+    "name": "Como vs Torino",
+    "orbitx": {
+      "home_id": 60298,
+      "away_id": 44503,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154305",
+    "eventName": "Fiorentina v Cagliari",
+    "marketId": "1.252780964",
+    "startTimeMs": 1769274000000,
+    "date": "2026-01-24 17:00 UTC",
+    "home": "fiorentina",
+    "away": "cagliari",
+    "name": "Fiorentina vs Cagliari",
+    "orbitx": {
+      "home_id": 676467,
+      "away_id": 60297,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154395",
+    "eventName": "Lecce v Lazio",
+    "marketId": "1.252778696",
+    "startTimeMs": 1769283900000,
+    "date": "2026-01-24 19:45 UTC",
+    "home": "lecce",
+    "away": "lazio",
+    "name": "Lecce vs Lazio",
+    "orbitx": {
+      "home_id": 508827,
+      "away_id": 56966,
+      "draw_id": 58805
+    }
+  }
+]

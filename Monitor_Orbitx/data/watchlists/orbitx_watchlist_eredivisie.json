@@ -1,0 +1,66 @@
+[
+  {
+    "Liga": "Eredivisie",
+    "eventId": "35140420",
+    "eventName": "Ajax v FC Volendam",
+    "marketId": "1.252626327",
+    "startTimeMs": 1769268600000,
+    "date": "2026-01-24 15:30 UTC",
+    "home": "ajax",
+    "away": "volendam",
+    "name": "Ajax vs Volendam",
+    "orbitx": {
+      "home_id": 52494689,
+      "away_id": 14170968,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Eredivisie",
+    "eventId": "35140414",
+    "eventName": "NEC Nijmegen v PEC Zwolle",
+    "marketId": "1.252623700",
+    "startTimeMs": 1769276700000,
+    "date": "2026-01-24 17:45 UTC",
+    "home": "nec nijmegen",
+    "away": "zwolle",
+    "name": "Nec Nijmegen vs Zwolle",
+    "orbitx": {
+      "home_id": 48456,
+      "away_id": 8750569,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Eredivisie",
+    "eventId": "35140421",
+    "eventName": "PSV v NAC Breda",
+    "marketId": "1.252623852",
+    "startTimeMs": 1769281200000,
+    "date": "2026-01-24 19:00 UTC",
+    "home": "psv eindhoven",
+    "away": "nac breda",
+    "name": "Psv Eindhoven vs Nac Breda",
+    "orbitx": {
+      "home_id": 48451,
+      "away_id": 1328613,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Eredivisie",
+    "eventId": "35140784",
+    "eventName": "FC Twente v Excelsior",
+    "marketId": "1.252628192",
+    "startTimeMs": 1769284800000,
+    "date": "2026-01-24 20:00 UTC",
+    "home": "twente",
+    "away": "excelsior",
+    "name": "Twente vs Excelsior",
+    "orbitx": {
+      "home_id": 7928242,
+      "away_id": 67164,
+      "draw_id": 58805
+    }
+  }
+]

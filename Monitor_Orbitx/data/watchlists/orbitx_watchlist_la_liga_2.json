@@ -1,0 +1,82 @@
+[
+  {
+    "Liga": "La Liga 2",
+    "eventId": "35164599",
+    "eventName": "Valladolid v Albacete",
+    "marketId": "1.252892282",
+    "startTimeMs": 1769259600000,
+    "date": "2026-01-24 13:00 UTC",
+    "home": "real valladolid",
+    "away": "albacete",
+    "name": "Real Valladolid vs Albacete",
+    "orbitx": {
+      "home_id": 13362,
+      "away_id": 309089,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "La Liga 2",
+    "eventId": "35163632",
+    "eventName": "Leganes v Sociedad B",
+    "marketId": "1.252876848",
+    "startTimeMs": 1769267700000,
+    "date": "2026-01-24 15:15 UTC",
+    "home": "leganes",
+    "away": "real sociedad b",
+    "name": "Leganes vs Real Sociedad B",
+    "orbitx": {
+      "home_id": 309109,
+      "away_id": 2250345,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "La Liga 2",
+    "eventId": "35164607",
+    "eventName": "Las Palmas v Cordoba",
+    "marketId": "1.252892696",
+    "startTimeMs": 1769275800000,
+    "date": "2026-01-24 17:30 UTC",
+    "home": "las palmas",
+    "away": "cordoba",
+    "name": "Las Palmas vs Cordoba",
+    "orbitx": {
+      "home_id": 9163,
+      "away_id": 68247,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "La Liga 2",
+    "eventId": "35164609",
+    "eventName": "Sporting Gijon v Mirandes",
+    "marketId": "1.252892588",
+    "startTimeMs": 1769275800000,
+    "date": "2026-01-24 17:30 UTC",
+    "home": "sporting de gijon",
+    "away": "mirandes",
+    "name": "Sporting De Gijon vs Mirandes",
+    "orbitx": {
+      "home_id": 68246,
+      "away_id": 565024,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "La Liga 2",
+    "eventId": "35164606",
+    "eventName": "Cadiz v Granada",
+    "marketId": "1.252892480",
+    "startTimeMs": 1769284800000,
+    "date": "2026-01-24 20:00 UTC",
+    "home": "cadiz",
+    "away": "granada",
+    "name": "Cadiz vs Granada",
+    "orbitx": {
+      "home_id": 516259,
+      "away_id": 2255452,
+      "draw_id": 58805
+    }
+  }
+]

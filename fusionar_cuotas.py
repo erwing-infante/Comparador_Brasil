@@ -1,17 +1,21 @@
-# fusionador_cuotas.py
+# fusionador_cuotas.py (OPTIMIZADO sin pandas)
+# - Mantiene tu normalización y equivalencias tal cual (misma lógica)
+# - Mucho más rápido: sin pandas, con cache de normalización, y merge Orbitx (eventId/marketId)
+# - Corre en VS Code y VPS (auto-detecta watchlist.json o usa ORBITX_WATCHLIST_PATH)
+
 import os
 import json
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-import pandas as pd
 from difflib import SequenceMatcher
 
 # === IMPORTAR EQUIVALENCIAS PLANAS DESDE ARCHIVO EXTERNO ===
 from equivalencias_equipos import EQUIVALENCIAS_EQUIPOS
 
 # === CONFIG ===
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+BASE_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BASE_DIR, "data")
 OUT_FILE = os.path.join(DATA_DIR, "cuotas.json")
 
 ARCHIVOS = {
@@ -32,7 +36,7 @@ SIM_THRESHOLD = 0.40
 BOOKMAKERS_EXCLUIR_HA = {"betcris", "betsson", "1xbet", "pinnacle"}
 
 # ============================================================
-# NORMALIZACIÓN DE EQUIPOS
+# NORMALIZACIÓN DE EQUIPOS (MISMA LÓGICA)
 # ============================================================
 
 STOP_TOKENS = {
@@ -51,64 +55,39 @@ def quitar_acentos(s: str) -> str:
 def similitud(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
-# ============================================================
-# 🔥 FUNCIÓN DEFINITIVA para normalización con similitud
-# ============================================================
-
 def limpiar_equipo(nombre: str) -> str:
     if not isinstance(nombre, str):
         return ""
 
-    # ============================================================
     # 1) NOMBRE EXACTO DEL SCRAPER
-    # ============================================================
     original = nombre.strip()
-
-    # lookup normalizado a minúsculas (solo para buscar)
     lookup = quitar_acentos(original).lower().strip()
 
-    # ------------ Buscar EXACTO en equivalencias ------------
     if lookup in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[lookup]
 
-    # ------------ Buscar por similitud ------------
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(lookup, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
 
-    # ============================================================
-    # 2) Limpieza ligera (acentos + basura)
-    # ============================================================
+    # 2) Limpieza ligera
     limpio = quitar_acentos(original).lower()
-
     for bad in ["t/t", "t//t", "//", "/", "\\", "\t", "\n", "|"]:
         limpio = limpio.replace(bad, " ")
-
     limpio = " ".join(limpio.split()).strip()
 
-    # ============================================================
-    # 3) Fallback → quitar tokens (fc, sc, mg, rj...)
-    # ============================================================
+    # 3) Fallback tokens
     tokens = [t for t in limpio.split() if t not in STOP_TOKENS]
     fallback = " ".join(tokens).strip()
 
-    # ------------ Buscar fallback EXACTO ------------
     if fallback in EQUIVALENCIAS_EQUIPOS:
         return EQUIVALENCIAS_EQUIPOS[fallback]
 
-    # ------------ Buscar fallback por similitud ------------
     for key in EQUIVALENCIAS_EQUIPOS:
         if similitud(fallback, key) >= 0.88:
             return EQUIVALENCIAS_EQUIPOS[key]
 
-    # ============================================================
-    # 4) Último recurso
-    # ============================================================
     return fallback or original
-
-# ============================================================
-# TEAM SHORT NAME
-# ============================================================
 
 def team_short(name: str) -> str:
     limpio = limpiar_equipo(name)
@@ -120,173 +99,414 @@ def team_short(name: str) -> str:
     return max(tokens, key=len)
 
 # ============================================================
-# CARGA JSON
+# ⚡ CACHE (NO CAMBIA LÓGICA, SOLO EVITA REPETIR TRABAJO)
 # ============================================================
 
-def cargar_json(ruta: str) -> pd.DataFrame:
-    if not os.path.exists(ruta):
-        return pd.DataFrame()
+_LIMPIAR_CACHE: dict[str, str] = {}
+_SHORT_CACHE: dict[str, str] = {}
+
+def limpiar_equipo_cached(nombre: str) -> str:
+    if not isinstance(nombre, str):
+        return ""
+    k = nombre.strip()
+    if k in _LIMPIAR_CACHE:
+        return _LIMPIAR_CACHE[k]
+    v = limpiar_equipo(k)
+    _LIMPIAR_CACHE[k] = v
+    return v
+
+def team_short_cached(nombre: str) -> str:
+    if not isinstance(nombre, str):
+        return "desconocido"
+    k = nombre.strip()
+    if k in _SHORT_CACHE:
+        return _SHORT_CACHE[k]
+    v = team_short(k)
+    _SHORT_CACHE[k] = v
+    return v
+
+# ============================================================
+# FECHA → UTC naive (similar a pd.to_datetime(..., utc=True).tz_convert("UTC").tz_localize(None))
+# ============================================================
+
+def parse_fecha_utc_naive(fecha_str: str):
+    if not fecha_str or not isinstance(fecha_str, str):
+        return None
+
+    s = fecha_str.strip()
+
+    # Caso ISO: 2026-01-19T20:00:00.000Z / 2026-01-19T20:00:00Z
     try:
-        with open(ruta, "r", encoding="utf-8") as f:
+        if s.endswith("Z"):
+            s2 = s[:-1] + "+00:00"
+            dt = datetime.fromisoformat(s2)
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        if "T" in s and ("+" in s[-6:] or "-" in s[-6:]):
+            dt = datetime.fromisoformat(s)
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        if "T" in s:
+            # sin tz => asumir UTC (como venías usando)
+            dt = datetime.fromisoformat(s.replace("Z", ""))
+            return dt.replace(tzinfo=timezone.utc).replace(tzinfo=None)
+    except Exception:
+        pass
+
+    # Caso: "YYYY-MM-DD HH:MM UTC" (Orbitx)
+    try:
+        if s.endswith(" UTC"):
+            dt = datetime.strptime(s.replace(" UTC", ""), "%Y-%m-%d %H:%M")
+            return dt  # ya es UTC naive
+    except Exception:
+        pass
+
+    # Caso: "YYYY-MM-DD HH:MM" sin UTC
+    try:
+        dt = datetime.strptime(s, "%Y-%m-%d %H:%M")
+        return dt
+    except Exception:
+        return None
+
+def fecha_to_str_utc(dt_naive):
+    if not dt_naive:
+        return ""
+    return dt_naive.strftime("%Y-%m-%d %H:%M UTC")
+
+def dt_hour_bucket(dt_naive):
+    return dt_naive.replace(minute=0, second=0, microsecond=0)
+
+# ============================================================
+# ORBITX WATCHLIST INDEX (eventId/marketId)
+# ============================================================
+
+def _find_watchlist_path() -> str:
+    env_path = os.getenv("ORBITX_WATCHLIST_PATH", "").strip()
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    here = os.path.dirname(__file__)
+    candidates = [
+        # si lo copias dentro de Mancorabet
+        os.path.join(here, "data", "watchlists", "watchlist.json"),
+        os.path.join(here, "watchlist.json"),
+
+        # Windows: D:\Proyectos\Mancorabet y D:\Proyectos\Monitor_Orbitx
+        os.path.abspath(os.path.join(here, "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
+        os.path.abspath(os.path.join(here, "..", "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
+
+        # VPS típico: /root/proyectos/Mancorabet y /root/proyectos/Monitor_Orbitx
+        os.path.abspath(os.path.join(here, "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
+        os.path.abspath(os.path.join(here, "..", "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    return ""
+
+def cargar_indice_orbitx():
+    """
+    key = (Liga, date_str_utc, home_norm, away_norm)
+    val = {"eventId": "...", "marketId": "..."}
+    """
+    path = _find_watchlist_path()
+    if not path:
+        print("⚠️ No se encontró watchlist.json (Orbitx). Se seguirá sin eventId/marketId.")
+        print("   Tip: set ORBITX_WATCHLIST_PATH=/ruta/a/watchlist.json")
+        return {}
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
-    except:
-        return pd.DataFrame()
+    except Exception as e:
+        print(f"⚠️ Error leyendo watchlist.json: {e}. Se seguirá sin eventId/marketId.")
+        return {}
 
     if not isinstance(raw, list):
-        return pd.DataFrame()
+        print("⚠️ watchlist.json no es lista. Se seguirá sin eventId/marketId.")
+        return {}
 
-    df = pd.DataFrame(raw)
+    idx = {}
+    for it in raw:
+        try:
+            liga = (it.get("Liga") or "").strip()
+            date = (it.get("date") or "").strip()
+            home = limpiar_equipo_cached(it.get("home") or "")
+            away = limpiar_equipo_cached(it.get("away") or "")
+            event_id = str(it.get("eventId") or "").strip()
+            market_id = str(it.get("marketId") or "").strip()
+            if not liga or not date or not home or not away:
+                continue
+            if not event_id and not market_id:
+                continue
+            key = (liga, date, home, away)
+            if key not in idx:
+                idx[key] = {"eventId": event_id, "marketId": market_id}
+        except Exception:
+            continue
 
-    df.rename(columns={
-        "Cuota Local": "Local Odd",
-        "Cuota Empate": "Empate Odd",
-        "Cuota Visita": "Visita Odd"
-    }, inplace=True)
-
-    for col in ["Liga", "Partido", "Casa", "Fecha", "Local", "Visita"]:
-        if col not in df.columns:
-            df[col] = ""
-
-    for c in ["Local Odd", "Empate Odd", "Visita Odd"]:
-        df[c] = pd.to_numeric(df[c], errors="coerce")
-
-    vacios = (df["Local"].astype(str).str.strip() == "") | \
-             (df["Visita"].astype(str).str.strip() == "")
-
-    if vacios.any():
-        equipos = df.loc[vacios, "Partido"].astype(str).str.split(
-            r"\s+vs\.?\s+|\s+v\s+|\s+VS\s+",
-            n=1, regex=True, expand=True
-        )
-        if equipos.shape[1] == 2:
-            df.loc[vacios, "Local"] = equipos[0].str.strip()
-            df.loc[vacios, "Visita"] = equipos[1].str.strip()
-
-    # 🔥 NORMALIZACIÓN FINAL
-    df["Local"]  = df["Local"].astype(str).apply(limpiar_equipo)
-    df["Visita"] = df["Visita"].astype(str).apply(limpiar_equipo)
-
-    df["home_short"] = df["Local"].apply(team_short)
-    df["away_short"] = df["Visita"].apply(team_short)
-
-    df["Fecha_dt"] = (
-        pd.to_datetime(df["Fecha"], errors="coerce", utc=True)
-          .dt.tz_convert("UTC")
-          .dt.tz_localize(None)
-    )
-
-    return df
+    print(f"✅ Índice Orbitx cargado: {len(idx)} matches (desde {path})")
+    return idx
 
 # ============================================================
-# FUSIÓN DE CUOTAS
+# UTIL: lectura JSON y parsing de equipos desde Partido si faltan
+# ============================================================
+
+_SPLIT_REPLACERS = [" vs ", " vs. ", " v ", " VS ", " Vs ", " V "]
+
+def split_partido(partido: str):
+    if not isinstance(partido, str):
+        return ("", "")
+    s = " ".join(partido.strip().split())
+    # intentos simples
+    for sep in [" vs. ", " vs ", " v ", " VS ", " Vs ", " V "]:
+        if sep in s:
+            a, b = s.split(sep, 1)
+            return a.strip(), b.strip()
+    # fallback regex-like mínimo (por si viene raro)
+    # si no encuentra, devuelve vacío para que el caller no lo use
+    return ("", "")
+
+def to_float(x):
+    try:
+        if x is None:
+            return None
+        if isinstance(x, (int, float)):
+            return float(x)
+        s = str(x).strip()
+        if s == "" or s.lower() == "null":
+            return None
+        return float(s)
+    except Exception:
+        return None
+
+def norm_bookmaker_name(s: str) -> str:
+    # mismo criterio que tu código: lower + quitar espacios
+    if not isinstance(s, str):
+        return ""
+    return s.replace(" ", "").strip().lower()
+
+def load_rows_from_file(path: str):
+    if not os.path.exists(path):
+        return []
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+    except Exception:
+        return []
+
+    if not isinstance(raw, list):
+        return []
+
+    out = []
+    for it in raw:
+        if not isinstance(it, dict):
+            continue
+
+        liga = it.get("Liga", "") or ""
+        partido = it.get("Partido", "") or ""
+        casa = it.get("Casa", "") or ""
+        fecha = it.get("Fecha", "") or ""
+
+        local = it.get("Local", "") or ""
+        visita = it.get("Visita", "") or ""
+
+        # map cuotas con alias (manteniendo tus nombres)
+        local_odd = to_float(it.get("Local Odd", it.get("Cuota Local")))
+        empate_odd = to_float(it.get("Empate Odd", it.get("Cuota Empate")))
+        visita_odd = to_float(it.get("Visita Odd", it.get("Cuota Visita")))
+
+        # si faltan Local/Visita, intentar desde Partido
+        if (not str(local).strip() or not str(visita).strip()) and str(partido).strip():
+            a, b = split_partido(partido)
+            if a and b:
+                if not str(local).strip():
+                    local = a
+                if not str(visita).strip():
+                    visita = b
+
+        local_norm = limpiar_equipo_cached(str(local))
+        visita_norm = limpiar_equipo_cached(str(visita))
+
+        home_short = team_short_cached(local_norm)
+        away_short = team_short_cached(visita_norm)
+
+        fecha_dt = parse_fecha_utc_naive(str(fecha))
+
+        out.append({
+            "Liga": str(liga),
+            "Casa": str(casa),
+            "Fecha_dt": fecha_dt,
+            "Fecha_raw": str(fecha),
+            "Local": local_norm,
+            "Visita": visita_norm,
+            "home_short": home_short,
+            "away_short": away_short,
+            "Local Odd": local_odd,
+            "Empate Odd": empate_odd,
+            "Visita Odd": visita_odd,
+        })
+
+    return out
+
+# ============================================================
+# FUSIÓN (misma lógica funcional, más rápida)
 # ============================================================
 
 def partido_hash(row):
+    # igual que antes: liga + fecha redondeada + short home/away
     return (
         row["Liga"],
-        row["Fecha_dt"].replace(minute=0, second=0, microsecond=0),
+        dt_hour_bucket(row["Fecha_dt"]),
         row["home_short"],
-        row["away_short"]
+        row["away_short"],
     )
 
-def fusionar_cuotas():
-    print("Fusionando con equivalencias externas + similitud...")
+def pick_best(subset, col):
+    """
+    Replica tu lógica 'mejor(col)'.
+    subset: lista de rows dict
+    col: "Local Odd" / "Empate Odd" / "Visita Odd"
+    retorna: (odd, bookmaker)
+    """
+    col_lower = col.lower()
 
-    df_list = []
+    # Empate: sin exclusiones
+    if "empate" in col_lower:
+        best_val = None
+        best_bm = ""
+        for r in subset:
+            v = r.get(col)
+            if v is None:
+                continue
+            if (best_val is None) or (v > best_val):
+                best_val = v
+                best_bm = r.get("Casa", "") or ""
+        return (best_val, best_bm)
+
+    # Home/Away: con exclusión si hay opciones
+    filtered = []
+    for r in subset:
+        v = r.get(col)
+        if v is None:
+            continue
+        bm_norm = norm_bookmaker_name(r.get("Casa", ""))
+        if bm_norm not in BOOKMAKERS_EXCLUIR_HA:
+            filtered.append(r)
+
+    if filtered:
+        best_val = None
+        best_bm = ""
+        for r in filtered:
+            v = r.get(col)
+            if v is None:
+                continue
+            if (best_val is None) or (v > best_val):
+                best_val = v
+                best_bm = r.get("Casa", "") or ""
+        return (best_val, best_bm)
+
+    # fallback: cualquiera
+    best_val = None
+    best_bm = ""
+    for r in subset:
+        v = r.get(col)
+        if v is None:
+            continue
+        if (best_val is None) or (v > best_val):
+            best_val = v
+            best_bm = r.get("Casa", "") or ""
+    return (best_val, best_bm)
+
+def fusionar_cuotas():
+    print("Fusionando con equivalencias externas + similitud (OPTIMIZADO)...")
+
+    orbitx_idx = cargar_indice_orbitx()
+
     fuentes_ok = []
     fuentes_error = []
+    all_rows = []
 
+    # 1) cargar todas las fuentes (rápido, sin pandas)
     for nombre, ruta in ARCHIVOS.items():
-        df = cargar_json(ruta)
-        if not df.empty:
-            df["Origen"] = nombre
-            df_list.append(df)
+        rows = load_rows_from_file(ruta)
+        if rows:
             fuentes_ok.append(nombre)
+            # marca origen si te sirve a futuro (no se usa en output)
+            for r in rows:
+                r["Origen"] = nombre
+            all_rows.extend(rows)
         else:
             fuentes_error.append(nombre)
 
-    if not df_list:
+    if not all_rows:
         print("F No hay datos.")
         return
 
-    df = pd.concat(df_list, ignore_index=True)
-
-    df = df[
-        (df["home_short"] != "desconocido") &
-        (df["away_short"] != "desconocido")
-    ]
-
-    buckets = {}
-    for idx, row in df.iterrows():
-        if pd.isna(row["Fecha_dt"]):
+    # 2) filtrar desconocidos / sin fecha
+    filtered = []
+    for r in all_rows:
+        if r.get("Fecha_dt") is None:
             continue
-        key = partido_hash(row)
-        buckets.setdefault(key, []).append(idx)
+        if r.get("home_short") == "desconocido" or r.get("away_short") == "desconocido":
+            continue
+        filtered.append(r)
 
-    usados = set()
+    # 3) buckets
+    buckets = {}
+    for r in filtered:
+        key = partido_hash(r)
+        buckets.setdefault(key, []).append(r)
+
     filas = []
     llaves_existentes = set()
 
-    for key, indices in buckets.items():
-        for i in indices:
-            if i in usados:
+    # 4) procesar cada bucket (evitando O(n²) grande)
+    #    mantenemos tu verificación de similitud dentro del grupo por seguridad
+    for key, items in buckets.items():
+        usados_idx = set()
+
+        # índice simple por posición
+        for i in range(len(items)):
+            if i in usados_idx:
                 continue
-            row = df.loc[i]
-            grupo = [i]
+            base = items[i]
+            grupo = [base]
 
-            for j in indices:
-                if j == i or j in usados:
+            for j in range(len(items)):
+                if j == i or j in usados_idx:
                     continue
-                row2 = df.loc[j]
+                r2 = items[j]
 
-                if abs((row["Fecha_dt"] - row2["Fecha_dt"]).total_seconds()) > 21600:
+                # tu regla: si diferencia de horas > 6h (21600s), skip
+                # acá ya están en mismo hour bucket, pero igual lo respetamos
+                dt1 = base["Fecha_dt"]
+                dt2 = r2["Fecha_dt"]
+                if abs((dt1 - dt2).total_seconds()) > 21600:
                     continue
 
-                if similitud(row["home_short"], row2["home_short"]) >= SIM_THRESHOLD and \
-                   similitud(row["away_short"], row2["away_short"]) >= SIM_THRESHOLD:
-                    grupo.append(j)
-                    usados.add(j)
+                if similitud(base["home_short"], r2["home_short"]) >= SIM_THRESHOLD and \
+                   similitud(base["away_short"], r2["away_short"]) >= SIM_THRESHOLD:
+                    grupo.append(r2)
+                    usados_idx.add(j)
 
-            subset = df.loc[grupo]
-            usados.update(grupo)
+            usados_idx.add(i)
 
-            def mejor(col):
-                col_lower = col.lower()
-                if "empate" in col_lower:
-                    s = subset[subset[col].notna()]
-                    if s.empty:
-                        return None, ""
-                    idx = s[col].idxmax()
-                    return float(s.loc[idx, col]), s.loc[idx, "Casa"]
+            bh, bh_bm = pick_best(grupo, "Local Odd")
+            bd, bd_bm = pick_best(grupo, "Empate Odd")
+            ba, ba_bm = pick_best(grupo, "Visita Odd")
 
-                s = subset[
-                    subset[col].notna() &
-                    (~subset["Casa"].str.replace(" ", "").str.lower()
-                    .isin(BOOKMAKERS_EXCLUIR_HA))
-                ]
-
-                if not s.empty:
-                    idx = s[col].idxmax()
-                    return float(s[col].max()), s.loc[idx, "Casa"]
-
-                s_all = subset[subset[col].notna()]
-                if s_all.empty:
-                    return None, ""
-                idx = s_all[col].idxmax()
-                return float(s_all.loc[idx, col]), s_all.loc[idx, "Casa"]
-
-            bh, bh_bm = mejor("Local Odd")
-            bd, bd_bm = mejor("Empate Odd")
-            ba, ba_bm = mejor("Visita Odd")
-
-            base = subset.iloc[0]
             fecha_dt = base["Fecha_dt"]
-            fecha_str = fecha_dt.strftime("%Y-%m-%d %H:%M UTC") if pd.notna(fecha_dt) else ""
+            fecha_str = fecha_to_str_utc(fecha_dt)
 
             clave = (base["Liga"], fecha_str, base["Local"], base["Visita"])
             if clave in llaves_existentes:
                 continue
             llaves_existentes.add(clave)
+
+            orbitx_key = (base["Liga"], fecha_str, base["Local"], base["Visita"])
+            orbitx_info = orbitx_idx.get(orbitx_key, {})
+            event_id = orbitx_info.get("eventId") or None
+            market_id = orbitx_info.get("marketId") or None
 
             filas.append({
                 "Liga": base["Liga"],
@@ -294,11 +514,17 @@ def fusionar_cuotas():
                 "home": base["Local"],
                 "away": base["Visita"],
                 "date": fecha_str,
+
+                # ✅ claves orbitx para cruzar con snapshot
+                "eventId": event_id,
+                "marketId": market_id,
+
                 "best_home": {"odd": bh, "bookmaker": bh_bm},
                 "best_draw": {"odd": bd, "bookmaker": bd_bm},
                 "best_away": {"odd": ba, "bookmaker": ba_bm},
             })
 
+    # 5) salida final (mismo formato que antes)
     salida = {
         "metadata": {
             "updated": datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S"),
@@ -310,12 +536,14 @@ def fusionar_cuotas():
     for fila in filas:
         salida.setdefault(fila["Liga"], []).append(fila)
 
-    for liga in salida:
+    # sort por date dentro de cada liga
+    for liga in list(salida.keys()):
         if liga == "metadata":
             continue
         try:
-            salida[liga].sort(key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d %H:%M"))
-        except:
+            # date: "YYYY-MM-DD HH:MM UTC"
+            salida[liga].sort(key=lambda x: datetime.strptime(x["date"].replace(" UTC", ""), "%Y-%m-%d %H:%M"))
+        except Exception:
             pass
 
     with open(OUT_FILE, "w", encoding="utf-8") as f:

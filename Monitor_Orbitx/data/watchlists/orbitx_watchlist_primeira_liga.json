@@ -1,0 +1,50 @@
+[
+  {
+    "Liga": "Primeira Liga",
+    "eventId": "35165560",
+    "eventName": "Moreirense v Santa Clara",
+    "marketId": "1.252906768",
+    "startTimeMs": 1769268600000,
+    "date": "2026-01-24 15:30 UTC",
+    "home": "moreirense",
+    "away": "santa clara",
+    "name": "Moreirense vs Santa Clara",
+    "orbitx": {
+      "home_id": 191604,
+      "away_id": 48793,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Primeira Liga",
+    "eventId": "35163763",
+    "eventName": "Arouca v Sporting Lisbon",
+    "marketId": "1.252880915",
+    "startTimeMs": 1769277600000,
+    "date": "2026-01-24 18:00 UTC",
+    "home": "arouca",
+    "away": "sporting lisboa",
+    "name": "Arouca vs Sporting Lisboa",
+    "orbitx": {
+      "home_id": 3413603,
+      "away_id": 52495073,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Primeira Liga",
+    "eventId": "35165559",
+    "eventName": "Estoril Praia v Guimaraes",
+    "marketId": "1.252906878",
+    "startTimeMs": 1769286600000,
+    "date": "2026-01-24 20:30 UTC",
+    "home": "estoril",
+    "away": "vitoria guimaraes",
+    "name": "Estoril vs Vitoria Guimaraes",
+    "orbitx": {
+      "home_id": 8942696,
+      "away_id": 50085,
+      "draw_id": 58805
+    }
+  }
+]

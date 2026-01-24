@@ -1,0 +1,306 @@
+[
+  {
+    "Liga": "Serie A",
+    "eventId": "35154377",
+    "eventName": "Como v Torino",
+    "marketId": "1.252780816",
+    "startTimeMs": 1769263200000,
+    "date": "2026-01-24 14:00 UTC",
+    "home": "como",
+    "away": "torino",
+    "name": "Como vs Torino",
+    "orbitx": {
+      "home_id": 60298,
+      "away_id": 44503,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154305",
+    "eventName": "Fiorentina v Cagliari",
+    "marketId": "1.252780964",
+    "startTimeMs": 1769274000000,
+    "date": "2026-01-24 17:00 UTC",
+    "home": "fiorentina",
+    "away": "cagliari",
+    "name": "Fiorentina vs Cagliari",
+    "orbitx": {
+      "home_id": 676467,
+      "away_id": 60297,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154395",
+    "eventName": "Lecce v Lazio",
+    "marketId": "1.252778696",
+    "startTimeMs": 1769283900000,
+    "date": "2026-01-24 19:45 UTC",
+    "home": "lecce",
+    "away": "lazio",
+    "name": "Lecce vs Lazio",
+    "orbitx": {
+      "home_id": 508827,
+      "away_id": 56966,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154394",
+    "eventName": "Atalanta v Parma",
+    "marketId": "1.252778906",
+    "startTimeMs": 1769349600000,
+    "date": "2026-01-25 14:00 UTC",
+    "home": "atalanta",
+    "away": "parma",
+    "name": "Atalanta vs Parma",
+    "orbitx": {
+      "home_id": 215817,
+      "away_id": 191607,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154388",
+    "eventName": "Genoa v Bologna",
+    "marketId": "1.252779716",
+    "startTimeMs": 1769349600000,
+    "date": "2026-01-25 14:00 UTC",
+    "home": "genoa",
+    "away": "atalanta",
+    "name": "Genoa vs Atalanta",
+    "orbitx": {
+      "home_id": 60310,
+      "away_id": 199545,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154392",
+    "eventName": "Juventus v Napoli",
+    "marketId": "1.252779116",
+    "startTimeMs": 1769360400000,
+    "date": "2026-01-25 17:00 UTC",
+    "home": "juventus",
+    "away": "napoles",
+    "name": "Juventus vs Napoles",
+    "orbitx": {
+      "home_id": 52475015,
+      "away_id": 676464,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154382",
+    "eventName": "Roma v AC Milan",
+    "marketId": "1.252780518",
+    "startTimeMs": 1769370300000,
+    "date": "2026-01-25 19:45 UTC",
+    "home": "roma",
+    "away": "ac milan",
+    "name": "Roma vs Ac Milan",
+    "orbitx": {
+      "home_id": 56967,
+      "away_id": 127991,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154387",
+    "eventName": "Sassuolo v US Cremonese",
+    "marketId": "1.252779892",
+    "startTimeMs": 1769340600000,
+    "date": "2026-01-25 11:30 UTC",
+    "home": "sassuolo",
+    "away": "cremonese",
+    "name": "Sassuolo vs Cremonese",
+    "orbitx": {
+      "home_id": 2013140,
+      "away_id": 10513040,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35154385",
+    "eventName": "Verona v Udinese",
+    "marketId": "1.252780225",
+    "startTimeMs": 1769456700000,
+    "date": "2026-01-26 19:45 UTC",
+    "home": "verona",
+    "away": "udinese",
+    "name": "Verona vs Udinese",
+    "orbitx": {
+      "home_id": 676465,
+      "away_id": 215821,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35164713",
+    "eventName": "Lazio v Genoa",
+    "marketId": "1.252897673",
+    "startTimeMs": 1769802300000,
+    "date": "2026-01-30 19:45 UTC",
+    "home": "lazio",
+    "away": "genoa",
+    "name": "Lazio vs Genoa",
+    "orbitx": {
+      "home_id": 56966,
+      "away_id": 60310,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35164711",
+    "eventName": "Cagliari v Verona",
+    "marketId": "1.252897794",
+    "startTimeMs": 1769888700000,
+    "date": "2026-01-31 19:45 UTC",
+    "home": "cagliari",
+    "away": "verona",
+    "name": "Cagliari vs Verona",
+    "orbitx": {
+      "home_id": 60297,
+      "away_id": 676465,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35164723",
+    "eventName": "Napoli v Fiorentina",
+    "marketId": "1.252897345",
+    "startTimeMs": 1769878800000,
+    "date": "2026-01-31 17:00 UTC",
+    "home": "napoles",
+    "away": "fiorentina",
+    "name": "Napoles vs Fiorentina",
+    "orbitx": {
+      "home_id": 676464,
+      "away_id": 676467,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35164722",
+    "eventName": "Pisa v Sassuolo",
+    "marketId": "1.252897552",
+    "startTimeMs": 1769868000000,
+    "date": "2026-01-31 14:00 UTC",
+    "home": "pisa",
+    "away": "sassuolo",
+    "name": "Pisa vs Sassuolo",
+    "orbitx": {
+      "home_id": 501200,
+      "away_id": 2013140,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35165037",
+    "eventName": "Como v Atalanta",
+    "marketId": "1.252901302",
+    "startTimeMs": 1769954400000,
+    "date": "2026-02-01 14:00 UTC",
+    "home": "como",
+    "away": "atalanta",
+    "name": "Como vs Atalanta",
+    "orbitx": {
+      "home_id": 60298,
+      "away_id": 215817,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35165038",
+    "eventName": "Parma v Juventus",
+    "marketId": "1.252901423",
+    "startTimeMs": 1769975100000,
+    "date": "2026-02-01 19:45 UTC",
+    "home": "parma",
+    "away": "juventus",
+    "name": "Parma vs Juventus",
+    "orbitx": {
+      "home_id": 191607,
+      "away_id": 52475015,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35165051",
+    "eventName": "Torino v Lecce",
+    "marketId": "1.252901181",
+    "startTimeMs": 1769945400000,
+    "date": "2026-02-01 11:30 UTC",
+    "home": "torino",
+    "away": "lecce",
+    "name": "Torino vs Lecce",
+    "orbitx": {
+      "home_id": 44503,
+      "away_id": 508827,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35165036",
+    "eventName": "US Cremonese v Inter",
+    "marketId": "1.252898019",
+    "startTimeMs": 1769965200000,
+    "date": "2026-02-01 17:00 UTC",
+    "home": "cremonese",
+    "away": "inter de milan",
+    "name": "Cremonese vs Inter De Milan",
+    "orbitx": {
+      "home_id": 10513040,
+      "away_id": 63347,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35165733",
+    "eventName": "Udinese v Roma",
+    "marketId": "1.252916151",
+    "startTimeMs": 1770061500000,
+    "date": "2026-02-02 19:45 UTC",
+    "home": "udinese",
+    "away": "roma",
+    "name": "Udinese vs Roma",
+    "orbitx": {
+      "home_id": 215821,
+      "away_id": 56967,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Serie A",
+    "eventId": "35167045",
+    "eventName": "Bologna v AC Milan",
+    "marketId": "1.252933084",
+    "startTimeMs": 1770147900000,
+    "date": "2026-02-03 19:45 UTC",
+    "home": "atalanta",
+    "away": "ac milan",
+    "name": "Atalanta vs Ac Milan",
+    "orbitx": {
+      "home_id": 199545,
+      "away_id": 127991,
+      "draw_id": 58805
+    }
+  }
+]

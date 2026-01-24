@@ -1,0 +1,98 @@
+[
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154383",
+    "eventName": "Bayern Munich v Augsburg",
+    "marketId": "1.252777471",
+    "startTimeMs": 1769265000000,
+    "date": "2026-01-24 14:30 UTC",
+    "home": "bayern munich",
+    "away": "augsburg",
+    "name": "Bayern Munich vs Augsburg",
+    "orbitx": {
+      "home_id": 5774350,
+      "away_id": 498560,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154336",
+    "eventName": "Eintracht Frankfurt v Hoffenheim",
+    "marketId": "1.252777813",
+    "startTimeMs": 1769265000000,
+    "date": "2026-01-24 14:30 UTC",
+    "home": "eintracht frankfurt",
+    "away": "hoffenheim",
+    "name": "Eintracht Frankfurt vs Hoffenheim",
+    "orbitx": {
+      "home_id": 347774,
+      "away_id": 208026,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154311",
+    "eventName": "FC Heidenheim v RB Leipzig",
+    "marketId": "1.252778096",
+    "startTimeMs": 1769265000000,
+    "date": "2026-01-24 14:30 UTC",
+    "home": "heidenheim",
+    "away": "leipzig",
+    "name": "Heidenheim vs Leipzig",
+    "orbitx": {
+      "home_id": 3237590,
+      "away_id": 5340398,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154364",
+    "eventName": "Leverkusen v Werder Bremen",
+    "marketId": "1.252777681",
+    "startTimeMs": 1769265000000,
+    "date": "2026-01-24 14:30 UTC",
+    "home": "bayer leverkusen",
+    "away": "werder bremen",
+    "name": "Bayer Leverkusen vs Werder Bremen",
+    "orbitx": {
+      "home_id": 44787,
+      "away_id": 6555433,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154410",
+    "eventName": "Mainz v Wolfsburg",
+    "marketId": "1.252776175",
+    "startTimeMs": 1769265000000,
+    "date": "2026-01-24 14:30 UTC",
+    "home": "mainz 05",
+    "away": "wolfsburgo",
+    "name": "Mainz 05 vs Wolfsburgo",
+    "orbitx": {
+      "home_id": 64374,
+      "away_id": 44521,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Bundesliga",
+    "eventId": "35154417",
+    "eventName": "Union Berlin v Dortmund",
+    "marketId": "1.252775965",
+    "startTimeMs": 1769275800000,
+    "date": "2026-01-24 17:30 UTC",
+    "home": "union berlin",
+    "away": "borussia dortmund",
+    "name": "Union Berlin vs Borussia Dortmund",
+    "orbitx": {
+      "home_id": 50347,
+      "away_id": 44785,
+      "draw_id": 58805
+    }
+  }
+]

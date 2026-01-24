@@ -1,0 +1,162 @@
+[
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35068990",
+    "eventName": "Atletico MG v SE Palmeiras",
+    "marketId": "1.251815071",
+    "startTimeMs": 1769637600000,
+    "date": "2026-01-28 22:00 UTC",
+    "home": "atletico mineiro",
+    "away": "palmeiras",
+    "name": "Atletico Mineiro vs Palmeiras",
+    "orbitx": {
+      "home_id": 361329,
+      "away_id": 22498185,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069722",
+    "eventName": "Chapecoense v Santos",
+    "marketId": "1.251820158",
+    "startTimeMs": 1769641200000,
+    "date": "2026-01-28 23:00 UTC",
+    "home": "chapecoense",
+    "away": "santos",
+    "name": "Chapecoense vs Santos",
+    "orbitx": {
+      "home_id": 2909511,
+      "away_id": 198127,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35068960",
+    "eventName": "Corinthians v Bahia",
+    "marketId": "1.251815287",
+    "startTimeMs": 1769641200000,
+    "date": "2026-01-28 23:00 UTC",
+    "home": "corinthians",
+    "away": "bahia",
+    "name": "Corinthians vs Bahia",
+    "orbitx": {
+      "home_id": 198136,
+      "away_id": 198139,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069721",
+    "eventName": "Coritiba v Red Bull Bragantino",
+    "marketId": "1.251820266",
+    "startTimeMs": 1769637600000,
+    "date": "2026-01-28 22:00 UTC",
+    "home": "coritiba",
+    "away": "bragantino",
+    "name": "Coritiba vs Bragantino",
+    "orbitx": {
+      "home_id": 198141,
+      "away_id": 71387076,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069015",
+    "eventName": "EC Vitoria Salvador v Remo",
+    "marketId": "1.251814855",
+    "startTimeMs": 1769637600000,
+    "date": "2026-01-28 22:00 UTC",
+    "home": "vitoria",
+    "away": "remo",
+    "name": "Vitoria vs Remo",
+    "orbitx": {
+      "home_id": 5336581,
+      "away_id": 376830,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35068958",
+    "eventName": "Fluminense v Gremio",
+    "marketId": "1.251815395",
+    "startTimeMs": 1769639400000,
+    "date": "2026-01-28 22:30 UTC",
+    "home": "fluminense",
+    "away": "gremio",
+    "name": "Fluminense vs Gremio",
+    "orbitx": {
+      "home_id": 198133,
+      "away_id": 198134,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069022",
+    "eventName": "Internacional v Athletico-PR",
+    "marketId": "1.251814747",
+    "startTimeMs": 1769637600000,
+    "date": "2026-01-28 22:00 UTC",
+    "home": "internacional",
+    "away": "athletico paranaense",
+    "name": "Internacional vs Athletico Paranaense",
+    "orbitx": {
+      "home_id": 198137,
+      "away_id": 36860494,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069005",
+    "eventName": "Mirassol v Vasco Da Gama",
+    "marketId": "1.251814963",
+    "startTimeMs": 1769641200000,
+    "date": "2026-01-28 23:00 UTC",
+    "home": "mirassol",
+    "away": "vasco da gama",
+    "name": "Mirassol vs Vasco Da Gama",
+    "orbitx": {
+      "home_id": 2760854,
+      "away_id": 198124,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35068964",
+    "eventName": "Sao Paulo v Flamengo",
+    "marketId": "1.251815179",
+    "startTimeMs": 1769646600000,
+    "date": "2026-01-29 00:30 UTC",
+    "home": "sao paulo",
+    "away": "flamengo",
+    "name": "Sao Paulo vs Flamengo",
+    "orbitx": {
+      "home_id": 198126,
+      "away_id": 198138,
+      "draw_id": 58805
+    }
+  },
+  {
+    "Liga": "Brasileirao",
+    "eventId": "35069717",
+    "eventName": "Botafogo FR v Cruzeiro MG",
+    "marketId": "1.251820375",
+    "startTimeMs": 1769733000000,
+    "date": "2026-01-30 00:30 UTC",
+    "home": "botafogo",
+    "away": "cruzeiro",
+    "name": "Botafogo vs Cruzeiro",
+    "orbitx": {
+      "home_id": 11302836,
+      "away_id": 10901767,
+      "draw_id": 58805
+    }
+  }
+]
