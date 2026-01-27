@@ -629,6 +629,9 @@ EQUIVALENCIAS_EQUIPOS = {
     "bahia-ba":"bahia",
     "avs":"avs Futebol",
     "dep la coruna":"deportivo la coruna",
-    "Venezia": "venezia",    
-    "ssc neapel": "napoles"
+    "venezia": "venezia",
+    "remo-pa": "remo",
+    "chapecoense-sc": "chapecoense",
+    "clube do remo pa": "remo",
+    "ssc neapel": "napoles",
 }
