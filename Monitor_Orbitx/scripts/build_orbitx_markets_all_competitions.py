@@ -26,6 +26,7 @@ except Exception:
 load_dotenv()
 
 BASE = "https://www.orbitxch.com"
+PROXY = os.getenv("PROXY_SELLER_SOCKS5", "").strip()
 WATCH_HOURS = int(os.getenv("WATCH_HOURS", "36"))  # no filtra aquí; solo útil más adelante
 
 # ⚡ workers para paralelizar event/details (más = más rápido, pero puede rate-limitar)
@@ -144,6 +145,11 @@ def main():
         "origin":BASE,
         "x-device":"MOBILE",
     })
+    
+    if PROXY:
+        sess.proxies.update({"http": PROXY, "https": PROXY})
+        print("🛰️ Usando proxy:", PROXY.split("@")[-1])  # imprime host:puerto sin usuario/pass
+
     if csrf:
         sess.headers["x-csrf-token"] = csrf
 

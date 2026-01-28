@@ -1,10 +1,12 @@
 # scripts/multi_monitor_global.py
-# ✅ Corregido: además de escribir cuando llega data, escribe un snapshot al CSV cada X segundos
-#    aunque no llegue data (para que ALERTAS por fases funcione bien).
-# - poll SUBSCRIBE cada POLL_EVERY_SEC
-# - snapshot.json cada SNAPSHOT_EVERY_SEC (alive)
-# - CSV snapshot cada CSV_SNAPSHOT_EVERY_SEC (aunque no haya cambios)
-# - mantiene watchdog
+# ✅ Corregido: añade soporte de proxy SOCKS5 (Proxy-Seller) para el WebSocket (websocket-client)
+# - Mantiene TODO tu comportamiento
+# - Solo agrega:
+#   - ORBITX_PROXY_SOCKS5 desde .env
+#   - urlparse + kwargs en run_forever()
+#
+# Requisitos en venv:
+#   pip install "websocket-client[socks]"
 
 import os
 import sys
@@ -15,6 +17,7 @@ import uuid
 import threading
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
+from urllib.parse import urlparse  # ✅ NUEVO
 
 import websocket
 from dotenv import load_dotenv
@@ -33,6 +36,9 @@ ORBITX_COOKIE = os.getenv("ORBITX_COOKIE", "").strip()
 if not ORBITX_COOKIE:
     raise SystemExit("❌ Falta ORBITX_COOKIE en .env")
 
+# ✅ NUEVO: Proxy SOCKS5 para Orbitx (ej: socks5h://user:pass@res.proxy-seller.com:10000)
+ORBITX_PROXY = os.getenv("ORBITX_PROXY_SOCKS5", "").strip()
+
 WATCH_HOURS = int(os.getenv("WATCH_HOURS", "36"))
 PING_INTERVAL = int(os.getenv("PING_INTERVAL", "20"))
 
@@ -41,7 +47,7 @@ SAVE_EVERY_SEC = int(os.getenv("SAVE_EVERY_SEC", "3"))                # data-dri
 POLL_EVERY_SEC = float(os.getenv("POLL_EVERY_SEC", "10"))             # recomendado 8-15
 STALE_SEC = int(os.getenv("STALE_SEC", "120"))                        # watchdog real
 SNAPSHOT_EVERY_SEC = int(os.getenv("SNAPSHOT_EVERY_SEC", "5"))        # snapshot.json aunque no llegue data
-CSV_SNAPSHOT_EVERY_SEC = int(os.getenv("CSV_SNAPSHOT_EVERY_SEC", "20"))  # ✅ NUEVO: escribe al CSV cada X sec aunque no llegue data
+CSV_SNAPSHOT_EVERY_SEC = int(os.getenv("CSV_SNAPSHOT_EVERY_SEC", "20"))  # ✅ escribe al CSV cada X sec aunque no llegue data
 PRINT_MARKETS = os.getenv("PRINT_MARKETS", "1") == "1"
 
 TZ_PE = timezone(timedelta(hours=-5))
@@ -442,6 +448,26 @@ class GlobalMonitor:
             "User-Agent: Mozilla/5.0",
         ]
 
+        # ✅ NUEVO: si hay proxy SOCKS5, lo aplicamos al WebSocket
+        proxy_kwargs = {}
+        if ORBITX_PROXY:
+            try:
+                u = urlparse(ORBITX_PROXY)
+                if u.hostname and u.port:
+                    proxy_kwargs = {
+                        "http_proxy_host": u.hostname,
+                        "http_proxy_port": int(u.port),
+                        "proxy_type": "socks5",
+                    }
+                    if u.username and u.password:
+                        proxy_kwargs["http_proxy_auth"] = (u.username, u.password)
+
+                    # log sin exponer credenciales
+                    print(f"🛰️ Usando SOCKS5 proxy: {u.hostname}:{u.port}")
+            except Exception as e:
+                print("⚠️ Proxy inválido, continuando sin proxy. Error:", e)
+                proxy_kwargs = {}
+
         while not self._stop:
             try:
                 ws_url = build_ws_url_fixed().strip()
@@ -459,6 +485,7 @@ class GlobalMonitor:
                 ws_app.run_forever(
                     ping_interval=PING_INTERVAL,
                     ping_timeout=10,
+                    **proxy_kwargs
                 )
             except Exception as e:
                 print("❌ Excepción WS:", e)
