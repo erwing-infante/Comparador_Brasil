@@ -144,6 +144,14 @@ function renderMatches(leagueName) {
         btn.title = "Abrir calculadora";
         btn.addEventListener("click", () => openCalculator(match, marginSure));
         lossCell.appendChild(btn);
+        
+        // 📈 Botón Betwatch
+        const btnBW = document.createElement("button");
+        btnBW.className = "bw-btn";
+        btnBW.textContent = "BW";
+        btnBW.title = "Ver en Betwatch";
+        btnBW.addEventListener("click", () => openBetwatch(match));
+        lossCell.appendChild(btnBW);
 
         tr.appendChild(lossCell);
 
@@ -238,6 +246,19 @@ function isMatchInRange(dateStr) {
     if (dateFilter === "3d") return diffDays >= 0 && diffDays <= 3;
 
     return true;
+}
+
+// ================================
+// BETWATCH
+// ================================
+function openBetwatch(match) {
+    if (!match.eventId) {
+        alert("Este partido no tiene eventId para Betwatch");
+        return;
+    }
+
+    const url = `https://betwatch.fr/football/${match.eventId}`;
+    window.open(url, "_blank");
 }
 
 // ================================
