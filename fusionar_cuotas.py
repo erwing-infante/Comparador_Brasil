@@ -1,7 +1,7 @@
 # fusionador_cuotas.py (OPTIMIZADO sin pandas)
 # - Mantiene tu normalización y equivalencias tal cual (misma lógica)
 # - Mucho más rápido: sin pandas, con cache de normalización, y merge Orbitx (eventId/marketId)
-# - Corre en VS Code y VPS (auto-detecta watchlist.json o usa ORBITX_WATCHLIST_PATH)
+# - ✅ CORREGIDO: ruta FIJA de watchlist (sin auto-find). Si falta, falla con error claro.
 
 import os
 import json
@@ -126,7 +126,7 @@ def team_short_cached(nombre: str) -> str:
     return v
 
 # ============================================================
-# FECHA → UTC naive (similar a pd.to_datetime(..., utc=True).tz_convert("UTC").tz_localize(None))
+# FECHA → UTC naive
 # ============================================================
 
 def parse_fecha_utc_naive(fecha_str: str):
@@ -135,7 +135,7 @@ def parse_fecha_utc_naive(fecha_str: str):
 
     s = fecha_str.strip()
 
-    # Caso ISO: 2026-01-19T20:00:00.000Z / 2026-01-19T20:00:00Z
+    # ISO Z
     try:
         if s.endswith("Z"):
             s2 = s[:-1] + "+00:00"
@@ -145,21 +145,20 @@ def parse_fecha_utc_naive(fecha_str: str):
             dt = datetime.fromisoformat(s)
             return dt.astimezone(timezone.utc).replace(tzinfo=None)
         if "T" in s:
-            # sin tz => asumir UTC (como venías usando)
             dt = datetime.fromisoformat(s.replace("Z", ""))
             return dt.replace(tzinfo=timezone.utc).replace(tzinfo=None)
     except Exception:
         pass
 
-    # Caso: "YYYY-MM-DD HH:MM UTC" (Orbitx)
+    # "YYYY-MM-DD HH:MM UTC"
     try:
         if s.endswith(" UTC"):
             dt = datetime.strptime(s.replace(" UTC", ""), "%Y-%m-%d %H:%M")
-            return dt  # ya es UTC naive
+            return dt
     except Exception:
         pass
 
-    # Caso: "YYYY-MM-DD HH:MM" sin UTC
+    # "YYYY-MM-DD HH:MM"
     try:
         dt = datetime.strptime(s, "%Y-%m-%d %H:%M")
         return dt
@@ -175,31 +174,26 @@ def dt_hour_bucket(dt_naive):
     return dt_naive.replace(minute=0, second=0, microsecond=0)
 
 # ============================================================
-# ORBITX WATCHLIST INDEX (eventId/marketId)
+# ORBITX WATCHLIST INDEX (eventId/marketId) - ✅ RUTA FIJA
 # ============================================================
 
-def _find_watchlist_path() -> str:
-    env_path = os.getenv("ORBITX_WATCHLIST_PATH", "").strip()
-    if env_path and os.path.exists(env_path):
-        return env_path
+def _watchlist_path_fixed() -> str:
+    """
+    Ruta fija:
+    - VPS: /root/proyectos/Mancorabet/Monitor_Orbitx/data/watchlists/watchlist.json
+    - Windows/VSCode: <proyecto>/Monitor_Orbitx/data/watchlists/watchlist.json
+    """
+    # 1) VPS (ruta absoluta fija)
+    vps_path = "/root/proyectos/Mancorabet/Monitor_Orbitx/data/watchlists/watchlist.json"
+    if os.path.exists(vps_path):
+        return vps_path
 
-    here = os.path.dirname(__file__)
-    candidates = [
-        # si lo copias dentro de Mancorabet
-        os.path.join(here, "data", "watchlists", "watchlist.json"),
-        os.path.join(here, "watchlist.json"),
+    # 2) Windows / local: relativo al proyecto
+    local_path = os.path.abspath(os.path.join(BASE_DIR, "Monitor_Orbitx", "data", "watchlists", "watchlist.json"))
+    if os.path.exists(local_path):
+        return local_path
 
-        # Windows: D:\Proyectos\Mancorabet y D:\Proyectos\Monitor_Orbitx
-        os.path.abspath(os.path.join(here, "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
-        os.path.abspath(os.path.join(here, "..", "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
-
-        # VPS típico: /root/proyectos/Mancorabet y /root/proyectos/Monitor_Orbitx
-        os.path.abspath(os.path.join(here, "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
-        os.path.abspath(os.path.join(here, "..", "..", "Monitor_Orbitx", "data", "watchlists", "watchlist.json")),
-    ]
-    for p in candidates:
-        if os.path.exists(p):
-            return p
+    # 3) Si no existe, falla fuerte (nada de silencios)
     return ""
 
 def cargar_indice_orbitx():
@@ -207,22 +201,23 @@ def cargar_indice_orbitx():
     key = (Liga, date_str_utc, home_norm, away_norm)
     val = {"eventId": "...", "marketId": "..."}
     """
-    path = _find_watchlist_path()
+    path = _watchlist_path_fixed()
     if not path:
-        print("⚠️ No se encontró watchlist.json (Orbitx). Se seguirá sin eventId/marketId.")
-        print("   Tip: set ORBITX_WATCHLIST_PATH=/ruta/a/watchlist.json")
-        return {}
+        raise SystemExit(
+            "❌ No se encontró watchlist.json de Orbitx.\n"
+            "   Esperado en VPS: /root/proyectos/Mancorabet/Monitor_Orbitx/data/watchlists/watchlist.json\n"
+            f"   Esperado en local: {os.path.abspath(os.path.join(BASE_DIR, 'Monitor_Orbitx', 'data', 'watchlists', 'watchlist.json'))}\n"
+            "   Solución: asegúrate de generar watchlists en Monitor_Orbitx antes de correr el fusionador."
+        )
 
     try:
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
     except Exception as e:
-        print(f"⚠️ Error leyendo watchlist.json: {e}. Se seguirá sin eventId/marketId.")
-        return {}
+        raise SystemExit(f"❌ Error leyendo watchlist.json ({path}): {e}")
 
     if not isinstance(raw, list):
-        print("⚠️ watchlist.json no es lista. Se seguirá sin eventId/marketId.")
-        return {}
+        raise SystemExit(f"❌ watchlist.json no es una lista: {path}")
 
     idx = {}
     for it in raw:
@@ -250,19 +245,14 @@ def cargar_indice_orbitx():
 # UTIL: lectura JSON y parsing de equipos desde Partido si faltan
 # ============================================================
 
-_SPLIT_REPLACERS = [" vs ", " vs. ", " v ", " VS ", " Vs ", " V "]
-
 def split_partido(partido: str):
     if not isinstance(partido, str):
         return ("", "")
     s = " ".join(partido.strip().split())
-    # intentos simples
     for sep in [" vs. ", " vs ", " v ", " VS ", " Vs ", " V "]:
         if sep in s:
             a, b = s.split(sep, 1)
             return a.strip(), b.strip()
-    # fallback regex-like mínimo (por si viene raro)
-    # si no encuentra, devuelve vacío para que el caller no lo use
     return ("", "")
 
 def to_float(x):
@@ -279,7 +269,6 @@ def to_float(x):
         return None
 
 def norm_bookmaker_name(s: str) -> str:
-    # mismo criterio que tu código: lower + quitar espacios
     if not isinstance(s, str):
         return ""
     return s.replace(" ", "").strip().lower()
@@ -310,12 +299,10 @@ def load_rows_from_file(path: str):
         local = it.get("Local", "") or ""
         visita = it.get("Visita", "") or ""
 
-        # map cuotas con alias (manteniendo tus nombres)
         local_odd = to_float(it.get("Local Odd", it.get("Cuota Local")))
         empate_odd = to_float(it.get("Empate Odd", it.get("Cuota Empate")))
         visita_odd = to_float(it.get("Visita Odd", it.get("Cuota Visita")))
 
-        # si faltan Local/Visita, intentar desde Partido
         if (not str(local).strip() or not str(visita).strip()) and str(partido).strip():
             a, b = split_partido(partido)
             if a and b:
@@ -349,11 +336,10 @@ def load_rows_from_file(path: str):
     return out
 
 # ============================================================
-# FUSIÓN (misma lógica funcional, más rápida)
+# FUSIÓN
 # ============================================================
 
 def partido_hash(row):
-    # igual que antes: liga + fecha redondeada + short home/away
     return (
         row["Liga"],
         dt_hour_bucket(row["Fecha_dt"]),
@@ -362,15 +348,8 @@ def partido_hash(row):
     )
 
 def pick_best(subset, col):
-    """
-    Replica tu lógica 'mejor(col)'.
-    subset: lista de rows dict
-    col: "Local Odd" / "Empate Odd" / "Visita Odd"
-    retorna: (odd, bookmaker)
-    """
     col_lower = col.lower()
 
-    # Empate: sin exclusiones
     if "empate" in col_lower:
         best_val = None
         best_bm = ""
@@ -383,7 +362,6 @@ def pick_best(subset, col):
                 best_bm = r.get("Casa", "") or ""
         return (best_val, best_bm)
 
-    # Home/Away: con exclusión si hay opciones
     filtered = []
     for r in subset:
         v = r.get(col)
@@ -405,7 +383,6 @@ def pick_best(subset, col):
                 best_bm = r.get("Casa", "") or ""
         return (best_val, best_bm)
 
-    # fallback: cualquiera
     best_val = None
     best_bm = ""
     for r in subset:
@@ -426,12 +403,10 @@ def fusionar_cuotas():
     fuentes_error = []
     all_rows = []
 
-    # 1) cargar todas las fuentes (rápido, sin pandas)
     for nombre, ruta in ARCHIVOS.items():
         rows = load_rows_from_file(ruta)
         if rows:
             fuentes_ok.append(nombre)
-            # marca origen si te sirve a futuro (no se usa en output)
             for r in rows:
                 r["Origen"] = nombre
             all_rows.extend(rows)
@@ -442,7 +417,6 @@ def fusionar_cuotas():
         print("F No hay datos.")
         return
 
-    # 2) filtrar desconocidos / sin fecha
     filtered = []
     for r in all_rows:
         if r.get("Fecha_dt") is None:
@@ -451,7 +425,6 @@ def fusionar_cuotas():
             continue
         filtered.append(r)
 
-    # 3) buckets
     buckets = {}
     for r in filtered:
         key = partido_hash(r)
@@ -460,12 +433,9 @@ def fusionar_cuotas():
     filas = []
     llaves_existentes = set()
 
-    # 4) procesar cada bucket (evitando O(n²) grande)
-    #    mantenemos tu verificación de similitud dentro del grupo por seguridad
     for key, items in buckets.items():
         usados_idx = set()
 
-        # índice simple por posición
         for i in range(len(items)):
             if i in usados_idx:
                 continue
@@ -477,8 +447,6 @@ def fusionar_cuotas():
                     continue
                 r2 = items[j]
 
-                # tu regla: si diferencia de horas > 6h (21600s), skip
-                # acá ya están en mismo hour bucket, pero igual lo respetamos
                 dt1 = base["Fecha_dt"]
                 dt2 = r2["Fecha_dt"]
                 if abs((dt1 - dt2).total_seconds()) > 21600:
@@ -514,17 +482,13 @@ def fusionar_cuotas():
                 "home": base["Local"],
                 "away": base["Visita"],
                 "date": fecha_str,
-
-                # ✅ claves orbitx para cruzar con snapshot
                 "eventId": event_id,
                 "marketId": market_id,
-
                 "best_home": {"odd": bh, "bookmaker": bh_bm},
                 "best_draw": {"odd": bd, "bookmaker": bd_bm},
                 "best_away": {"odd": ba, "bookmaker": ba_bm},
             })
 
-    # 5) salida final (mismo formato que antes)
     salida = {
         "metadata": {
             "updated": datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S"),
@@ -536,12 +500,10 @@ def fusionar_cuotas():
     for fila in filas:
         salida.setdefault(fila["Liga"], []).append(fila)
 
-    # sort por date dentro de cada liga
     for liga in list(salida.keys()):
         if liga == "metadata":
             continue
         try:
-            # date: "YYYY-MM-DD HH:MM UTC"
             salida[liga].sort(key=lambda x: datetime.strptime(x["date"].replace(" UTC", ""), "%Y-%m-%d %H:%M"))
         except Exception:
             pass
