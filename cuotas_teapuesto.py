@@ -138,8 +138,42 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
             if not dt:
                 continue
 
-            # ✅ filtro: excluir partidos en vivo
-            if (str(ev.get("state", "")).upper() in ("LIVE", "INPLAY", "IN_PLAY", "STARTED", "IN_PROGRESS")) or (ev.get("is_live") is True) or (ev.get("live") is True) or (ev.get("in_play") is True) or (ev.get("inPlay") is True):
+            # ✅ filtro: excluir eventos en vivo (sin romper pre-match)
+            # Idea: live si hay reloj/minuto corriendo, periodo de juego real, o score real.
+            period_s = str(ev.get("period") or "").strip().lower()
+            clock_s = str(ev.get("clock") or "").strip()
+            score_v = ev.get("score")
+
+            is_live_by_period = (
+                period_s not in ("", "0", "pre", "prematch", "pre-match", "notstarted", "not_started", "scheduled")
+                and any(k in period_s for k in ("1st", "2nd", "ht", "half", "q", "set", "period", "extra", "ot", "pen"))
+            )
+
+            is_live_by_clock = (
+                clock_s not in ("", "0", "00:00", "00:00:00")
+            )
+
+            is_live_by_score = False
+            if isinstance(score_v, dict):
+                # Solo consideramos "score real" si hay algún valor > 0 o si tiene estructura típica de live
+                vals = []
+                for k in ("home", "away", "home_score", "away_score"):
+                    if k in score_v:
+                        vals.append(score_v.get(k))
+                try:
+                    is_live_by_score = any((v is not None) and float(str(v)) > 0 for v in vals)
+                except Exception:
+                    is_live_by_score = False
+            elif score_v not in (None, "", 0, "0"):
+                # Si viene como string raro, lo tomamos como hint live solo si no es "0-0"/"0:0"
+                s = str(score_v).strip()
+                is_live_by_score = s not in ("0-0", "0:0", "0 - 0", "0 : 0")
+
+            # Flags típicos (si existen)
+            status_s = str(ev.get("status") or "").strip().lower()
+            is_live_by_status = status_s in ("live", "inplay", "in_play", "started", "inprogress", "in_progress", "running", "playing")
+
+            if is_live_by_status or is_live_by_period or is_live_by_clock or is_live_by_score:
                 continue
 
             home, away = parse_teams(ev_name)
