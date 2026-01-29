@@ -138,6 +138,10 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
             if not dt:
                 continue
 
+            # ✅ filtro: excluir partidos en vivo
+            if (str(ev.get("state", "")).upper() in ("LIVE", "INPLAY", "IN_PLAY", "STARTED", "IN_PROGRESS")) or (ev.get("is_live") is True) or (ev.get("live") is True) or (ev.get("in_play") is True) or (ev.get("inPlay") is True):
+                continue
+
             home, away = parse_teams(ev_name)
             partido = f"{home} vs {away}" if home and away else ev_name
 

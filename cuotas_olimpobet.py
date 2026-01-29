@@ -30,14 +30,11 @@ LIGAS_OLIMPO = [
     ("Premier League", "football/england/premier_league", False),
     ("FA Cup", "football/england/fa_cup", False),
     ("EFL Cup", "football/england/efl_cup", False),
-    ("Championship", "football/england/the_championship", False),
 
     ("La Liga", "football/spain/la_liga", False),
-    ("La Liga 2", "football/spain/la_liga_2", False),
     ("Copa del Rey", "football/spain/copa_del_rey", False),
 
     ("Serie A", "football/italy/serie_a", False),
-    ("Copa Italia", "football/italy/coppa_italia", False),
 
     ("Bundesliga", "football/germany/bundesliga", False),
     ("Copa Alemana", "football/germany/dfb_pokal", False),
@@ -48,14 +45,12 @@ LIGAS_OLIMPO = [
     ("Brasileirao", "football/brazil/brasileirao_serie_a", False),
     ("Copa de Brasil", "football/brazil/copa_do_brasil", False),
 
-    ("Liga MX", "football/mexico/liga_mx", False),
     ("MLS", "football/usa/mls", False),
 
     ("Liga 1 Perú", "football/peru/liga_1", False),
 
     ("Primeira Liga", "football/portugal/primeira_liga", False),
 
-    ("Eredivisie", "football/netherlands/eredivisie", False),
 
     ("UEFA Champions League", "football/champions_league", True),
     ("UEFA Europa League", "football/europa_league", True),
@@ -63,8 +58,6 @@ LIGAS_OLIMPO = [
     ("Copa Libertadores", "football/copa_libertadores", True),
     ("Copa Sudamericana", "football/copa_sudamericana", True),
     ("Eliminatorias Europa - WC26", "football/world_cup_qualifying_-_europe", True),
-    ("Eliminatorias Asia - WC26", "football/world_cup_qualifying_-_asia", True),
-    ("Eliminatorias CONCACAF - WC26", "football/world_cup_qualifying_-_north__central___caribbean", True),
 ]
 
 # ============================================================
@@ -109,6 +102,10 @@ def parse_event(evt, liga_nombre):
 
     # filtros mínimos
     if not home or not away or not start:
+        return None
+
+    # ✅ filtro: excluir partidos en vivo
+    if (event_info.get("state") in ("STARTED", "LIVE", "IN_PROGRESS")) or (event_info.get("live") is True) or (event_info.get("inPlay") is True) or (evt.get("live") is True):
         return None
 
     # ✅ filtro 72h
