@@ -2,6 +2,11 @@ let allData = {};
 let currentLeague = null;
 let dateFilter = "all";
 
+// ================================
+// SNAPSHOT (BETWATCH) - NUEVO
+// ================================
+let snapshotByEventId = {};
+
 const BOOKMAKER_LOGOS = {
     "Apuesta Total": "/static/img/bookmakers/apuestatotal.png",
     "Atlantic City": "/static/img/bookmakers/atlantic.png",
@@ -14,6 +19,7 @@ const BOOKMAKER_LOGOS = {
     "Pinnacle": "/static/img/bookmakers/pinnacle.png",
     "GangaBet": "/static/img/bookmakers/gangabet.png",
     "TeApuesto": "/static/img/bookmakers/teapuesto.png",
+    "Stake": "/static/img/bookmakers/stake.png",
     "Betano": "/static/img/bookmakers/betano.png"
 };
 
@@ -31,6 +37,40 @@ const CALC_ICON_SVG = `
 `;
 
 // ================================
+// SNAPSHOT (BETWATCH) - NUEVO
+// ================================
+async function fetchSnapshot() {
+    try {
+        const res = await fetch("/static/data/snapshot.json", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const snap = await res.json();
+
+        snapshotByEventId = {};
+        const markets = Array.isArray(snap?.markets) ? snap.markets : [];
+
+        for (const m of markets) {
+            if (m?.eventId) snapshotByEventId[String(m.eventId)] = m;
+        }
+    } catch (e) {
+        console.error("snapshot error:", e);
+    }
+}
+
+function getSnapshotBackOdd(match, side) {
+    const m = snapshotByEventId[String(match?.eventId || "")];
+    if (!m?.runners) return null;
+
+    for (const k of Object.keys(m.runners)) {
+        const r = m.runners[k];
+        if (r?.selection === side) {
+            return r.best_back_odds ?? null;
+        }
+    }
+    return null;
+}
+
+// ================================
 // CARGAR JSON
 // ================================
 async function fetchCuotas() {
@@ -46,6 +86,9 @@ async function fetchCuotas() {
 
         const ligas = Object.keys(allData).filter(k => k !== "metadata");
         if (!currentLeague && ligas.length > 0) currentLeague = ligas[0];
+
+        // ✅ NUEVO: cargar snapshot antes de renderizar (NO TOCA NADA MÁS)
+        await fetchSnapshot();
 
         renderMatches(currentLeague);
 
@@ -122,9 +165,11 @@ function renderMatches(leagueName) {
 
         tr.appendChild(createCell(formatLocalDate(match.date)));
         tr.appendChild(createCell(match.name));
-        tr.appendChild(createOddCell(match.best_home));
-        tr.appendChild(createOddCell(match.best_draw));
-        tr.appendChild(createOddCell(match.best_away));
+
+        // ✅ ÚNICO cambio aquí: le pasamos match + side para sacar BACK del snapshot
+        tr.appendChild(createOddCell(match, match.best_home, "HOME"));
+        tr.appendChild(createOddCell(match, match.best_draw, "DRAW"));
+        tr.appendChild(createOddCell(match, match.best_away, "AWAY"));
 
         const lossCell = document.createElement("td");
         if (marginSure !== null) {
@@ -145,7 +190,7 @@ function renderMatches(leagueName) {
         btn.addEventListener("click", () => openCalculator(match, marginSure));
         lossCell.appendChild(btn);
         
-        // 📈 Botón Betwatch
+        // 📈 Botón Betwatch (NO TOCADO)
         const btnBW = document.createElement("button");
         btnBW.className = "bw-btn";
         btnBW.textContent = "BW";
@@ -165,7 +210,8 @@ function createCell(text) {
     return td;
 }
 
-function createOddCell(best) {
+// ✅ MODIFICADO SOLO lo necesario: ahora recibe match+side para mostrar la cuota BACK en rojo al costado
+function createOddCell(match, best, side) {
     const td = document.createElement("td");
 
     if (!best?.odd) {
@@ -175,8 +221,14 @@ function createOddCell(best) {
 
     const logo = BOOKMAKER_LOGOS[best.bookmaker] || null;
 
+    // ✅ Betwatch BACK (solo número rojo, al costado)
+    const bw = getSnapshotBackOdd(match, side);
+    const bwHtml = (bw !== null && bw !== undefined)
+        ? `<span class="bw-odd-red">${Number(bw).toFixed(2)}</span>`
+        : "";
+
     td.innerHTML = `
-        <span class="best-odd">${best.odd}</span><br>
+        <span class="best-odd">${best.odd}</span> ${bwHtml}<br>
         ${logo ? `<img class="bm-logo" src="${logo}">` : best.bookmaker}
     `;
 
