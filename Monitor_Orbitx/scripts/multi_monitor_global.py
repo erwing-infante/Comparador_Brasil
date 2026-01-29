@@ -5,6 +5,10 @@
 #   - ORBITX_PROXY_SOCKS5 desde .env
 #   - urlparse + kwargs en run_forever()
 #
+# ✅ EXTRA (LO ÚNICO QUE CAMBIÉ, como pediste):
+#   - Copia snapshot.json a /var/www/mancorabet/static/data/snapshot.json
+#   - Escritura ATÓMICA (tmp + replace) para evitar JSON corrupto al leer desde el navegador
+#
 # Requisitos en venv:
 #   pip install "websocket-client[socks]"
 
@@ -66,6 +70,9 @@ CSV_HEADER = [
     "overround","underround",
     "locked"
 ]
+
+# ✅ NUEVO (solo para copiar snapshot a la web)
+STATIC_SNAPSHOT_PATH = "/var/www/mancorabet/static/data/snapshot.json"
 
 def ts_utc_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -347,9 +354,24 @@ class GlobalMonitor:
         while not self._stop:
             time.sleep(SNAPSHOT_EVERY_SEC)
             snap = {"generated_at": ts_pe_iso(), "markets": [st.snapshot_dict() for st in self.states.values()]}
+
+            # ✅ Escritura ATÓMICA al SNAPSHOT_PATH
             try:
-                with open(SNAPSHOT_PATH, "w", encoding="utf-8") as f:
+                os.makedirs(os.path.dirname(SNAPSHOT_PATH), exist_ok=True)
+                tmp_path = SNAPSHOT_PATH + ".tmp"
+                with open(tmp_path, "w", encoding="utf-8") as f:
                     json.dump(snap, f, ensure_ascii=False, indent=2)
+                os.replace(tmp_path, SNAPSHOT_PATH)
+            except Exception:
+                pass
+
+            # ✅ Copia ATÓMICA al static para el front-end
+            try:
+                os.makedirs(os.path.dirname(STATIC_SNAPSHOT_PATH), exist_ok=True)
+                tmp_static = STATIC_SNAPSHOT_PATH + ".tmp"
+                with open(tmp_static, "w", encoding="utf-8") as f:
+                    json.dump(snap, f, ensure_ascii=False, indent=2)
+                os.replace(tmp_static, STATIC_SNAPSHOT_PATH)
             except Exception:
                 pass
 
