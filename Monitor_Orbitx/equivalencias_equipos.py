@@ -213,5 +213,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "plzen": "viktoria plzen",
     "genk": "krc genk",
     "malmo ff": "malmo",
-    "rangers": "rangers",
+    "rangers": "rangers fc",
 }
