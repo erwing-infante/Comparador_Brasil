@@ -661,4 +661,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "dep la coruna":"deportivo la coruna",
     "venezia": "venezia",
     "ssc neapel": "napoles",
+    "roter stern belgrad": "crvena zvezda",
+    "paok saloniki": "paok",
 }

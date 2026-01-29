@@ -193,7 +193,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "atalanta": "atalanta",
     "parma": "parma",
     "genoa": "genoa",
-    "bologna": "atalanta",
+    "bologna": "bologna",
     "juventus": "juventus",
     "napoli": "napoles",
     "roma": "roma",
@@ -210,4 +210,8 @@ EQUIVALENCIAS_EQUIPOS = {
     "pafos fc": "pafos",
     "slavia prague": "slavia prague",
     "union st gilloise": "union saint gilloise",
+    "plzen": "viktoria plzen",
+    "genk": "krc genk",
+    "malmo ff": "malmo",
+    "rangers": "rangers",
 }
