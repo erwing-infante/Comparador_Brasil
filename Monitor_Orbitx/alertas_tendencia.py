@@ -38,6 +38,8 @@ def profile_for_liga(liga: str) -> str:
     if ln in RELAXED_LIGAS: return "RELAXED"
     return "UNKNOWN"
 
+TEST_ALERT = os.getenv("TEST_ALERT", "0") == "1"
+
 TV_MARKET_MIN_STRICT = float(os.getenv("TV_MARKET_MIN_STRICT", "10000"))
 TV_MARKET_MIN_RELAXED = float(os.getenv("TV_MARKET_MIN_RELAXED", "5000"))
 TV_RUNNER_MIN = float(os.getenv("TV_RUNNER_MIN", "2000"))
@@ -270,6 +272,10 @@ def main():
     files = glob_files(CSV_GLOB)
     if not files:
         print("[ERROR] No CSV files found:", CSV_GLOB)
+        return
+
+    if TEST_ALERT:
+        send_telegram("✅ TEST OK: alertas_tendencia.py está enviando mensajes (Monitor_Orbitx).")
         return
 
     # Leemos todos y procesamos candidatos (para mandar pocas)
