@@ -16,9 +16,12 @@ TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
 CHAT_IDS = [
     int(os.getenv("SMART_BOT_CHAT_ID_1")),
     int(os.getenv("SMART_BOT_CHAT_ID_2")),
+    int(os.getenv("SMART_BOT_CHAT_ID_3")),
+    int(os.getenv("SMART_BOT_CHAT_ID_4")),
+    int(os.getenv("SMART_BOT_CHAT_ID_5")),
 ]
 
-UMBRAL_JUGADOR = -1.25  # -1.25%
+UMBRAL_JUGADOR = -1.50  # -1.25%
 
 # ✅ Ventana de alertas: próximos 1.5 días = 36 horas
 MAX_HORAS_ADELANTE = 36.0

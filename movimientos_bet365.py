@@ -21,7 +21,7 @@ def env_int(name: str):
     except:
         return None
 
-CHAT_IDS = [env_int("MOV_BOT_CHAT_ID_1"), env_int("MOV_BOT_CHAT_ID_2")]
+CHAT_IDS = [env_int("MOV_BOT_CHAT_ID_1"), env_int("MOV_BOT_CHAT_ID_2"), env_int("MOV_BOT_CHAT_ID_3"), env_int("MOV_BOT_CHAT_ID_4"), env_int("MOV_BOT_CHAT_ID_5")]
 CHAT_IDS = [x for x in CHAT_IDS if x is not None]
 
 MOVIMIENTO_UMBRAL = 0.04  # 4%
@@ -77,7 +77,7 @@ def firma_alerta(partido_key: str, mercado: str, antes: float, despues: float) -
 # ---------------- Telegram ----------------
 def enviar_alerta(mensaje: str):
     if not TELEGRAM_TOKEN or not CHAT_IDS:
-        print("❌ Faltan MOV_BOT_TOKEN o MOV_BOT_CHAT_ID_1/2 (systemd/env).")
+        print("❌ Faltan MOV_BOT_TOKEN o MOV_BOT_CHAT_ID_1/2/3/4/5 (systemd/env).")
         return
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
