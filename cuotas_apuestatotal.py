@@ -38,7 +38,6 @@ LIGAS_EQUIVALENCIAS = [
     ("Copa EFL de Inglaterra", "Inglaterra", "197992793078919168", "EFL Cup"),
     ("Championship", "Inglaterra", "43", "Championship"),
     ("La Liga", "España", "38", "La Liga"),
-    ("Segunda División", "España", "39", "La Liga 2"),
     ("Copa del Rey", "España", "105", "Copa del Rey"),
     ("Serie A", "Italia", "74", "Serie A"),
     ("Copa Italia", "Italia", "255821541135360000", "Copa Italia"),

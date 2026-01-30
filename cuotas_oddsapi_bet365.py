@@ -23,7 +23,6 @@ LEAGUES = {
     "League One": {"provider": "odds-api.io", "league_id": "england-league-one"},
 
     "La Liga": {"provider": "odds-api.io", "league_id": "spain-laliga"},
-    "La Liga 2": {"provider": "odds-api.io", "league_id": "spain-laliga-2"},
 
     "Serie A": {"provider": "odds-api.io", "league_id": "italy-serie-a"},
     "Copa Italia": {"provider": "odds-api.io", "league_id": "italy-coppa-italia"},

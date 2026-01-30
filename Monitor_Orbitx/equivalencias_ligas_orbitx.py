@@ -6,7 +6,6 @@ LIGAS_COMPETITION_ID = {
     "EFL Cup": 2134,
     "Championship": 7129730,
     "La Liga": 117,
-    "La Liga 2": 12204313,
     "Copa del Rey": 12801,
     "Serie A": 81,
     "Copa Italia": 12214429,

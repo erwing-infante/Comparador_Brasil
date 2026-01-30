@@ -49,9 +49,7 @@ LIGAS = [
     {"name": "La Liga",
      "page": "https://www.betano.de/sport/fussball/espana/laliga/5/?bt=matchresult",
      "api":  "https://www.betano.de/api/sport/fussball/espana/laliga/5/"},
-    {"name": "La Liga 2",
-     "page": "https://www.betano.de/sport/fussball/espana/segunda-division/10000/?bt=matchresult",
-     "api":  "https://www.betano.de/api/sport/fussball/espana/segunda-division/10000/"},
+     
     {"name": "Copa del Rey",
      "page": "https://www.betano.de/sport/fussball/espana/copa-del-rey/10067/?bt=matchresult",
      "api":  "https://www.betano.de/api/sport/fussball/espana/copa-del-rey/10067/"},

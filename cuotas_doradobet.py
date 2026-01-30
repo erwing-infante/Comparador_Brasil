@@ -46,7 +46,6 @@ LIGAS_EQUIVALENCIAS = [
     ("EFL Cup (Inglaterra)", "Inglaterra", "EFL Cup"),
     ("Championship (2da División)", "Inglaterra", "Championship"),
     ("La Liga", "España", "La Liga"),
-    ("LaLiga 2 - España", "España", "La Liga 2"),
     ("Copa del Rey", "España", "Copa del Rey"),
     ("Serie A", "Italia", "Serie A"),
     ("Copa Italia", "Italia", "Copa Italia"),

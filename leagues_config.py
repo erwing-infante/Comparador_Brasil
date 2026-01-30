@@ -16,7 +16,6 @@ LEAGUES = {
     "Championship": {"provider": "odds-api.io", "league_id": "england-championship"},
 
     "La Liga": {"provider": "odds-api.io", "league_id": "spain-laliga"},
-    "La Liga 2": {"provider": "odds-api.io", "league_id": "spain-laliga-2"},
     "Copa del Rey": {"provider": "odds-api.io", "league_id": "spain-copa-del-rey"},
 
     "Serie A": {"provider": "odds-api.io", "league_id": "italy-serie-a"},
