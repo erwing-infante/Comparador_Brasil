@@ -294,9 +294,33 @@ def main():
         if not needed.issubset(set(df.columns)):
             continue
 
-        df["ts_utc"] = pd.to_datetime(df["ts_utc"], utc=True, errors="coerce")
-        df["start_utc"] = pd.to_datetime(df["start_utc"], utc=True, errors="coerce")
-        df = df.dropna(subset=["ts_utc","start_utc"])
+        # ============================
+        # PARSEO EXPLÍCITO DE FECHAS
+        # ============================
+
+        # ts_utc → ISO 8601 con Z (ej: 2026-01-30T01:42:07Z)
+        df["ts_utc"] = pd.to_datetime(
+            df["ts_utc"],
+            format="ISO8601",
+            utc=True,
+            errors="coerce",
+        )
+
+        # start_utc → 'YYYY-MM-DD HH:MM UTC'
+        df["start_utc"] = (
+            df["start_utc"]
+            .astype(str)
+            .str.replace(" UTC", "", regex=False)
+            .pipe(
+                pd.to_datetime,
+                format="%Y-%m-%d %H:%M",
+                utc=True,
+                errors="coerce",
+            )
+        )
+
+        # eliminar filas inválidas
+        df = df.dropna(subset=["ts_utc", "start_utc"])
         if df.empty:
             continue
 
