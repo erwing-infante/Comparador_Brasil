@@ -1,4 +1,4 @@
-# ALERTAS_TENDENCIA.py
+# alertas_tendencia.py
 import os
 import io
 import json
@@ -38,8 +38,6 @@ def profile_for_liga(liga: str) -> str:
     if ln in RELAXED_LIGAS: return "RELAXED"
     return "UNKNOWN"
 
-TEST_ALERT = os.getenv("TEST_ALERT", "0") == "1"
-
 TV_MARKET_MIN_STRICT = float(os.getenv("TV_MARKET_MIN_STRICT", "10000"))
 TV_MARKET_MIN_RELAXED = float(os.getenv("TV_MARKET_MIN_RELAXED", "5000"))
 TV_RUNNER_MIN = float(os.getenv("TV_RUNNER_MIN", "2000"))
@@ -56,6 +54,9 @@ CHAT_IDS = [int(x) for x in CHAT_IDS if x.isdigit()]
 DRY_RUN = os.getenv("DRY_RUN", "0") == "1"
 
 STATE_PATH = os.getenv("STATE_PATH", "/root/proyectos/Mancorabet/Monitor_Orbitx/data/alertas_tendencia_state.json")
+
+# ✅ TEST ALERT (por ENV)
+TEST_ALERT = os.getenv("TEST_ALERT", "0") == "1"
 
 # =========================
 # TIME FILTERS
@@ -268,17 +269,17 @@ def fmt_phase3(meta, profile, direction, confidence, odds_ini, odds_now, ticks_m
 # CORE LOGIC
 # =========================
 def main():
+    # ✅ Test alert: manda y sale
+    if TEST_ALERT:
+        send_telegram("✅ TEST OK: alertas_tendencia.py está enviando mensajes (Monitor_Orbitx).")
+        return
+
     state = load_state()
     files = glob_files(CSV_GLOB)
     if not files:
         print("[ERROR] No CSV files found:", CSV_GLOB)
         return
 
-    if TEST_ALERT:
-        send_telegram("✅ TEST OK: alertas_tendencia.py está enviando mensajes (Monitor_Orbitx).")
-        return
-
-    # Leemos todos y procesamos candidatos (para mandar pocas)
     candidates = []
 
     for fp in files:
@@ -295,32 +296,30 @@ def main():
             continue
 
         # ============================
-        # PARSEO EXPLÍCITO DE FECHAS
+        # PARSEO SIN WARNINGS (FORMATO FIJO)
         # ============================
-
-        # ts_utc → ISO 8601 con Z (ej: 2026-01-30T01:42:07Z)
+        # ts_utc: 2026-01-30T01:42:07Z
         df["ts_utc"] = pd.to_datetime(
             df["ts_utc"],
-            format="ISO8601",
+            format="%Y-%m-%dT%H:%M:%SZ",
             utc=True,
-            errors="coerce",
+            errors="coerce"
         )
 
-        # start_utc → 'YYYY-MM-DD HH:MM UTC'
+        # start_utc: 2026-01-30 19:30 UTC
         df["start_utc"] = (
             df["start_utc"]
             .astype(str)
             .str.replace(" UTC", "", regex=False)
-            .pipe(
-                pd.to_datetime,
-                format="%Y-%m-%d %H:%M",
-                utc=True,
-                errors="coerce",
-            )
+        )
+        df["start_utc"] = pd.to_datetime(
+            df["start_utc"],
+            format="%Y-%m-%d %H:%M",
+            utc=True,
+            errors="coerce"
         )
 
-        # eliminar filas inválidas
-        df = df.dropna(subset=["ts_utc", "start_utc"])
+        df = df.dropna(subset=["ts_utc","start_utc"])
         if df.empty:
             continue
 
@@ -359,7 +358,6 @@ def main():
             if locked or tv_market < tv_market_min or tv_runner < TV_RUNNER_MIN or spread > spread_limit(mid):
                 continue
 
-            # state key
             key = f"{market_id}|{selection_id}"
             sig = state["signals"].get(key, {})
             phase = sig.get("phase","IDLE")
@@ -419,7 +417,6 @@ def main():
                 direction = sig.get("dir")
                 imp_end = float(sig.get("imp_end_mid", mid))
 
-                # actualiza extremo
                 if direction == "STEAM" and mid < imp_end:
                     sig["imp_end_mid"]=mid
                 if direction == "DRIFT" and mid > imp_end:
@@ -428,7 +425,6 @@ def main():
                 imp_end = float(sig.get("imp_end_mid", mid))
                 pull_ticks = (mid - imp_end)/(tick if tick>0 else 0.01)
 
-                # pullback detect
                 is_pull = False
                 if direction == "STEAM" and pull_ticks >= 0.5:
                     is_pull=True
@@ -442,12 +438,10 @@ def main():
                     state["signals"][key]=sig
 
                     ok=True
-                    # invalida por rebote fuerte
                     if direction == "STEAM" and pull_ticks > PULLBACK_INVALID_TICKS:
                         ok=False
                     if direction == "DRIFT" and pull_ticks < -PULLBACK_INVALID_TICKS:
                         ok=False
-                    # invalida por giro de libro básico
                     if direction == "STEAM" and imb3 < -0.05:
                         ok=False
                     if direction == "DRIFT" and imb3 > 0.05:
@@ -469,7 +463,6 @@ def main():
             sig = state["signals"].get(key, sig)
             if sig.get("phase") == "PULLBACK":
                 direction = sig.get("dir")
-                # Reanudación: 2 lecturas seguidas con >=1 tick en dirección (Δ=0 no cuenta)
                 mid_series = (g["best_back_odds"].astype(float)+g["best_lay_odds"].astype(float))/2.0
                 if len(mid_series) >= 3:
                     a,b,c = mid_series.iloc[-3], mid_series.iloc[-2], mid_series.iloc[-1]
@@ -482,11 +475,8 @@ def main():
                         resumed = (d1 >= RESUME_MIN_TICK) and (d2 >= RESUME_MIN_TICK)
 
                     if resumed:
-                        # premium checks (libro + flow + volabs)
-                        # libro alineado
                         book_ok = (imb3 >= IMB3_TH) if direction=="STEAM" else (imb3 <= -IMB3_TH)
 
-                        # flow pctl
                         lb = now_ts - pd.Timedelta(minutes=P_MIN)
                         gf = g[g["ts_utc"]>=lb].copy().sort_values("ts_utc")
                         flow_vals=[]
@@ -501,6 +491,7 @@ def main():
                             d=max(cur_tv-prev_tv,0.0)
                             flow_vals.append(d*60.0/dt)
                             prev_tv=cur_tv; prev_ts=cur_ts
+
                         if len(flow_vals)==0:
                             flow_pctl=-1
                             flow_ok=False
@@ -511,9 +502,7 @@ def main():
                         volabs_ok = dTV >= DELTA_TV_MIN
 
                         if book_ok and flow_ok and volabs_ok:
-                            # confidence simple
                             confidence = 85 if profile=="STRICT" else 75
-                            # señal 3
                             if SEND_PHASE3 and can_send(sig, "last_p3"):
                                 odds_ini=float(sig.get("imp_start_mid", mid))
                                 ticks_move=(mid-odds_ini)/(tick if tick>0 else 0.01)
@@ -524,9 +513,8 @@ def main():
                                 sig["last_p3"]=iso_now()
                                 state["signals"][key]=sig
 
-    # manda máximo 8 por corrida (prioriza tts menor)
     candidates.sort(key=lambda x: (x[0], x[1]))
-    for _,_,msg,key in candidates[:8]:
+    for _,_,msg,_key in candidates[:8]:
         send_telegram(msg)
 
     save_state(state)

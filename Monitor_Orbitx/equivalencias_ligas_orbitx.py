@@ -13,6 +13,7 @@ LIGAS_COMPETITION_ID = {
     "Copa Alemana": 11458113,
     "Ligue 1": 55,
     "Brasileirao": 13,
+    "Liga 1 Perú": 8594603,
     "Liga MX": 5627174,
     "Primeira Liga": 99,
     "Eredivisie": 9404054,
