@@ -664,4 +664,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "ssc neapel": "napoles",
     "roter stern belgrad": "crvena zvezda",
     "paok saloniki": "paok",
+    "racing lens": "lens",
+    "stade rennes": "rennes",
 }
