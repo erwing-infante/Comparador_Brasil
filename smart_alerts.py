@@ -17,8 +17,6 @@ CHAT_IDS = [
     int(os.getenv("SMART_BOT_CHAT_ID_1")),
     int(os.getenv("SMART_BOT_CHAT_ID_2")),
     int(os.getenv("SMART_BOT_CHAT_ID_3")),
-    int(os.getenv("SMART_BOT_CHAT_ID_4")),
-    int(os.getenv("SMART_BOT_CHAT_ID_5")),
 ]
 
 UMBRAL_JUGADOR = -1.50  # -1.25%
@@ -89,6 +87,15 @@ def parse_fecha_utc_a_lima(fecha_str: str):
     except:
         return None
 
+def format_fecha_para_msg(fecha_str: str) -> str:
+    """
+    Convierte 'YYYY-MM-DD HH:MM UTC' a hora Perú y la devuelve formateada para Telegram.
+    Si no se puede parsear, devuelve el string original.
+    """
+    dt_lima = parse_fecha_utc_a_lima(fecha_str)
+    if dt_lima is None:
+        return fecha_str
+    return dt_lima.strftime("%Y-%m-%d %H:%M") + " Perú (GMT-5)"
 
 def dentro_ventana_partido(fecha_str: str, ahora_lima: datetime) -> bool:
     """
@@ -106,17 +113,18 @@ def enviar_alerta_armada(liga, p, margen_jugador):
     home = p.get("home")
     away = p.get("away")
     fecha = p.get("date")
+    fecha_msg = format_fecha_para_msg(fecha)
 
     bh = p.get("best_home") or {}
     bd = p.get("best_draw") or {}
     ba = p.get("best_away") or {}
 
     msg = f"""
-⚠️ <b>ALERTA SMART (-1% o mejor)</b>
+⚠️ <b>ALERTAS MANCORABET</b>
 
 <b>{home} vs {away}</b>
 Liga: <b>{liga}</b>
-Fecha: <b>{fecha}</b>
+Fecha: <b>{fecha_msg}</b>
 
 Margen combinado: <b>{margen_jugador:.2f}%</b>
 

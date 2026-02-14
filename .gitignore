@@ -27,4 +27,8 @@ data/debug_stake/
 Monitor_Orbitx/data/
 Monitor_Orbitx/.env
 Monitor_Orbitx/.env.*
+<<<<<<< HEAD
 Monitor_Orbitx/*.env
+=======
+Monitor_Orbitx/*.env
+>>>>>>> bf57781 (sacar gente)
