@@ -1,13 +1,30 @@
-venv/
-.venv/
-env/
-venvsource/
+# ===== Python / venv =====
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.log
+
+.venv/
+venv/
+env/
+venvsource/
+
+# ===== VS Code =====
+.vscode/
+
+# ===== Datos locales / generados =====
+data/
 data/*.json
 data/historico_bet365/
 data/*.txt
 data/cuotas.json
+data/betano_profile/
+data/betano_de_profile/
+data/debug_stake/
+
+# ===== Monitor Orbitx (NO subir data) =====
+Monitor_Orbitx/data/
+Monitor_Orbitx/.env
+Monitor_Orbitx/.env.*
+Monitor_Orbitx/*.env
