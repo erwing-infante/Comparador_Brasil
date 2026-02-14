@@ -24,7 +24,9 @@ MARKETS_ALL_URL   = f"{BASE}/api/eventlist/eu/markets/all"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
 
 CHUNK_SIZE = 25
-MARKET_CODES = ["ML0"]  # 1X2
+
+# ✅ CAMBIO: pedir también Supercuota (ML5000) además del 1X2 normal (ML0)
+MARKET_CODES = ["ML0", "ML5000"]
 
 # ✅ LÍMITE 3 DÍAS
 HORAS_ADELANTE = 72
@@ -246,6 +248,11 @@ def get_markets(s, h, event_ids, max_retries=6):
 
 # ================= EXTRACT 1X2 (MSJXK REAL) =================
 def extract_1x2_msjxk(root):
+    """
+    CAMBIO (solo aquí):
+      - Base = ML0 para Local/Visita
+      - Empate = max( ML0.Empate, ML5000.Empate si existe )
+    """
     out = {}
 
     markets = root
@@ -258,23 +265,10 @@ def extract_1x2_msjxk(root):
     if not isinstance(markets, list):
         return out
 
-    for m in markets:
-        if not isinstance(m, dict):
-            continue
-
-        mt = m.get("MarketType") or {}
-        mt_id = str(mt.get("_id") or "") if isinstance(mt, dict) else ""
-
-        if mt_id != "ML0":
-            continue
-
-        eid = str(m.get("EventId") or "").strip()
-        if not eid:
-            continue
-
+    def _extract_prices(m: dict):
         sels = m.get("Selections") or []
         if not isinstance(sels, list):
-            continue
+            return ("", "", "")
 
         L = E = V = ""
 
@@ -303,8 +297,47 @@ def extract_1x2_msjxk(root):
             elif outcome == "visita" or side == 3:
                 V = dec
 
-        if L and E and V:
-            out[eid] = {"Local": L, "Empate": E, "Visita": V}
+        return (L, E, V)
+
+    # group markets by eventId, keep ML0 and ML5000 separately
+    by_event = {}
+
+    for m in markets:
+        if not isinstance(m, dict):
+            continue
+
+        mt = m.get("MarketType") or {}
+        mt_id = str(mt.get("_id") or "") if isinstance(mt, dict) else ""
+        if mt_id not in ("ML0", "ML5000"):
+            continue
+
+        eid = str(m.get("EventId") or "").strip()
+        if not eid:
+            continue
+
+        by_event.setdefault(eid, {})[mt_id] = m
+
+    for eid, mm in by_event.items():
+        m_base = mm.get("ML0")
+        if not m_base:
+            continue
+
+        Lb, Eb, Vb = _extract_prices(m_base)
+        if not (Lb and Eb and Vb):
+            continue
+
+        Efinal = Eb
+
+        m_sc = mm.get("ML5000")
+        if m_sc:
+            _, Esc, _ = _extract_prices(m_sc)
+            if Esc:
+                try:
+                    Efinal = str(max(float(Eb), float(Esc)))
+                except:
+                    Efinal = Eb
+
+        out[eid] = {"Local": Lb, "Empate": Efinal, "Visita": Vb}
 
     return out
 

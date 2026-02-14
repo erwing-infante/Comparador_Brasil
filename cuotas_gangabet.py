@@ -138,6 +138,7 @@ def obtener_cuotas(event_id: int):
         "numFormat": "en-GB",
         "countryCode": "PE",
         "eventId": str(event_id),
+        # Mantener en false para que también aparezcan boosts (cuota dorada) y poder comparar el empate
         "showNonBoosts": "false"
     }
 
@@ -163,39 +164,134 @@ def obtener_cuotas(event_id: int):
         markets = data.get("markets", []) or data.get("Markets", [])
         odds_all = data.get("odds", []) or data.get("Odds", [])
 
-        market_1x2 = next(
-            (m for m in markets if any(k in normalizar_nombre_equipo(m.get("name", "")) for k in NOMBRES_1X2)),
-            None
-        )
-        if not market_1x2:
-            return {"Local": "", "Empate": "", "Visita": ""}
+        # ==========================
+        # CAMBIO: Selección de mercado
+        # Base = PA si existe, sino 1x2 normal (no boost)
+        # Empate = max( empate base, empate dorada si existe )
+        # ==========================
 
-        odd_ids = []
-        for key in ("desktopOddIds", "oddIds"):
-            for item in market_1x2.get(key, []):
-                if isinstance(item, list) and item:
-                    odd_ids.append(item[0])
-                elif isinstance(item, (int, str)):
-                    try:
-                        odd_ids.append(int(item))
-                    except:
-                        pass
+        def _market_name_norm(m):
+            return normalizar_nombre_equipo(m.get("name", "") or "")
 
-        cuotas = {"Local": "", "Empate": "", "Visita": ""}
+        def _is_boost_market(m):
+            n = _market_name_norm(m)
+            return any(w in n for w in ("cuotaza", "dorada", "boost", "supercuota"))
 
-        if odd_ids:
-            mapa = {o.get("id"): o for o in odds_all if o.get("id") in odd_ids}
-            for _, o in mapa.items():
-                nombre = normalizar_nombre_equipo(o.get("name", ""))
+        def _extract_odd_ids(m):
+            odd_ids = []
+            for key in ("desktopOddIds", "oddIds"):
+                for item in m.get(key, []) or []:
+                    if isinstance(item, list) and item:
+                        try:
+                            odd_ids.append(int(item[0]))
+                        except:
+                            pass
+                    elif isinstance(item, (int, str)):
+                        try:
+                            odd_ids.append(int(item))
+                        except:
+                            pass
+            return odd_ids
+
+        def _odds_map_for_ids(ids):
+            ids_set = set(ids)
+            return {o.get("id"): o for o in odds_all if o.get("id") in ids_set}
+
+        def _has_pa_signal(odds_map):
+            # Señales: offers.parameter == 2 y/o IsDBB == true
+            for o in odds_map.values():
+                if o.get("IsDBB") is True or o.get("isDBB") is True:
+                    return True
+                offers = o.get("offers") or []
+                if isinstance(offers, list):
+                    for off in offers:
+                        try:
+                            if int(off.get("parameter", -1)) == 2:
+                                return True
+                        except:
+                            continue
+            return False
+
+        def _prices_from_odds_map(odds_map):
+            out = {"Local": "", "Empate": "", "Visita": ""}
+
+            for o in odds_map.values():
                 tipo = o.get("typeId")
                 price = o.get("price", "")
+                if price == "" or price is None:
+                    continue
+                try:
+                    price_val = float(price)
+                except:
+                    continue
 
-                if tipo == 1 or "local" in nombre or nombre in {"1"}:
-                    cuotas["Local"] = price
-                elif tipo == 2 or "empate" in nombre or nombre in {"x", "empate"}:
-                    cuotas["Empate"] = price
-                elif tipo == 3 or "visit" in nombre or "away" in nombre or nombre in {"2"}:
-                    cuotas["Visita"] = price
+                if tipo == 1:
+                    out["Local"] = price_val
+                elif tipo == 2:
+                    out["Empate"] = price_val
+                elif tipo == 3:
+                    out["Visita"] = price_val
+
+            return out
+
+        # 1) candidatos 1x2
+        cand_1x2 = []
+        for m in markets:
+            nm = _market_name_norm(m)
+            if any(k in nm for k in NOMBRES_1X2):
+                cand_1x2.append(m)
+
+        if not cand_1x2:
+            return {"Local": "", "Empate": "", "Visita": ""}
+
+        # 2) separar boost vs no-boost
+        boost_markets = [m for m in cand_1x2 if _is_boost_market(m)]
+        non_boost_markets = [m for m in cand_1x2 if not _is_boost_market(m)]
+
+        if not non_boost_markets:
+            # si no hay normal, no usamos dorada como base
+            return {"Local": "", "Empate": "", "Visita": ""}
+
+        # 3) elegir base: PA si existe, sino primer non-boost
+        base_market = None
+        for m in non_boost_markets:
+            ids = _extract_odd_ids(m)
+            if not ids:
+                continue
+            om = _odds_map_for_ids(ids)
+            if _has_pa_signal(om):
+                base_market = m
+                break
+
+        if base_market is None:
+            base_market = non_boost_markets[0]
+
+        base_ids = _extract_odd_ids(base_market)
+        base_odds_map = _odds_map_for_ids(base_ids)
+        base_prices = _prices_from_odds_map(base_odds_map)
+
+        # 4) dorada (para comparar empate)
+        dorada_draw = ""
+        if boost_markets:
+            dorada_ids = _extract_odd_ids(boost_markets[0])
+            dorada_odds_map = _odds_map_for_ids(dorada_ids)
+            dorada_prices = _prices_from_odds_map(dorada_odds_map)
+            dorada_draw = dorada_prices.get("Empate", "")
+
+        # 5) salida final:
+        cuotas = {"Local": "", "Empate": "", "Visita": ""}
+
+        cuotas["Local"] = base_prices.get("Local", "")
+        cuotas["Visita"] = base_prices.get("Visita", "")
+
+        base_draw = base_prices.get("Empate", "")
+        if base_draw != "" and dorada_draw != "":
+            try:
+                cuotas["Empate"] = max(float(base_draw), float(dorada_draw))
+            except:
+                cuotas["Empate"] = base_draw
+        else:
+            cuotas["Empate"] = dorada_draw if base_draw == "" else base_draw
 
         time.sleep(random.uniform(0.10, 0.25))
         return cuotas
