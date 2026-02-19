@@ -667,4 +667,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "paok saloniki": "paok",
     "racing lens": "lens",
     "stade rennes": "rennes",
+    "cd tolima": "Deportes Tolima",
 }
