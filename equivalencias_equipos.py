@@ -22,6 +22,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "sc internacional rs":"internacional",
     "sc internacional":"internacional",
     "athletico paranaense-pr":"athletico paranaense",
+    "athletico-pr":"athletico paranaense",
     "ca paranaense pr":"athletico paranaense",
     "chapecoense-sc": "chapecoense",
     "chapecoense sc": "chapecoense",
