@@ -49,6 +49,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Coupe de France", "Francia", "35", "Copa Francia"),
     ("Brasileirao, Serie A", "Brasil", "530", "Brasileirao"),
     ("Liga MX", "México", "632", "Liga MX"),
+    ("MLS", "Estados Unidos", "224", "MLS"),
     ("Liga 1", "Perú", "203110137349808128", "Liga 1 Perú"),
     ("Primeira Liga", "Portugal", "32", "Primeira Liga"),
     ("Eredivisie", "Países Bajos", "111", "Eredivisie"),

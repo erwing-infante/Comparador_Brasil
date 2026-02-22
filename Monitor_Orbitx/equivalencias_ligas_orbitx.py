@@ -13,6 +13,7 @@ LIGAS_COMPETITION_ID = {
     "Copa Alemana": 11458113,
     "Ligue 1": 55,
     "Brasileirao": 13,
+    "MLS": 141,
     "Liga 1 Perú": 8594603,
     "Liga MX": 5627174,
     "Primeira Liga": 99,
@@ -20,13 +21,11 @@ LIGAS_COMPETITION_ID = {
     "UEFA Champions League": 228,
     "UEFA Europa League": 2005,
     "UEFA Conference League": 12375833,
+    "Copa Libertadores": 12147796,
+    "Copa Sudamericana": 12204604,
 }
 
 # Para completar luego:
 LIGAS_PENDIENTES = [
-    "MLS",
-    "Liga 1 Perú",
     "Eliminatorias Europa - WC26",
-    "Copa Libertadores",
-    "Copa Sudamericana",
 ]
