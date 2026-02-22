@@ -214,4 +214,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "genk": "krc genk",
     "malmo ff": "malmo",
     "rangers": "rangers fc",
+    "la galaxy": "los angeles galaxy",
+    "colorado": "colorado rapids",
 }
