@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Operaciones - MancoraBet</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;}
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{width:240px;background:#1b1b1b;color:#fff;padding:14px;}
+    .sidebar h2{margin:0 0 10px 0;font-size:18px;}
+    .sidebar a{display:block;color:#fff;text-decoration:none;background:#262626;padding:10px;border-radius:6px;margin-bottom:8px}
+    .sidebar a:hover{background:#333;}
+    .sidebar a.active{background:#0b7a4b;}
+    .content{flex:1;padding:18px;}
+    .card{max-width:1200px;margin:0 auto;background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    h1{margin:0 0 10px 0}
+    .datebox{margin-top:10px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
+    .datebox h3{margin:0 0 10px 0;font-size:1rem}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{border:1px solid #ddd;padding:8px;font-size:.92rem;vertical-align:middle}
+    th{background:#f6f6f6;text-align:left}
+    select{padding:6px;border-radius:6px;border:1px solid #ccc}
+    button{padding:7px 10px;border-radius:6px;border:0;cursor:pointer}
+    .btn-danger{background:#c0392b;color:#fff}
+    .btn-danger:hover{background:#a93226}
+    .nowrap{white-space:nowrap}
+    .pa-cell{ text-align:center; }
+    .pa-cell input{ transform:scale(1.15); }
+    .top-actions{margin:8px 0 12px 0;}
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="sidebar">
+    <h2>Ligas</h2>
+    {% for lg in leagues %}
+      <a href="/admin/operaciones?liga={{ lg|urlencode }}"
+         class="{% if lg == selected_league %}active{% endif %}">
+        {{ lg }}
+      </a>
+    {% endfor %}
+
+    <div style="margin-top:14px;">
+      <a href="/" style="background:#0b7a4b;">Volver</a>
+      <a href="/logout">Salir</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <h1>Operaciones - {{ selected_league or '' }}</h1>
+
+      <div class="top-actions">
+        <button class="btn-danger" id="btn-reset-ops">Reset Operaciones</button>
+      </div>
+
+      {% if not grouped_by_date %}
+        <p>No hay operaciones registradas.</p>
+      {% endif %}
+
+      {% for date_pe, bets in grouped_by_date.items() %}
+        <div class="datebox">
+          <h3>Fecha del partido: {{ date_pe[8:10] }}/{{ date_pe[5:7] }}/{{ date_pe[0:4] }}</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th class="nowrap">Hora</th>
+                <th>Partido</th>
+                <th class="nowrap">Fecha apuesta</th>
+                <th class="nowrap">Payout</th>
+                <th class="nowrap">Estado</th>
+                <th class="nowrap">PA L</th>
+                <th class="nowrap">PA V</th>
+                <th class="nowrap">ID</th>
+                <th class="nowrap">Detalle</th>
+                <th class="nowrap">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in bets %}
+                <tr>
+                  <td class="nowrap">{{ b.event_time_pe }}</td>
+                  <td>{{ b.match_name }}</td>
+                  <td class="nowrap">
+                    {{ b.created_date_pe[8:10] }}/{{ b.created_date_pe[5:7] }}/{{ b.created_date_pe[0:4] }}
+                    {{ b.created_time_pe }}
+                  </td>
+                  <td class="nowrap">{{ '%.2f'|format(b.total_payout or 0) }}</td>
+
+                  <td class="nowrap">
+                    <select data-bet-id="{{ b.bet_id }}" class="status-select">
+                      <option value="pendiente" {% if b.status=='pendiente' %}selected{% endif %}>pendiente</option>
+                      <option value="local" {% if b.status=='local' %}selected{% endif %}>local</option>
+                      <option value="empate" {% if b.status=='empate' %}selected{% endif %}>empate</option>
+                      <option value="visita" {% if b.status=='visita' %}selected{% endif %}>visita</option>
+                    </select>
+                  </td>
+
+                  <td class="pa-cell nowrap">
+                    <input type="checkbox" class="pa-check" data-side="L" data-bet-id="{{ b.bet_id }}"
+                      {% if b.pa_local %}checked{% endif %}>
+                  </td>
+
+                  <td class="pa-cell nowrap">
+                    <input type="checkbox" class="pa-check" data-side="V" data-bet-id="{{ b.bet_id }}"
+                      {% if b.pa_visita %}checked{% endif %}>
+                  </td>
+
+                  <td class="nowrap">#{{ b.bet_id }}</td>
+
+                  <td class="nowrap">
+                    <a href="/admin/operacion/{{ b.bet_id }}">Ver</a>
+                  </td>
+
+                  <td class="nowrap">
+                    <button class="btn-danger delete-btn" data-bet-id="{{ b.bet_id }}">Borrar</button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  async function postJSON(url, payload){
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload),
+      credentials: "include"
+    });
+    const data = await res.json().catch(()=>({}));
+    return {res, data};
+  }
+
+  document.querySelectorAll(".status-select").forEach(sel => {
+    sel.addEventListener("change", async () => {
+      const bet_id = parseInt(sel.dataset.betId, 10);
+      const status = sel.value;
+      const {res, data} = await postJSON("/admin/api/bets/status", {bet_id, status});
+      if (!res.ok || !data.ok){
+        alert("Error cambiando estado: " + (data.error || "desconocido"));
+      }
+    });
+  });
+
+  document.querySelectorAll(".pa-check").forEach(chk => {
+    chk.addEventListener("change", async () => {
+      const bet_id = parseInt(chk.dataset.betId, 10);
+      const side = chk.dataset.side; // L o V
+      const value = chk.checked;
+
+      const {res, data} = await postJSON("/admin/api/bets/pa", {bet_id, side, value});
+      if (!res.ok || !data.ok){
+        alert("Error guardando PA: " + (data.error || "desconocido"));
+        chk.checked = !value; // vuelve al estado anterior
+      }
+    });
+  });
+
+  document.getElementById("btn-reset-ops").addEventListener("click", async () => {
+    const c = prompt("Esto borrará TODAS las operaciones y borrará los movimientos de billetera ligados a operaciones. Escribe RESET para confirmar:");
+    if (c !== "RESET") return;
+
+    const {res, data} = await postJSON("/admin/api/bets/reset", {});
+    if (!res.ok || !data.ok){
+      alert("Error reseteando: " + (data.error || "desconocido"));
+      return;
+    }
+    location.reload();
+  });
+
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const bet_id = parseInt(btn.dataset.betId, 10);
+      if (!confirm("¿Borrar operación #" + bet_id + "?")) return;
+      const {res, data} = await postJSON("/admin/api/bets/delete", {bet_id});
+      if (!res.ok || !data.ok){
+        alert("Error borrando: " + (data.error || "desconocido"));
+        return;
+      }
+      location.reload();
+    });
+  });
+</script>
+
+</body>
+</html>

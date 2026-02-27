@@ -216,4 +216,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "rangers": "rangers fc",
     "la galaxy": "los angeles galaxy",
     "colorado": "colorado rapids",
+    "cesar vallejo moquegua": "cd moquegua",
 }

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Detalle Operación</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;}
+    .wrap{max-width:1200px;margin:18px auto;background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    h1{margin:0 0 10px 0}
+    .muted{color:#777}
+    table{width:100%;border-collapse:collapse;background:#fff;margin-top:10px}
+    th,td{border:1px solid #ddd;padding:8px;font-size:.92rem;vertical-align:middle}
+    th{background:#f6f6f6;text-align:left}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#f0f0f0}
+    a{color:#0b7a4b;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <h1>Operación #{{ bet.bet_id }}</h1>
+        <div class="muted">{{ bet.league }} · {{ bet.match_name }}</div>
+        <div class="muted">Evento: {{ bet.event_date_pe }} {{ bet.event_time_pe }} (PE)</div>
+        <div class="muted">Registrada: {{ bet.created_date_pe }} {{ bet.created_time_pe }} (PE)</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="pill">Estado: <b>{{ bet.status }}</b></div>
+        <div style="margin-top:8px;" class="pill">Payout: <b>{{ '%.2f'|format(bet.total_payout or 0) }}</b></div>
+        <div style="margin-top:10px;">
+          <a href="/admin/operaciones">← Volver</a>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:18px;">HOME</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Casa</th>
+          <th>Odd</th>
+          <th>Stake</th>
+          <th>Payout (odd*stake)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in legs["HOME"] %}
+          <tr>
+            <td>{{ r.person }}</td>
+            <td>{{ r.bookmaker }}</td>
+            <td>{{ r.odd }}</td>
+            <td>{{ r.stake }}</td>
+            <td>{{ '%.2f'|format((r.odd or 0) * (r.stake or 0)) }}</td>
+          </tr>
+        {% endfor %}
+        {% if legs["HOME"]|length == 0 %}
+          <tr><td colspan="5" class="muted">Sin registros.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:18px;">DRAW</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Casa</th>
+          <th>Odd</th>
+          <th>Stake</th>
+          <th>Payout (odd*stake)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in legs["DRAW"] %}
+          <tr>
+            <td>{{ r.person }}</td>
+            <td>{{ r.bookmaker }}</td>
+            <td>{{ r.odd }}</td>
+            <td>{{ r.stake }}</td>
+            <td>{{ '%.2f'|format((r.odd or 0) * (r.stake or 0)) }}</td>
+          </tr>
+        {% endfor %}
+        {% if legs["DRAW"]|length == 0 %}
+          <tr><td colspan="5" class="muted">Sin registros.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:18px;">AWAY</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Casa</th>
+          <th>Odd</th>
+          <th>Stake</th>
+          <th>Payout (odd*stake)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in legs["AWAY"] %}
+          <tr>
+            <td>{{ r.person }}</td>
+            <td>{{ r.bookmaker }}</td>
+            <td>{{ r.odd }}</td>
+            <td>{{ r.stake }}</td>
+            <td>{{ '%.2f'|format((r.odd or 0) * (r.stake or 0)) }}</td>
+          </tr>
+        {% endfor %}
+        {% if legs["AWAY"]|length == 0 %}
+          <tr><td colspan="5" class="muted">Sin registros.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+  </div>
+</body>
+</html>
