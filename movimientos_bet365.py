@@ -21,7 +21,7 @@ def env_int(name: str):
     except:
         return None
 
-CHAT_IDS = [env_int("MOV_BOT_CHAT_ID_1"), env_int("MOV_BOT_CHAT_ID_2")]
+CHAT_IDS = [env_int("MOV_BOT_CHAT_ID_1"), env_int("MOV_BOT_CHAT_ID_2"), env_int("MOV_BOT_CHAT_ID_3")]
 CHAT_IDS = [x for x in CHAT_IDS if x is not None]
 
 MOVIMIENTO_UMBRAL = 0.04  # 4%

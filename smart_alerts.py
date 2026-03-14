@@ -16,6 +16,7 @@ TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
 CHAT_IDS = [
     int(os.getenv("SMART_BOT_CHAT_ID_1")),
     int(os.getenv("SMART_BOT_CHAT_ID_2")),
+    int(os.getenv("SMART_BOT_CHAT_ID_3"))
 ]
 
 UMBRAL_JUGADOR = -1.50  # -1.25%
