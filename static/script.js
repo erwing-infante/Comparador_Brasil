@@ -20,6 +20,7 @@ const BOOKMAKER_LOGOS = {
     "GangaBet": "/static/img/bookmakers/gangabet.png",
     "TeApuesto": "/static/img/bookmakers/teapuesto.png",
     "Stake": "/static/img/bookmakers/stake.png",
+    "Tinbet": "/static/img/bookmakers/tinbet.png",
     "Betano": "/static/img/bookmakers/betano.png"
 };
 
