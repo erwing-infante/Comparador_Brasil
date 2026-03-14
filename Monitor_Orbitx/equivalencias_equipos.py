@@ -215,6 +215,12 @@ EQUIVALENCIAS_EQUIPOS = {
     "malmo ff": "malmo",
     "rangers": "rangers fc",
     "la galaxy": "los angeles galaxy",
+    "dc utd": "dc united",
+    "kansas city": "sporting kansas city",
     "colorado": "colorado rapids",
+    "st louis city sc": "saint louis city",
+    "new england": "new england revolution",
+    "vancouver whitecaps": "vancouver",
+    "minnesota utd": "minnesota united",
     "cesar vallejo moquegua": "cd moquegua",
 }
