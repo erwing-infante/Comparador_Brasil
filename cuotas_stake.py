@@ -9,8 +9,7 @@ import time
 import random
 import subprocess
 from datetime import datetime, timedelta, timezone
-
-import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ============================================================
 # CONFIG
@@ -23,13 +22,12 @@ ERROR_LOG = os.path.join(OUT_DIR, "error_stake_log.txt")
 DEBUG_DIR = os.path.join(OUT_DIR, "debug_stake")
 os.makedirs(DEBUG_DIR, exist_ok=True)
 
-# ✅ curl para Linux/VPS
 CURL = "curl"
 
-# ✅ Proxy Seller (residencial)
-PROXY = "http://df74ae506e168856:JZjsITW0@res.proxy-seller.com:10000"
+# ✅ pon aquí tu proxy
+PROXY = "http://USUARIO:CLAVE@res.proxy-seller.com:10000"
 
-# ✅ usa el hidenseek que YA comprobaste que funciona
+# ✅ usa el hidenseek que ya te funciona
 HIDENSEEK_FIXED = "c657b189ad9052496b210c3532578db50afd486b"
 
 URL_WITH_HS = (
@@ -38,18 +36,19 @@ URL_WITH_HS = (
 )
 URL_NO_HS = "https://pre-143o-sp.websbkt.com/cache/143/es/pe/{tid}/prematch-by-tournaments.json"
 
-# Para no gatillar NotAcceptable: secuencial + delays
-SLEEP_BETWEEN_LEAGUES = (0.9, 1.8)   # (min,max) segundos
-RETRIES = 5
+# ✅ velocidad / estabilidad
+RETRIES = 4
+PARALLEL_WORKERS = 2
+STAGGER_BETWEEN_SUBMITS = (0.20, 0.45)
+SLEEP_BETWEEN_RETRIES_EXTRA = (0.15, 0.45)
 
-# ✅ LÍMITE 72 HORAS
+# ✅ límite 72 horas
 HORAS_ADELANTE = 72
 NOW_UTC = datetime.now(timezone.utc)
 CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 
 # ============================================================
-# LIGAS (MancoraBet -> Stake tournamentId)
-# Formato: (canon, stake_tournament_id)
+# LIGAS
 # ============================================================
 LIGAS_STAKE = [
     ("Premier League", 49),
@@ -64,7 +63,7 @@ LIGAS_STAKE = [
     ("Copa Italia", 66),
 
     ("Bundesliga", 60),
-    ("Copa Alemana", 62),  # DFB Pokal
+    ("Copa Alemana", 62),
 
     ("Ligue 1", 57),
 
@@ -91,15 +90,6 @@ def log_error(msg: str):
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
 def fecha_to_utc(fecha_raw: str):
-    """
-    Convierte fechas tipo:
-      - 2026-03-14T13:00:00Z
-      - 2026-03-14T13:00:00.000Z
-      - 2026-03-14T13:00:00
-      - 2026-03-14T13:00:00+00:00
-    a datetime UTC.
-    Si no trae tz, se asume UTC.
-    """
     if not fecha_raw or not isinstance(fecha_raw, str):
         return None
 
@@ -119,14 +109,19 @@ def fecha_to_utc(fecha_raw: str):
             dt = dt.astimezone(timezone.utc)
 
         return dt
-    except:
+    except Exception:
         return None
 
+def sort_key_fecha(reg):
+    dt = fecha_to_utc(reg.get("Fecha", ""))
+    if dt is None:
+        return datetime.max.replace(tzinfo=timezone.utc)
+    return dt
+
 # ============================================================
-# HTTP (curl) con perfiles anti-NotAcceptable
+# HTTP (curl)
 # ============================================================
 def curl_get(url: str, mode: str) -> str:
-    # mode: "nav" (como abrir el link) o "xhr"
     if mode == "nav":
         headers = [
             "-H", "accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -163,9 +158,11 @@ def curl_get(url: str, mode: str) -> str:
     cmd = [
         CURL,
         "-sL",
+        "--http1.1",
+        "--compressed",
         "--proxy", PROXY,
-        "--connect-timeout", "20",
-        "--max-time", "45",
+        "--connect-timeout", "15",
+        "--max-time", "30",
         *headers,
         url,
     ]
@@ -179,29 +176,23 @@ def curl_get(url: str, mode: str) -> str:
     return out.strip()
 
 def fetch_json(url: str, canon: str, tid: int) -> dict:
-    """
-    - Intenta NAV primero
-    - Si NotAcceptable: backoff y reintentos
-    - Fallback a XHR si hace falta
-    """
-    backoff = 1.2
+    backoff = 0.9
 
     for attempt in range(1, RETRIES + 1):
         out = curl_get(url, "nav")
 
         if out == "NotAcceptable" or out.startswith("NotAcceptable"):
-            time.sleep(backoff + random.uniform(0.2, 0.8))
-            backoff *= 1.6
+            time.sleep(backoff + random.uniform(*SLEEP_BETWEEN_RETRIES_EXTRA))
+            backoff *= 1.5
             continue
 
         if out.startswith("{") or out.startswith("["):
             return json.loads(out)
 
-        # fallback xhr
         out2 = curl_get(url, "xhr")
         if out2 == "NotAcceptable" or out2.startswith("NotAcceptable"):
-            time.sleep(backoff + random.uniform(0.2, 0.8))
-            backoff *= 1.6
+            time.sleep(backoff + random.uniform(*SLEEP_BETWEEN_RETRIES_EXTRA))
+            backoff *= 1.5
             continue
 
         if out2.startswith("{") or out2.startswith("["):
@@ -221,9 +212,6 @@ def fetch_json(url: str, canon: str, tid: int) -> dict:
 # PARSEO
 # ============================================================
 def parse_events(payload: dict):
-    """
-    En tu JSON real: payload['events'] es LISTA.
-    """
     evs = payload.get("events")
     if isinstance(evs, list):
         return [e for e in evs if isinstance(e, dict)]
@@ -245,13 +233,6 @@ def extract_teams(ev: dict):
     return "", ""
 
 def extract_1x2_from_main_odds(ev: dict):
-    """
-    El 1X2 está dentro de ev['main_odds']['main'].
-      odd_id 3 -> Local
-      odd_id 4 -> Empate
-      odd_id 5 -> Visita
-    Alternativamente, 'name' viene como "1","X","2".
-    """
     cuotas = {"Local": "", "Empate": "", "Visita": ""}
 
     mo = ev.get("main_odds") or {}
@@ -295,9 +276,6 @@ def procesar_liga(canon: str, tid: int):
     payload = None
     last_err = None
 
-    # delay humano entre ligas
-    time.sleep(random.uniform(*SLEEP_BETWEEN_LEAGUES))
-
     for u in urls:
         try:
             payload = fetch_json(u, canon, tid)
@@ -307,7 +285,7 @@ def procesar_liga(canon: str, tid: int):
 
     if payload is None:
         log_error(f"[{canon}] tid={tid} FAIL: {last_err}")
-        return []
+        return canon, []
 
     events = parse_events(payload)
     regs = []
@@ -321,7 +299,9 @@ def procesar_liga(canon: str, tid: int):
         dt = fecha_to_utc(fecha_raw)
         if dt is None:
             continue
-        if dt > CUTOFF_UTC:
+
+        # ✅ desde ahora hasta 72h
+        if dt < NOW_UTC or dt > CUTOFF_UTC:
             continue
 
         cuotas = extract_1x2_from_main_odds(ev)
@@ -339,24 +319,33 @@ def procesar_liga(canon: str, tid: int):
             "EventId": ev.get("id"),
         })
 
-    return regs
+    return canon, regs
 
 def main():
     if os.path.exists(ERROR_LOG):
         os.remove(ERROR_LOG)
 
-    print(f"✅ Ligas Stake a consultar: {len(LIGAS_STAKE)} (secuencial)")
-    print(f"✅ Filtro activo: solo eventos <= {HORAS_ADELANTE} horas")
+    print(f"✅ Ligas Stake a consultar: {len(LIGAS_STAKE)}")
+    print(f"✅ Filtro activo: desde ahora hasta {HORAS_ADELANTE} horas")
+    print(f"✅ Paralelismo: {PARALLEL_WORKERS} workers")
 
     registros = []
-    for canon, tid in LIGAS_STAKE:
-        try:
-            regs = procesar_liga(canon, tid)
-            registros.extend(regs)
-            print(f"  - {canon}: {len(regs)} partidos")
-        except Exception as e:
-            log_error(f"[{canon}] tid={tid} EXCEPTION: {e}")
-            print(f"  - {canon}: ERROR (ver log)")
+
+    with ThreadPoolExecutor(max_workers=PARALLEL_WORKERS) as ex:
+        futures = []
+
+        for canon, tid in LIGAS_STAKE:
+            futures.append(ex.submit(procesar_liga, canon, tid))
+            time.sleep(random.uniform(*STAGGER_BETWEEN_SUBMITS))
+
+        for fut in as_completed(futures):
+            try:
+                canon, regs = fut.result()
+                registros.extend(regs)
+                print(f"  - {canon}: {len(regs)} partidos")
+            except Exception as e:
+                log_error(f"[FUTURE] EXCEPTION: {e}")
+                print("  - ERROR (ver log)")
 
     if not registros:
         print("❌ No se generaron registros.")
@@ -365,13 +354,13 @@ def main():
         print("   - data/debug_stake/")
         return
 
-    df = pd.DataFrame(registros)
-    df["_Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df = df.sort_values(["Liga", "_Fecha"], kind="stable").drop(columns=["_Fecha"])
+    registros.sort(key=lambda r: (r.get("Liga", ""), sort_key_fecha(r)))
 
-    df.to_json(OUT_JSON, orient="records", indent=2, force_ascii=False, date_format="iso")
+    with open(OUT_JSON, "w", encoding="utf-8") as f:
+        json.dump(registros, f, ensure_ascii=False, indent=2)
+
     print(f"\n✅ Generado: {OUT_JSON}")
-    print(f"✅ Total partidos: {len(df)}")
+    print(f"✅ Total partidos: {len(registros)}")
 
 if __name__ == "__main__":
     main()
