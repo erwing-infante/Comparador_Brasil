@@ -24,8 +24,8 @@ os.makedirs(DEBUG_DIR, exist_ok=True)
 
 CURL = "curl"
 
-# ✅ pon aquí tu proxy
-PROXY = "http://USUARIO:CLAVE@res.proxy-seller.com:10000"
+# ✅ tu proxy real
+PROXY = "http://df74ae506e168856:JZjsITW0@res.proxy-seller.com:10000"
 
 # ✅ usa el hidenseek que ya te funciona
 HIDENSEEK_FIXED = "c657b189ad9052496b210c3532578db50afd486b"
@@ -36,7 +36,7 @@ URL_WITH_HS = (
 )
 URL_NO_HS = "https://pre-143o-sp.websbkt.com/cache/143/es/pe/{tid}/prematch-by-tournaments.json"
 
-# ✅ velocidad / estabilidad
+# velocidad / estabilidad
 RETRIES = 4
 PARALLEL_WORKERS = 2
 STAGGER_BETWEEN_SUBMITS = (0.20, 0.45)
@@ -89,13 +89,42 @@ def log_error(msg: str):
     with open(ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
-def fecha_to_utc(fecha_raw: str):
-    if not fecha_raw or not isinstance(fecha_raw, str):
+def fecha_to_utc(fecha_raw):
+    """
+    Soporta:
+    - '2026-03-14T13:00:00Z'
+    - '2026-03-14T13:00:00.000Z'
+    - '2026-03-14T13:00:00'
+    - '2026-03-14 13:00:00'
+    - 1710536400          (unix segundos)
+    - 1710536400000       (unix milisegundos)
+    """
+    if fecha_raw is None or fecha_raw == "":
         return None
 
-    s = fecha_raw.strip()
+    # unix timestamp numérico
+    if isinstance(fecha_raw, (int, float)):
+        try:
+            val = float(fecha_raw)
+            if val > 10_000_000_000:  # milisegundos
+                val = val / 1000.0
+            return datetime.fromtimestamp(val, tz=timezone.utc)
+        except Exception:
+            return None
+
+    s = str(fecha_raw).strip()
     if not s:
         return None
+
+    # unix timestamp en string
+    if s.isdigit():
+        try:
+            val = float(s)
+            if val > 10_000_000_000:
+                val = val / 1000.0
+            return datetime.fromtimestamp(val, tz=timezone.utc)
+        except Exception:
+            return None
 
     try:
         if s.endswith("Z"):
@@ -290,6 +319,8 @@ def procesar_liga(canon: str, tid: int):
     events = parse_events(payload)
     regs = []
 
+    print(f"  [debug] {canon}: {len(events)} eventos recibidos")
+
     for ev in events:
         local, visita = extract_teams(ev)
         if not local or not visita:
@@ -300,8 +331,8 @@ def procesar_liga(canon: str, tid: int):
         if dt is None:
             continue
 
-        # ✅ desde ahora hasta 72h
-        if dt < NOW_UTC or dt > CUTOFF_UTC:
+        # ✅ igual que Apuesta Total: solo <= 72h
+        if dt > CUTOFF_UTC:
             continue
 
         cuotas = extract_1x2_from_main_odds(ev)
@@ -326,7 +357,7 @@ def main():
         os.remove(ERROR_LOG)
 
     print(f"✅ Ligas Stake a consultar: {len(LIGAS_STAKE)}")
-    print(f"✅ Filtro activo: desde ahora hasta {HORAS_ADELANTE} horas")
+    print(f"✅ Filtro activo: solo eventos <= {HORAS_ADELANTE} horas")
     print(f"✅ Paralelismo: {PARALLEL_WORKERS} workers")
 
     registros = []
