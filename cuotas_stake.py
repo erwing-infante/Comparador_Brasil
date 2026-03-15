@@ -55,7 +55,6 @@ LIGAS_STAKE = [
     ("La Liga", 83),
     ("Serie A", 64),
     ("Bundesliga", 60),
-    ("Ligue 1", 57),
     ("Brasileirao", 44),
     ("UEFA Champions League", 34),
     ("UEFA Europa League", 35),
