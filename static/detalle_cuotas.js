@@ -30,25 +30,29 @@ function fmtOdd(v) {
     return Number.isFinite(n) ? n.toFixed(2) : "-";
 }
 
-function buildColumnRanking(rows, key) {
+function getLogo(bookmaker) {
+    return BOOKMAKER_LOGOS[bookmaker] || null;
+}
+
+function buildRanking(rows, key) {
     const out = [];
 
-    rows.forEach(r => {
+    for (const r of rows) {
         const odd = parseFloat(r[key]);
-        if (!Number.isFinite(odd)) return;
+        if (!Number.isFinite(odd)) continue;
 
         out.push({
-            bookmaker: r.bookmaker || "-",
-            odd: odd
+            odd,
+            bookmaker: r.bookmaker || "-"
         });
-    });
+    }
 
     out.sort((a, b) => b.odd - a.odd);
     return out;
 }
 
-function renderCellContent(item, isBest = false) {
-    const logo = BOOKMAKER_LOGOS[item.bookmaker] || null;
+function renderCell(item, isBest) {
+    const logo = getLogo(item.bookmaker);
 
     return `
         <div class="ranked-col-item">
@@ -56,7 +60,7 @@ function renderCellContent(item, isBest = false) {
             ${
                 logo
                     ? `<img class="ranked-col-logo" src="${logo}" alt="${item.bookmaker}" title="${item.bookmaker}">`
-                    : `<span class="ranked-col-book">${item.bookmaker}</span>`
+                    : `<span class="ranked-col-book" title="${item.bookmaker}">${item.bookmaker}</span>`
             }
         </div>
     `;
@@ -73,7 +77,11 @@ async function loadDetail() {
     meta.textContent = `${qs.league || ""} · ${qs.date || ""}`;
 
     try {
-        const res = await fetch("/api/cuotas", { credentials: "include", cache: "no-store" });
+        const res = await fetch("/api/cuotas", {
+            credentials: "include",
+            cache: "no-store"
+        });
+
         if (!res.ok) {
             tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No se pudo cargar /api/cuotas</td></tr>`;
             return;
@@ -94,50 +102,39 @@ async function loadDetail() {
             return;
         }
 
-        const rows = Array.isArray(match.all_odds) ? [...match.all_odds] : [];
+        const rows = Array.isArray(match.all_odds) ? match.all_odds : [];
 
         if (!rows.length) {
             tbody.innerHTML = `<tr><td colspan="3" class="empty-state">Este partido no tiene detalle de cuotas</td></tr>`;
             return;
         }
 
-        const rankedHome = buildColumnRanking(rows, "home");
-        const rankedDraw = buildColumnRanking(rows, "draw");
-        const rankedAway = buildColumnRanking(rows, "away");
+        const homeRank = buildRanking(rows, "home");
+        const drawRank = buildRanking(rows, "draw");
+        const awayRank = buildRanking(rows, "away");
 
-        const maxLen = Math.max(rankedHome.length, rankedDraw.length, rankedAway.length);
-
-        if (!maxLen) {
-            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay cuotas válidas</td></tr>`;
-            return;
-        }
+        const maxRows = Math.max(homeRank.length, drawRank.length, awayRank.length);
 
         tbody.innerHTML = "";
 
-        for (let i = 0; i < maxLen; i++) {
+        for (let i = 0; i < maxRows; i++) {
             const tr = document.createElement("tr");
 
             const tdHome = document.createElement("td");
             const tdDraw = document.createElement("td");
             const tdAway = document.createElement("td");
 
-            if (rankedHome[i]) {
-                tdHome.innerHTML = renderCellContent(rankedHome[i], i === 0);
-            } else {
-                tdHome.innerHTML = `<span class="empty-state">-</span>`;
-            }
+            tdHome.innerHTML = homeRank[i]
+                ? renderCell(homeRank[i], i === 0)
+                : `<span class="empty-state">-</span>`;
 
-            if (rankedDraw[i]) {
-                tdDraw.innerHTML = renderCellContent(rankedDraw[i], i === 0);
-            } else {
-                tdDraw.innerHTML = `<span class="empty-state">-</span>`;
-            }
+            tdDraw.innerHTML = drawRank[i]
+                ? renderCell(drawRank[i], i === 0)
+                : `<span class="empty-state">-</span>`;
 
-            if (rankedAway[i]) {
-                tdAway.innerHTML = renderCellContent(rankedAway[i], i === 0);
-            } else {
-                tdAway.innerHTML = `<span class="empty-state">-</span>`;
-            }
+            tdAway.innerHTML = awayRank[i]
+                ? renderCell(awayRank[i], i === 0)
+                : `<span class="empty-state">-</span>`;
 
             tr.appendChild(tdHome);
             tr.appendChild(tdDraw);
@@ -146,8 +143,8 @@ async function loadDetail() {
             tbody.appendChild(tr);
         }
 
-    } catch (e) {
-        console.error(e);
+    } catch (err) {
+        console.error(err);
         tbody.innerHTML = `<tr><td colspan="3" class="empty-state">Error cargando detalle</td></tr>`;
     }
 }
