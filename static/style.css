@@ -235,3 +235,41 @@ th, td {
 .empty-state {
     color: #777;
 }
+
+/* ===== DETALLE CUOTAS RANKEADO ===== */
+.odds-table-ranked th,
+.odds-table-ranked td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.ranked-odd-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 34px;
+}
+
+.ranked-odd-value {
+    font-size: 16px;
+    font-weight: normal;
+    color: #111;
+}
+
+.ranked-odd-item.is-best .ranked-odd-value {
+    color: green;
+    font-weight: bold;
+}
+
+.ranked-odd-logo {
+    height: 22px;
+    max-width: 90px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.ranked-odd-text {
+    font-size: 12px;
+    color: #666;
+}
