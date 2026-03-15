@@ -270,6 +270,14 @@ def calculadora():
     )
 
 
+# ✅ NUEVO: página detalle de cuotas
+@app.route("/detalle-cuotas")
+def detalle_cuotas():
+    if not require_login():
+        return redirect(url_for("login"))
+    return render_template("detalle_cuotas.html")
+
+
 # ================================================================
 # ADMIN: Operaciones (SOLO OWNER)
 # ================================================================
@@ -979,6 +987,34 @@ def api_cuotas():
             except Exception:
                 return jsonify({"error": "formato inválido"})
     return jsonify({})
+
+
+# ✅ NUEVO: lista plana de casas detectadas en cuotas.json
+@app.route("/api/bookmakers")
+def api_bookmakers():
+    books = set()
+
+    if os.path.exists(DATA_PATH):
+        try:
+            with open(DATA_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            for liga, matches in data.items():
+                if liga == "metadata" or not isinstance(matches, list):
+                    continue
+                for match in matches:
+                    for k in ("best_home", "best_draw", "best_away"):
+                        bm = ((match.get(k) or {}).get("bookmaker") or "").strip()
+                        if bm:
+                            books.add(bm)
+                    for row in (match.get("all_odds") or []):
+                        bm = (row.get("bookmaker") or "").strip()
+                        if bm:
+                            books.add(bm)
+        except Exception:
+            pass
+
+    return jsonify(sorted(books))
 
 
 if __name__ == "__main__":

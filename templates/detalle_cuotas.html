@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de cuotas</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="detail-page">
+    <div class="detail-container">
+        <a href="/" class="back-link">← Volver</a>
+
+        <div class="detail-header">
+            <h1 id="match-title">Detalle de cuotas</h1>
+            <p id="match-meta">Cargando...</p>
+        </div>
+
+        <table class="odds-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Casa</th>
+                    <th>Local</th>
+                    <th>Empate</th>
+                    <th>Visita</th>
+                </tr>
+            </thead>
+            <tbody id="odds-detail-body">
+                <tr>
+                    <td colspan="5" class="empty-state">Cargando...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/static/detalle_cuotas.js"></script>
+</body>
+</html>

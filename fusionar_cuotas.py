@@ -2,6 +2,7 @@
 # - Mantiene tu normalización y equivalencias tal cual (misma lógica)
 # - Mucho más rápido: sin pandas, con cache de normalización, y merge Orbitx (eventId/marketId)
 # - ✅ CORREGIDO: ruta FIJA de watchlist (sin auto-find). Si falta, falla con error claro.
+# - ✅ NUEVO: guarda all_odds por partido con todas las cuotas de todas las casas
 
 import os
 import json
@@ -395,6 +396,51 @@ def pick_best(subset, col):
             best_bm = r.get("Casa", "") or ""
     return (best_val, best_bm)
 
+def bookmaker_sort_score(item):
+    vals = [item.get("home"), item.get("draw"), item.get("away")]
+    vals = [float(v) for v in vals if v is not None]
+    if not vals:
+        return -999999
+    return max(vals)
+
+def build_all_odds(grupo):
+    """
+    Devuelve todas las cuotas encontradas por casa para ese partido.
+    Si una casa aparece más de una vez, conserva la mejor por columna.
+    Luego ordena de mayor a menor según la mejor cuota total de esa casa.
+    """
+    by_book = {}
+
+    for r in grupo:
+        casa = (r.get("Casa") or "").strip()
+        if not casa:
+            continue
+
+        if casa not in by_book:
+            by_book[casa] = {
+                "bookmaker": casa,
+                "home": None,
+                "draw": None,
+                "away": None,
+            }
+
+        h = r.get("Local Odd")
+        d = r.get("Empate Odd")
+        a = r.get("Visita Odd")
+
+        if h is not None and (by_book[casa]["home"] is None or h > by_book[casa]["home"]):
+            by_book[casa]["home"] = h
+
+        if d is not None and (by_book[casa]["draw"] is None or d > by_book[casa]["draw"]):
+            by_book[casa]["draw"] = d
+
+        if a is not None and (by_book[casa]["away"] is None or a > by_book[casa]["away"]):
+            by_book[casa]["away"] = a
+
+    out = list(by_book.values())
+    out.sort(key=bookmaker_sort_score, reverse=True)
+    return out
+
 def fusionar_cuotas():
     print("Fusionando con equivalencias externas + similitud (OPTIMIZADO)...")
 
@@ -488,6 +534,7 @@ def fusionar_cuotas():
                 "best_home": {"odd": bh, "bookmaker": bh_bm},
                 "best_draw": {"odd": bd, "bookmaker": bd_bm},
                 "best_away": {"odd": ba, "bookmaker": ba_bm},
+                "all_odds": build_all_odds(grupo)
             })
 
     salida = {
