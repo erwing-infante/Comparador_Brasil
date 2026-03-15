@@ -52,27 +52,11 @@ CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 # ============================================================
 LIGAS_STAKE = [
     ("Premier League", 49),
-    ("EFL Cup", 396),
-    ("Championship", 26909),
-
     ("La Liga", 83),
-    ("La Liga 2", 84),
-    ("Copa del Rey", 12911),
-
     ("Serie A", 64),
-    ("Copa Italia", 66),
-
     ("Bundesliga", 60),
-    ("Copa Alemana", 62),
-
     ("Ligue 1", 57),
-
     ("Brasileirao", 44),
-    ("Liga MX", 1292),
-
-    ("Primeira Liga", 75),
-    ("Eredivisie", 70),
-
     ("UEFA Champions League", 34),
     ("UEFA Europa League", 35),
 
