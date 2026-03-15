@@ -27,6 +27,7 @@ ARCHIVOS = {
     "gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
     "betano": os.path.join(DATA_DIR, "cuotas_betano.json"),
     "tinbet": os.path.join(DATA_DIR, "cuotas_tinbet.json"),
+    "stake": os.path.join(DATA_DIR, "cuotas_stake.json"),
     "teapuesto": os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 }
 

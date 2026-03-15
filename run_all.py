@@ -16,6 +16,7 @@ SCRIPTS_EXTRACTORES = [
     "cuotas_gangabet.py",
     "cuotas_teapuesto.py",
     "cuotas_tinbet.py",
+    "cuotas_stake.py",
     "cuotas_betano.py"
 ]
 
