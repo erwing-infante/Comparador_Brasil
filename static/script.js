@@ -38,7 +38,7 @@ const CALC_ICON_SVG = `
 `;
 
 // ================================
-// SNAPSHOT (BETWATCH)
+// SNAPSHOT (BETWATCH) - NUEVO
 // ================================
 async function fetchSnapshot() {
     try {
@@ -88,7 +88,9 @@ async function fetchCuotas() {
         const ligas = Object.keys(allData).filter(k => k !== "metadata");
         if (!currentLeague && ligas.length > 0) currentLeague = ligas[0];
 
+        // ✅ NUEVO: cargar snapshot antes de renderizar (NO TOCA NADA MÁS)
         await fetchSnapshot();
+
         renderMatches(currentLeague);
 
     } catch (e) {
@@ -145,6 +147,7 @@ function renderMatches(leagueName) {
     const matches = allData[leagueName] || [];
 
     matches.forEach(match => {
+
         if (!isMatchInRange(match.date)) return;
 
         const h = parseFloat(match.best_home?.odd || 0);
@@ -164,6 +167,7 @@ function renderMatches(leagueName) {
         tr.appendChild(createCell(formatLocalDate(match.date)));
         tr.appendChild(createCell(match.name));
 
+        // ✅ ÚNICO cambio aquí: le pasamos match + side para sacar BACK del snapshot
         tr.appendChild(createOddCell(match, match.best_home, "HOME"));
         tr.appendChild(createOddCell(match, match.best_draw, "DRAW"));
         tr.appendChild(createOddCell(match, match.best_away, "AWAY"));
@@ -179,15 +183,15 @@ function renderMatches(leagueName) {
             lossCell.textContent = "-";
         }
 
-        // 🔢 Botón calculadora
+        // 🔢 Botón calculadora pegado al % pérdida
         const btn = document.createElement("button");
         btn.className = "calc-btn";
         btn.innerHTML = CALC_ICON_SVG;
         btn.title = "Abrir calculadora";
         btn.addEventListener("click", () => openCalculator(match, marginSure));
         lossCell.appendChild(btn);
-
-        // 📈 Betwatch
+        
+        // 📈 Botón Betwatch (NO TOCADO)
         const btnBW = document.createElement("button");
         btnBW.className = "bw-btn";
         btnBW.textContent = "BW";
@@ -195,15 +199,16 @@ function renderMatches(leagueName) {
         btnBW.addEventListener("click", () => openBetwatch(match));
         lossCell.appendChild(btnBW);
 
-        // 📋 Todas las cuotas
-        const btnAll = document.createElement("button");
-        btnAll.className = "all-btn";
-        btnAll.textContent = "ALL";
-        btnAll.title = "Ver todas las cuotas";
-        btnAll.addEventListener("click", () => openAllOdds(match));
-        lossCell.appendChild(btnAll);
+        // ✅ NUEVO: Botón ALL
+        const btnALL = document.createElement("button");
+        btnALL.className = "all-btn";
+        btnALL.textContent = "ALL";
+        btnALL.title = "Ver todas las cuotas";
+        btnALL.addEventListener("click", () => openAllOdds(match));
+        lossCell.appendChild(btnALL);
 
         tr.appendChild(lossCell);
+
         tbody.appendChild(tr);
     });
 }
@@ -214,6 +219,7 @@ function createCell(text) {
     return td;
 }
 
+// ✅ MODIFICADO SOLO lo necesario: ahora recibe match+side para mostrar la cuota BACK en rojo al costado
 function createOddCell(match, best, side) {
     const td = document.createElement("td");
 
@@ -224,6 +230,7 @@ function createOddCell(match, best, side) {
 
     const logo = BOOKMAKER_LOGOS[best.bookmaker] || null;
 
+    // ✅ Betwatch BACK (solo número rojo, al costado)
     const bw = getSnapshotBackOdd(match, side);
     const bwHtml = (bw !== null && bw !== undefined)
         ? `<span class="bw-odd-red">${Number(bw).toFixed(2)}</span>`
@@ -238,7 +245,7 @@ function createOddCell(match, best, side) {
 }
 
 // ================================
-// ABRIR CALCULADORA
+// ABRIR CALCULADORA EN OTRA PÁGINA
 // ================================
 function openCalculator(match, marginSure) {
     const params = new URLSearchParams({
@@ -258,7 +265,7 @@ function openCalculator(match, marginSure) {
 }
 
 // ================================
-// ABRIR DETALLE TODAS LAS CUOTAS
+// NUEVO: ABRIR DETALLE DE TODAS LAS CUOTAS
 // ================================
 function openAllOdds(match) {
     const params = new URLSearchParams({
@@ -292,7 +299,7 @@ function formatLocalDate(dateStr) {
 }
 
 // ================================
-// FILTRO DE FECHAS
+// FILTRO DE FECHAS (CORRECTO)
 // ================================
 function isMatchInRange(dateStr) {
     if (dateFilter === "all") return true;
