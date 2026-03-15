@@ -673,4 +673,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "la galaxy": "los angeles galaxy",
     "saint louis city": "saint louis city",
     "st. louis city": "saint louis city",
+    "strasbourg": "estrasburgo",
 }

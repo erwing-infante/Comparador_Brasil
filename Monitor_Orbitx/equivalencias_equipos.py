@@ -222,5 +222,9 @@ EQUIVALENCIAS_EQUIPOS = {
     "new england": "new england revolution",
     "vancouver whitecaps": "vancouver",
     "minnesota utd": "minnesota united",
+    "tijuana": "xolos de tijuana",
+    "tigres": "tigres uanl",
+    "sport boys (per)": "sport boys",
+    "melgar": "fbc melgar",
     "cesar vallejo moquegua": "cd moquegua",
 }
