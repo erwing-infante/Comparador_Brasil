@@ -273,3 +273,29 @@ th, td {
     font-size: 12px;
     color: #666;
 }
+
+/* ===== NUEVO: DETALLE POR COLUMNAS (CUOTA + LOGO) ===== */
+.ranked-col-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 34px;
+}
+
+.ranked-col-odd {
+    font-size: 16px;
+    color: #111;
+}
+
+.ranked-col-logo {
+    height: 22px;
+    max-width: 90px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.ranked-col-book {
+    font-size: 12px;
+    color: #666;
+}

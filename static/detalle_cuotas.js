@@ -30,20 +30,16 @@ function fmtOdd(v) {
     return Number.isFinite(n) ? n.toFixed(2) : "-";
 }
 
-function getLogo(bookmaker) {
-    return BOOKMAKER_LOGOS[bookmaker] || null;
-}
-
-function buildRankedList(rows, key) {
+function buildColumnRanking(rows, key) {
     const out = [];
 
     rows.forEach(r => {
-        const value = parseFloat(r[key]);
-        if (!Number.isFinite(value)) return;
+        const odd = parseFloat(r[key]);
+        if (!Number.isFinite(odd)) return;
 
         out.push({
             bookmaker: r.bookmaker || "-",
-            odd: value
+            odd: odd
         });
     });
 
@@ -51,16 +47,16 @@ function buildRankedList(rows, key) {
     return out;
 }
 
-function renderOddWithLogo(item, isBest = false) {
-    const logo = getLogo(item.bookmaker);
+function renderCellContent(item, isBest = false) {
+    const logo = BOOKMAKER_LOGOS[item.bookmaker] || null;
 
     return `
-        <div class="ranked-odd-item ${isBest ? 'is-best' : ''}">
-            <span class="ranked-odd-value">${fmtOdd(item.odd)}</span>
+        <div class="ranked-col-item">
+            <span class="ranked-col-odd ${isBest ? 'best-cell' : ''}">${fmtOdd(item.odd)}</span>
             ${
                 logo
-                    ? `<img class="ranked-odd-logo" src="${logo}" alt="${item.bookmaker}" title="${item.bookmaker}">`
-                    : `<span class="ranked-odd-text" title="${item.bookmaker}">${item.bookmaker}</span>`
+                    ? `<img class="ranked-col-logo" src="${logo}" alt="${item.bookmaker}" title="${item.bookmaker}">`
+                    : `<span class="ranked-col-book">${item.bookmaker}</span>`
             }
         </div>
     `;
@@ -105,43 +101,45 @@ async function loadDetail() {
             return;
         }
 
-        const localRank = buildRankedList(rows, "home");
-        const drawRank  = buildRankedList(rows, "draw");
-        const awayRank  = buildRankedList(rows, "away");
+        const rankedHome = buildColumnRanking(rows, "home");
+        const rankedDraw = buildColumnRanking(rows, "draw");
+        const rankedAway = buildColumnRanking(rows, "away");
 
-        const maxRows = Math.max(localRank.length, drawRank.length, awayRank.length);
+        const maxLen = Math.max(rankedHome.length, rankedDraw.length, rankedAway.length);
 
-        if (!maxRows) {
-            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay cuotas válidas para mostrar</td></tr>`;
+        if (!maxLen) {
+            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay cuotas válidas</td></tr>`;
             return;
         }
 
         tbody.innerHTML = "";
 
-        for (let i = 0; i < maxRows; i++) {
+        for (let i = 0; i < maxLen; i++) {
             const tr = document.createElement("tr");
 
-            const localItem = localRank[i];
-            const drawItem = drawRank[i];
-            const awayItem = awayRank[i];
-
-            const tdLocal = document.createElement("td");
+            const tdHome = document.createElement("td");
             const tdDraw = document.createElement("td");
             const tdAway = document.createElement("td");
 
-            tdLocal.innerHTML = localItem
-                ? renderOddWithLogo(localItem, i === 0)
-                : `<span class="empty-state">-</span>`;
+            if (rankedHome[i]) {
+                tdHome.innerHTML = renderCellContent(rankedHome[i], i === 0);
+            } else {
+                tdHome.innerHTML = `<span class="empty-state">-</span>`;
+            }
 
-            tdDraw.innerHTML = drawItem
-                ? renderOddWithLogo(drawItem, i === 0)
-                : `<span class="empty-state">-</span>`;
+            if (rankedDraw[i]) {
+                tdDraw.innerHTML = renderCellContent(rankedDraw[i], i === 0);
+            } else {
+                tdDraw.innerHTML = `<span class="empty-state">-</span>`;
+            }
 
-            tdAway.innerHTML = awayItem
-                ? renderOddWithLogo(awayItem, i === 0)
-                : `<span class="empty-state">-</span>`;
+            if (rankedAway[i]) {
+                tdAway.innerHTML = renderCellContent(rankedAway[i], i === 0);
+            } else {
+                tdAway.innerHTML = `<span class="empty-state">-</span>`;
+            }
 
-            tr.appendChild(tdLocal);
+            tr.appendChild(tdHome);
             tr.appendChild(tdDraw);
             tr.appendChild(tdAway);
 
