@@ -50,8 +50,8 @@ DROP_3M_MIN_PCT = float(os.getenv("ORBITX_STEAM_DROP_3M_MIN_PCT", "0.80"))
 TV_RUNNER_DELTA_3M_MIN = float(os.getenv("ORBITX_STEAM_TV_DELTA_3M_MIN", "80"))
 REBOUND_1M_BLOCK_PCT = float(os.getenv("ORBITX_STEAM_REBOUND_1M_BLOCK_PCT", "0.35"))
 
-ALERT_SCORE_MIN = int(os.getenv("ORBITX_STEAM_ALERT_SCORE_MIN", "5"))
-ALERT_SCORE_EXTREME = int(os.getenv("ORBITX_STEAM_ALERT_SCORE_EXTREME", "7"))
+ALERT_SCORE_MIN = int(os.getenv("ORBITX_STEAM_ALERT_SCORE_MIN", "4"))
+ALERT_SCORE_EXTREME = int(os.getenv("ORBITX_STEAM_ALERT_SCORE_EXTREME", "6"))
 
 
 # ==========================================================
@@ -140,22 +140,18 @@ def normalize_orbitx_snapshot(raw: Any) -> List[Dict[str, Any]]:
     - dict que ya parece evento
     - dict con values que parecen eventos
     """
-    # Caso 1: lista directa
     if isinstance(raw, list):
         return [x for x in raw if isinstance(x, dict)]
 
     if isinstance(raw, dict):
-        # Caso 2: claves conocidas con lista
         for key in ("markets", "events", "data", "items", "snapshots"):
             value = raw.get(key)
             if isinstance(value, list):
                 return [x for x in value if isinstance(x, dict)]
 
-        # Caso 3: el propio dict ya parece un evento
         if "eventId" in raw and "runners" in raw:
             return [raw]
 
-        # Caso 4: values que parecen eventos
         values = list(raw.values())
 
         event_like = [
@@ -223,6 +219,7 @@ def build_signature(obs: Dict[str, Any], signal: Dict[str, Any]) -> str:
             str(round(signal.get("drop_1m_pct", 0.0) or 0.0, 4)),
             str(round(signal.get("drop_3m_pct", 0.0) or 0.0, 4)),
             str(round(signal.get("tv_delta_3m", 0.0) or 0.0, 2)),
+            str(signal.get("price_move_confirmed", False)),
         ]
     )
 
@@ -382,6 +379,14 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
             if odd2 > odd1 > current_odd:
                 persist_down_3 = True
 
+    # Precio moviéndose: obligatorio
+    price_move_confirmed = any([
+        drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT,
+        drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT,
+        persist_down_3,
+    ])
+
+    # Puntos por movimiento
     if drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT:
         score += 1
         reasons.append(f"drop_1m >= {DROP_1M_MIN_PCT}%")
@@ -390,6 +395,7 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         score += 2
         reasons.append(f"drop_3m >= {DROP_3M_MIN_PCT}%")
 
+    # TV solo suma, pero ya no confirma por sí solo
     if tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN:
         score += 1
         reasons.append(f"tv_delta_3m >= {TV_RUNNER_DELTA_3M_MIN}")
@@ -404,22 +410,9 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         blocked_by_rebound = True
         reasons.append(f"rebote_1m >= {REBOUND_1M_BLOCK_PCT}%")
 
-    # =========================
-    # CONFIRMACIÓN OBLIGATORIA
-    # =========================
-    movement_confirmed = any([
-        drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT,
-        drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT,
-        tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN,
-        persist_down_3,
-    ])
-
+    # Confirmación fuerte para EXTREMA
     strong_movement_confirmed = any([
         drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT,
-        (
-            drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT and
-            tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN
-        ),
         (
             drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT and
             persist_down_3
@@ -427,9 +420,9 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
     ])
 
     level = None
-    if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME and strong_movement_confirmed:
+    if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME and strong_movement_confirmed and price_move_confirmed:
         level = "EXTREMA"
-    elif not blocked_by_rebound and score >= ALERT_SCORE_MIN and movement_confirmed:
+    elif not blocked_by_rebound and score >= ALERT_SCORE_MIN and price_move_confirmed:
         level = "FUERTE"
 
     return {
@@ -445,7 +438,7 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         "back_amt_ok": back_amt_ok,
         "spread_ok": spread_ok,
         "blocked_by_rebound": blocked_by_rebound,
-        "movement_confirmed": movement_confirmed,
+        "price_move_confirmed": price_move_confirmed,
         "strong_movement_confirmed": strong_movement_confirmed,
     }
 
