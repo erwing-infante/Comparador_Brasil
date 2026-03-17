@@ -404,10 +404,32 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         blocked_by_rebound = True
         reasons.append(f"rebote_1m >= {REBOUND_1M_BLOCK_PCT}%")
 
+    # =========================
+    # CONFIRMACIÓN OBLIGATORIA
+    # =========================
+    movement_confirmed = any([
+        drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT,
+        drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT,
+        tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN,
+        persist_down_3,
+    ])
+
+    strong_movement_confirmed = any([
+        drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT,
+        (
+            drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT and
+            tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN
+        ),
+        (
+            drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT and
+            persist_down_3
+        ),
+    ])
+
     level = None
-    if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME:
+    if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME and strong_movement_confirmed:
         level = "EXTREMA"
-    elif not blocked_by_rebound and score >= ALERT_SCORE_MIN:
+    elif not blocked_by_rebound and score >= ALERT_SCORE_MIN and movement_confirmed:
         level = "FUERTE"
 
     return {
@@ -423,6 +445,8 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         "back_amt_ok": back_amt_ok,
         "spread_ok": spread_ok,
         "blocked_by_rebound": blocked_by_rebound,
+        "movement_confirmed": movement_confirmed,
+        "strong_movement_confirmed": strong_movement_confirmed,
     }
 
 
