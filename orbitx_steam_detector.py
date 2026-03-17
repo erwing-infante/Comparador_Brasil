@@ -14,7 +14,10 @@ import requests
 # ==========================================================
 BASE_DIR = Path("/root/proyectos/Mancorabet")
 
+# SNAPSHOT REAL DE ORBITX
 ORBITX_FILE = Path("/root/proyectos/Mancorabet/Monitor_Orbitx/data/snapshot.json")
+
+# ARCHIVO DE ESTADO DEL DETECTOR
 STATE_FILE = Path("/root/proyectos/Mancorabet/Monitor_Orbitx/data/orbitx_steam_state.json")
 
 CHECK_INTERVAL = int(os.getenv("ORBITX_STEAM_INTERVAL_SEC", "60"))
@@ -83,12 +86,6 @@ def safe_float(value: Any) -> Optional[float]:
         return None
 
 
-def pct_change(old: Optional[float], new: Optional[float]) -> Optional[float]:
-    if old is None or new is None or old <= 0:
-        return None
-    return ((new - old) / old) * 100.0
-
-
 def odds_drop_pct(old: Optional[float], new: Optional[float]) -> Optional[float]:
     """
     Positivo = la cuota bajó
@@ -132,14 +129,50 @@ def send_telegram_message(text: str) -> None:
 
 
 def normalize_orbitx_snapshot(raw: Any) -> List[Dict[str, Any]]:
+    """
+    Soporta estas estructuras:
+    - lista directa
+    - {"events": [...]}
+    - {"data": [...]}
+    - {"items": [...]}
+    - {"snapshots": [...]}
+    - {"markets": [...]}   <-- TU CASO
+    - dict que ya parece evento
+    - dict con values que parecen eventos
+    """
+    # Caso 1: lista directa
     if isinstance(raw, list):
-        return raw
+        return [x for x in raw if isinstance(x, dict)]
+
     if isinstance(raw, dict):
-        for key in ("events", "data", "items", "snapshots"):
+        # Caso 2: claves conocidas con lista
+        for key in ("markets", "events", "data", "items", "snapshots"):
             value = raw.get(key)
             if isinstance(value, list):
-                return value
-    raise ValueError("No se pudo interpretar orbitx_snapshots.json")
+                return [x for x in value if isinstance(x, dict)]
+
+        # Caso 3: el propio dict ya parece un evento
+        if "eventId" in raw and "runners" in raw:
+            return [raw]
+
+        # Caso 4: values que parecen eventos
+        values = list(raw.values())
+
+        event_like = [
+            v for v in values
+            if isinstance(v, dict) and ("eventId" in v or "runners" in v)
+        ]
+        if event_like:
+            return event_like
+
+        collected = []
+        for v in values:
+            if isinstance(v, list):
+                collected.extend([x for x in v if isinstance(x, dict)])
+        if collected:
+            return collected
+
+    raise ValueError("No se pudo interpretar snapshot.json")
 
 
 def is_live_event(event: Dict[str, Any]) -> bool:
@@ -334,7 +367,6 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
     if prev1:
         drop_1m_pct = odds_drop_pct(prev1.get("best_back_odds"), current_odd)
 
-        # si subió en el último minuto, es rebote
         if prev1.get("best_back_odds") is not None and current_odd is not None and current_odd > prev1.get("best_back_odds"):
             rebound_1m_pct = ((current_odd - prev1.get("best_back_odds")) / prev1.get("best_back_odds")) * 100.0
 
@@ -350,36 +382,28 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
             if odd2 > odd1 > current_odd:
                 persist_down_3 = True
 
-    # caída 1m
     if drop_1m_pct is not None and drop_1m_pct >= DROP_1M_MIN_PCT:
         score += 1
         reasons.append(f"drop_1m >= {DROP_1M_MIN_PCT}%")
 
-    # caída 3m
     if drop_3m_pct is not None and drop_3m_pct >= DROP_3M_MIN_PCT:
         score += 2
         reasons.append(f"drop_3m >= {DROP_3M_MIN_PCT}%")
 
-    # tv_runner en 3m
     if tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN:
         score += 1
         reasons.append(f"tv_delta_3m >= {TV_RUNNER_DELTA_3M_MIN}")
 
-    # persistencia
     if persist_down_3:
         score += 1
         reasons.append("persistencia_bajista_3_puntos")
 
-    # castigo por rebote reciente
     blocked_by_rebound = False
     if rebound_1m_pct is not None and rebound_1m_pct >= REBOUND_1M_BLOCK_PCT:
         score -= 2
         blocked_by_rebound = True
         reasons.append(f"rebote_1m >= {REBOUND_1M_BLOCK_PCT}%")
 
-    # =========================
-    # CLASIFICACIÓN
-    # =========================
     level = None
     if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME:
         level = "EXTREMA"
@@ -527,6 +551,8 @@ def main() -> int:
             process_once()
         except Exception as e:
             print(f"ERROR en ciclo principal: {e}")
+            import traceback
+            traceback.print_exc()
         time.sleep(CHECK_INTERVAL)
 
 
