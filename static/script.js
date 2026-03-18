@@ -15,6 +15,8 @@ const BOOKMAKER_LOGOS = {
     "Betcris": "/static/img/bookmakers/betcris.png",
     "Bet365": "/static/img/bookmakers/bet365.png",
     "Betsson": "/static/img/bookmakers/betsson.png",
+    "Betsafe": "/static/img/bookmakers/betsafe.png",
+    "Coolbet": "/static/img/bookmakers/coolbet.png",
     "Olimpobet": "/static/img/bookmakers/olimpobet.png",
     "Pinnacle": "/static/img/bookmakers/pinnacle.png",
     "GangaBet": "/static/img/bookmakers/gangabet.png",
