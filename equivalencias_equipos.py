@@ -674,5 +674,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "saint louis city": "saint louis city",
     "st. louis city": "saint louis city",
     "wolverhampton": "Wolves",
+    "napoli": "napoles",
+    "aek athen": "aek atenas",
     "strasbourg": "estrasburgo",
 }
