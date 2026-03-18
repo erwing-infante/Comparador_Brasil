@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -23,6 +24,8 @@ STATE_FILE = Path("/root/proyectos/Mancorabet/Monitor_Orbitx/data/orbitx_steam_s
 CHECK_INTERVAL = int(os.getenv("ORBITX_STEAM_INTERVAL_SEC", "60"))
 HTTP_TIMEOUT = int(os.getenv("ORBITX_STEAM_HTTP_TIMEOUT", "20"))
 HISTORY_POINTS = int(os.getenv("ORBITX_STEAM_HISTORY_POINTS", "8"))
+
+TZ_PE = ZoneInfo("America/Lima")
 
 TELEGRAM_BOT_TOKEN = os.getenv("SMART_BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_IDS = [
@@ -58,7 +61,7 @@ ALERT_SCORE_EXTREME = int(os.getenv("ORBITX_STEAM_ALERT_SCORE_EXTREME", "6"))
 # HELPERS
 # ==========================================================
 def now_dt() -> datetime:
-    return datetime.now()
+    return datetime.now(TZ_PE)
 
 
 def now_str() -> str:
@@ -210,15 +213,19 @@ def load_state() -> Dict[str, Any]:
 
 
 def build_signature(obs: Dict[str, Any], signal: Dict[str, Any]) -> str:
+    """
+    Firma del movimiento. Excluye el level para no re-alertar por degradación
+    de EXTREMA -> FUERTE si el movimiento base es el mismo.
+    """
     return "|".join(
         [
-            signal.get("level", "-"),
-            str(signal.get("score", 0)),
             str(round(obs.get("best_back_odds", 0.0), 4)),
             str(round(obs.get("pressure_ratio", 0.0), 4)),
+            str(round(obs.get("spread_pct", 0.0), 4)),
             str(round(signal.get("drop_1m_pct", 0.0) or 0.0, 4)),
             str(round(signal.get("drop_3m_pct", 0.0) or 0.0, 4)),
             str(round(signal.get("tv_delta_3m", 0.0) or 0.0, 2)),
+            str(signal.get("persist_down_3", False)),
             str(signal.get("price_move_confirmed", False)),
         ]
     )
@@ -395,7 +402,7 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         score += 2
         reasons.append(f"drop_3m >= {DROP_3M_MIN_PCT}%")
 
-    # TV solo suma, pero ya no confirma por sí solo
+    # TV solo suma, no confirma por sí solo
     if tv_delta_3m is not None and tv_delta_3m >= TV_RUNNER_DELTA_3M_MIN:
         score += 1
         reasons.append(f"tv_delta_3m >= {TV_RUNNER_DELTA_3M_MIN}")
@@ -419,10 +426,24 @@ def compute_signal(history: List[Dict[str, Any]], current: Dict[str, Any]) -> Di
         ),
     ])
 
+    # Requisito adicional: spread operable
+    operable_spread = spread_ok
+
     level = None
-    if not blocked_by_rebound and score >= ALERT_SCORE_EXTREME and strong_movement_confirmed and price_move_confirmed:
+    if (
+        not blocked_by_rebound
+        and operable_spread
+        and score >= ALERT_SCORE_EXTREME
+        and strong_movement_confirmed
+        and price_move_confirmed
+    ):
         level = "EXTREMA"
-    elif not blocked_by_rebound and score >= ALERT_SCORE_MIN and price_move_confirmed:
+    elif (
+        not blocked_by_rebound
+        and operable_spread
+        and score >= ALERT_SCORE_MIN
+        and price_move_confirmed
+    ):
         level = "FUERTE"
 
     return {
@@ -488,7 +509,7 @@ def build_alert_message(obs: Dict[str, Any], signal: Dict[str, Any]) -> str:
         "• Ventana probable: 2 a 5 min",
         "• Si es EXTREMA, revisar de inmediato",
         "",
-        f"⏱️ {now_str()}",
+        f"⏱️ {now_str()} (hora Perú)",
     ])
 
     return "\n".join(lines)
@@ -511,7 +532,7 @@ def process_once() -> int:
     active_alerts: Dict[str, str] = state.get("active_alerts", {})
 
     next_history: Dict[str, List[Dict[str, Any]]] = {}
-    next_active_alerts: Dict[str, str] = {}
+    next_active_alerts: Dict[str, str] = active_alerts.copy()
 
     alerts_sent = 0
     processed = 0
@@ -531,11 +552,13 @@ def process_once() -> int:
 
         processed += 1
 
-        if signal["level"] in {"FUERTE", "EXTREMA"}:
-            signature = build_signature(obs, signal)
-            next_active_alerts[key] = signature
+        current_signature = build_signature(obs, signal)
 
-            if active_alerts.get(key) != signature:
+        if signal["level"] in {"FUERTE", "EXTREMA"}:
+            previous_signature = active_alerts.get(key)
+
+            # Solo alerta si es un movimiento nuevo
+            if previous_signature != current_signature:
                 msg = build_alert_message(obs, signal)
                 send_telegram_message(msg)
                 alerts_sent += 1
@@ -544,6 +567,12 @@ def process_once() -> int:
                     f"odd={obs.get('best_back_odds')} | "
                     f"score={signal['score']}"
                 )
+
+            next_active_alerts[key] = current_signature
+        else:
+            # Si ya no cumple, liberamos la clave para futuras reapariciones
+            if key in next_active_alerts:
+                del next_active_alerts[key]
 
     save_json(
         STATE_FILE,
