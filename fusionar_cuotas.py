@@ -3,6 +3,7 @@
 # - Mucho más rápido: sin pandas, con cache de normalización, y merge Orbitx (eventId/marketId)
 # - ✅ CORREGIDO: ruta FIJA de watchlist (sin auto-find). Si falta, falla con error claro.
 # - ✅ NUEVO: guarda all_odds por partido con todas las cuotas de todas las casas
+# - ✅ NUEVO: guarda histórico diario en data/historico_cuotas/YYYY-MM-DD.json
 
 import os
 import json
@@ -18,6 +19,10 @@ from equivalencias_equipos import EQUIVALENCIAS_EQUIPOS
 BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 OUT_FILE = os.path.join(DATA_DIR, "cuotas.json")
+
+# ✅ NUEVO: directorio de histórico
+HISTORICO_DIR = os.path.join(DATA_DIR, "historico_cuotas")
+TZ_LOCAL = ZoneInfo("America/Lima")
 
 ARCHIVOS = {
     "oddsapi": os.path.join(DATA_DIR, "cuotas_oddsapi.json"),
@@ -441,6 +446,106 @@ def build_all_odds(grupo):
     out.sort(key=bookmaker_sort_score, reverse=True)
     return out
 
+# ============================================================
+# ✅ HISTÓRICO DIARIO DE CUOTAS
+# ============================================================
+
+def ensure_historico_dir():
+    os.makedirs(HISTORICO_DIR, exist_ok=True)
+
+def build_match_key(fila: dict) -> str:
+    home = (fila.get("home") or "").strip()
+    away = (fila.get("away") or "").strip()
+    if home and away:
+        return f"{home} vs {away}"
+    return fila.get("name") or "partido_sin_nombre"
+
+def compact_snapshot_from_filas(filas: list[dict]) -> dict:
+    """
+    Estructura compacta por snapshot:
+    {
+      "equipo a vs equipo b": {
+        "Liga": ...,
+        "date": ...,
+        "eventId": ...,
+        "marketId": ...,
+        "best_home": {...},
+        "best_draw": {...},
+        "best_away": {...},
+        "all_odds": [...]
+      }
+    }
+    """
+    out = {}
+    for fila in filas:
+        key = build_match_key(fila)
+        out[key] = {
+            "Liga": fila.get("Liga"),
+            "name": fila.get("name"),
+            "home": fila.get("home"),
+            "away": fila.get("away"),
+            "date": fila.get("date"),
+            "eventId": fila.get("eventId"),
+            "marketId": fila.get("marketId"),
+            "best_home": fila.get("best_home"),
+            "best_draw": fila.get("best_draw"),
+            "best_away": fila.get("best_away"),
+            "all_odds": fila.get("all_odds", []),
+        }
+    return out
+
+def guardar_historico_cuotas(filas: list[dict], fuentes_ok: list[str], fuentes_error: list[str]) -> None:
+    """
+    Guarda un solo archivo por día en:
+    data/historico_cuotas/YYYY-MM-DD.json
+
+    Estructura:
+    {
+      "metadata": {...},
+      "HH:MM:SS": { ...snapshot... },
+      "ULTIMO": { ...snapshot... }
+    }
+    """
+    ensure_historico_dir()
+
+    now_local = datetime.now(TZ_LOCAL)
+    fecha_archivo = now_local.strftime("%Y-%m-%d")
+    hora_snapshot = now_local.strftime("%H:%M:%S")
+    path_historico = os.path.join(HISTORICO_DIR, f"{fecha_archivo}.json")
+
+    snapshot = compact_snapshot_from_filas(filas)
+
+    historico = {}
+    if os.path.exists(path_historico):
+        try:
+            with open(path_historico, "r", encoding="utf-8") as f:
+                historico = json.load(f)
+            if not isinstance(historico, dict):
+                historico = {}
+        except Exception:
+            historico = {}
+
+    metadata = historico.get("metadata", {})
+    metadata.update({
+        "date": fecha_archivo,
+        "timezone": "America/Lima",
+        "updated": now_local.strftime("%Y-%m-%d %H:%M:%S"),
+        "fuentes_ok": fuentes_ok,
+        "fuentes_error": fuentes_error,
+    })
+    historico["metadata"] = metadata
+
+    # Guarda snapshot por hora exacta
+    historico[hora_snapshot] = snapshot
+
+    # Mantiene un acceso rápido al último snapshot
+    historico["ULTIMO"] = snapshot
+
+    with open(path_historico, "w", encoding="utf-8") as f:
+        json.dump(historico, f, indent=2, ensure_ascii=False)
+
+    print(f"✔ Histórico actualizado: {path_historico}")
+
 def fusionar_cuotas():
     print("Fusionando con equivalencias externas + similitud (OPTIMIZADO)...")
 
@@ -539,7 +644,7 @@ def fusionar_cuotas():
 
     salida = {
         "metadata": {
-            "updated": datetime.now(ZoneInfo("America/Lima")).strftime("%Y-%m-%d %H:%M:%S"),
+            "updated": datetime.now(TZ_LOCAL).strftime("%Y-%m-%d %H:%M:%S"),
             "fuentes_ok": fuentes_ok,
             "fuentes_error": fuentes_error
         }
@@ -560,6 +665,9 @@ def fusionar_cuotas():
         json.dump(salida, f, indent=2, ensure_ascii=False)
 
     print(f"✔ Archivo actualizado: {OUT_FILE}")
+
+    # ✅ NUEVO: guardar histórico diario
+    guardar_historico_cuotas(filas, fuentes_ok, fuentes_error)
 
 if __name__ == "__main__":
     fusionar_cuotas()
