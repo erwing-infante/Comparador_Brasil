@@ -3,8 +3,9 @@
 
 BOOKMAKERS = [
     "Bet365",
-    "Betsson",
+    "Betsafe",
     "1xbet",
+    "Coolbet",
     "Betcris"
 ]
 
