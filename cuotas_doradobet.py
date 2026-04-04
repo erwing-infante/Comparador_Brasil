@@ -59,7 +59,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Copa de Brasil", "Brasil", "Copa de Brasil"),
     ("Liga MX", "México", "Liga MX"),
     ("MLS", "Estados Unidos", "MLS"),
-    ("Liga 1", "Perú", "Liga 1 Perú"),
+    ("Liga 1 - Perú", "Perú", "Liga 1 Perú"),
     ("Liga de Portugal", "Portugal", "Primeira Liga"),
     ("Liga de Holanda Eredivisie", "Países Bajos", "Eredivisie"),
     ("UEFA Champions League", "Europa", "UEFA Champions League"),
