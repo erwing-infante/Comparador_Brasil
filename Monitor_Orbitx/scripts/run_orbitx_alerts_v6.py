@@ -17,6 +17,7 @@ PROJECT_DIR = SCRIPT_DIR.parent                    # /root/proyectos/Mancorabet/
 MAIN_PROJECT_DIR = PROJECT_DIR.parent             # /root/proyectos/Mancorabet
 
 INPUT_DIR = PROJECT_DIR / "data" / "history"
+WATCHLIST_FILE = PROJECT_DIR / "data" / "watchlists" / "watchlist.json"
 MODEL_FILE = PROJECT_DIR / "models" / "premov_v6_rf.joblib"
 OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v6_all_history.csv"
 STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v6.json"
@@ -131,6 +132,37 @@ def now_pe_str():
 
 
 # ============================================
+# WATCHLIST
+# ============================================
+def load_watchlist(watchlist_path: Path):
+    if not watchlist_path.exists():
+        print(f"⚠️ No existe watchlist.json: {watchlist_path}")
+        return {}
+
+    try:
+        data = json.loads(watchlist_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"⚠️ Error leyendo watchlist.json: {e}")
+        return {}
+
+    if not isinstance(data, list):
+        print("⚠️ watchlist.json no es una lista")
+        return {}
+
+    out = {}
+    for item in data:
+        event_id = str(item.get("eventId", "")).strip()
+        market_id = str(item.get("marketId", "")).strip()
+        if not event_id or not market_id:
+            continue
+        key = (event_id, market_id)
+        out[key] = item
+
+    print(f"✅ watchlist.json cargado: {len(out)} mercados activos")
+    return out
+
+
+# ============================================
 # CUOTAS.JSON
 # ============================================
 def load_cuotas(cuotas_path: Path):
@@ -239,7 +271,7 @@ def build_telegram_message(row, match_data: dict):
 # ============================================
 # PROCESAR CADA CSV DE HISTORY
 # ============================================
-def process_file(file_path: Path, min_odd: float, max_odd: float) -> pd.DataFrame:
+def process_file(file_path: Path, min_odd: float, max_odd: float, active_watchlist: dict) -> pd.DataFrame:
     needed_cols = [
         "ts_pe",
         "start_pe",
@@ -285,7 +317,17 @@ def process_file(file_path: Path, min_odd: float, max_odd: float) -> pd.DataFram
     df["tv_runner"] = pd.to_numeric(df["tv_runner"], errors="coerce")
 
     df["selection"] = df["selection"].astype(str).str.upper().str.strip()
+    df["event_id"] = df["event_id"].astype(str).str.strip()
+    df["market_id"] = df["market_id"].astype(str).str.strip()
 
+    # 1) filtrar por watchlist activa
+    df["watch_key"] = list(zip(df["event_id"], df["market_id"]))
+    df = df[df["watch_key"].isin(active_watchlist.keys())].copy()
+
+    if df.empty:
+        return pd.DataFrame()
+
+    # 2) filtrar cuotas
     df = df[
         df["best_back_odds"].notna() &
         (df["best_back_odds"] >= min_odd) &
@@ -382,7 +424,12 @@ def main():
         print("❌ Faltan SMART_BOT_TOKEN o SMART_BOT_CHAT_ID en orbitx_alerts_v6.env")
         return
 
+    active_watchlist = load_watchlist(WATCHLIST_FILE)
     cuotas_map = load_cuotas(CUOTAS_FILE)
+
+    if not active_watchlist:
+        print("⚠️ Watchlist vacía, no hay mercados activos para evaluar")
+        return
 
     bundle = joblib.load(MODEL_FILE)
     model = bundle["model"]
@@ -398,7 +445,12 @@ def main():
 
     all_parts = []
     for file_path in files:
-        part = process_file(file_path, min_odd=min_odd, max_odd=max_odd)
+        part = process_file(
+            file_path,
+            min_odd=min_odd,
+            max_odd=max_odd,
+            active_watchlist=active_watchlist
+        )
         print(f"✅ {file_path.name} -> filas construidas: {len(part)}")
         if not part.empty:
             all_parts.append(part)
@@ -483,15 +535,11 @@ def main():
 # LOOP
 # ============================================
 if __name__ == "__main__":
-    env = {}  # dummy visible scope
+    interval_sec = DEFAULT_CHECK_INTERVAL_SEC
+
     while True:
         try:
-            env = {
-                "SMART_BOT_TOKEN": env_str("SMART_BOT_TOKEN", ""),
-                "SMART_BOT_CHAT_ID": env_str("SMART_BOT_CHAT_ID", ""),
-            }
             interval_sec = env_int("ORBITX_ALERTS_INTERVAL_SEC", DEFAULT_CHECK_INTERVAL_SEC)
-
             print("==================================================")
             print(f"Iniciando ciclo: {now_pe_str()} (Perú)")
             main()
