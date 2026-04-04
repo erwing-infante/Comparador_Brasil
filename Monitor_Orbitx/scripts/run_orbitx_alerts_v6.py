@@ -1,6 +1,10 @@
+import csv
 import json
 import os
+import re
 import time
+import unicodedata
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -16,11 +20,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent                    # /root/proyectos/Mancorabet/Monitor_Orbitx
 MAIN_PROJECT_DIR = PROJECT_DIR.parent             # /root/proyectos/Mancorabet
 
-INPUT_DIR = PROJECT_DIR / "data" / "history"
+HISTORY_DIR = PROJECT_DIR / "data" / "history"
 WATCHLIST_FILE = PROJECT_DIR / "data" / "watchlists" / "watchlist.json"
+SNAPSHOT_FILE = PROJECT_DIR / "data" / "snapshot.json"
 MODEL_FILE = PROJECT_DIR / "models" / "premov_v6_rf.joblib"
-OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v6_all_history.csv"
-STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v6.json"
+OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v7.csv"
+STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v7.json"
 CUOTAS_FILE = MAIN_PROJECT_DIR / "data" / "cuotas.json"
 
 TZ_PE = ZoneInfo("America/Lima")
@@ -43,6 +48,19 @@ MARKET_LABELS = {
     "DRAW": "EMPATE",
     "AWAY": "VISITA"
 }
+
+FEATURES_EXPECTED = [
+    "odd",
+    "pressure",
+    "spread",
+    "acceleration",
+    "tv_acceleration",
+    "pressure_ratio",
+    "drop_velocity",
+    "rank_odds",
+]
+
+SNAPSHOT_GENERATED_AT = None
 
 # ============================================
 # ENV HELPERS
@@ -68,6 +86,15 @@ def env_int(name: str, default: int) -> int:
 # ============================================
 # HELPERS GENERALES
 # ============================================
+def normalize_slug(text: str) -> str:
+    text = unicodedata.normalize("NFKD", str(text))
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    text = re.sub(r"_+", "_", text).strip("_")
+    return text
+
+
 def pct_drop(old, new):
     if pd.isna(old) or pd.isna(new) or old == 0:
         return None
@@ -127,8 +154,41 @@ def parse_utc_to_pe(date_str: str):
         return None
 
 
+def parse_iso_dt(value: str):
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
 def now_pe_str():
     return datetime.now(TZ_PE).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
+    """
+    Detecta si la última fila del history es el mismo estado que el snapshot.
+    Comparamos por ts_pe y odd principalmente.
+    """
+    cur_ts = str(cur.get("snapshot_ts", "")).strip()
+    hist_ts = str(hist_row.get("ts_pe", "")).strip()
+
+    cur_odd = pd.to_numeric(cur.get("odd"), errors="coerce")
+    hist_odd = pd.to_numeric(hist_row.get("odd"), errors="coerce")
+
+    if cur_ts and hist_ts and cur_ts == hist_ts:
+        return True
+
+    if pd.notna(cur_odd) and pd.notna(hist_odd):
+        if abs(float(cur_odd) - float(hist_odd)) < 1e-9 and cur_ts and hist_ts:
+            # si la cuota coincide y el timestamp está muy cerca, también lo consideramos duplicado
+            cur_dt = parse_iso_dt(cur_ts)
+            hist_dt = parse_iso_dt(hist_ts)
+            if cur_dt and hist_dt:
+                if abs((cur_dt - hist_dt).total_seconds()) <= 2:
+                    return True
+
+    return False
 
 
 # ============================================
@@ -155,11 +215,35 @@ def load_watchlist(watchlist_path: Path):
         market_id = str(item.get("marketId", "")).strip()
         if not event_id or not market_id:
             continue
-        key = (event_id, market_id)
-        out[key] = item
+        out[(event_id, market_id)] = item
 
     print(f"✅ watchlist.json cargado: {len(out)} mercados activos")
     return out
+
+
+# ============================================
+# SNAPSHOT
+# ============================================
+def load_snapshot(snapshot_path: Path):
+    if not snapshot_path.exists():
+        print(f"⚠️ No existe snapshot.json: {snapshot_path}")
+        return [], None
+
+    try:
+        data = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"⚠️ Error leyendo snapshot.json: {e}")
+        return [], None
+
+    markets = data.get("markets", [])
+    generated_at = data.get("generated_at")
+
+    if not isinstance(markets, list):
+        print("⚠️ snapshot.json no tiene 'markets' válido")
+        return [], generated_at
+
+    print(f"✅ snapshot.json cargado: {len(markets)} mercados")
+    return markets, generated_at
 
 
 # ============================================
@@ -186,9 +270,8 @@ def load_cuotas(cuotas_path: Path):
 
         for item in matches:
             event_id = str(item.get("eventId", "")).strip()
-            if not event_id:
-                continue
-            event_map[event_id] = item
+            if event_id:
+                event_map[event_id] = item
 
     print(f"✅ cuotas.json cargado: {len(event_map)} eventos indexados")
     return event_map
@@ -221,7 +304,7 @@ def build_telegram_message(row, match_data: dict):
     market_code = str(row.market_type).upper()
     market_label = MARKET_LABELS.get(market_code, market_code)
 
-    liga = match_data.get("Liga", row.liga if hasattr(row, "liga") else "-")
+    liga = match_data.get("Liga", row.liga)
     partido = match_data.get("name", row.event_name)
 
     dt_pe = parse_utc_to_pe(match_data.get("date", ""))
@@ -269,134 +352,199 @@ def build_telegram_message(row, match_data: dict):
 
 
 # ============================================
-# PROCESAR CADA CSV DE HISTORY
+# UNIVERSO ACTIVO
 # ============================================
-def process_file(file_path: Path, min_odd: float, max_odd: float, active_watchlist: dict) -> pd.DataFrame:
-    needed_cols = [
-        "ts_pe",
-        "start_pe",
-        "liga",
-        "market_id",
-        "event_id",
-        "event_name",
-        "selection",
-        "selection_id",
-        "selection_name",
-        "best_back_odds",
-        "best_back_amt",
-        "best_lay_odds",
-        "best_lay_amt",
-        "spread",
-        "sum_back_top3",
-        "sum_lay_top3",
-        "blpr",
-        "tv_runner"
-    ]
-
-    try:
-        df = pd.read_csv(file_path, low_memory=False)
-    except Exception as e:
-        print(f"⚠️ Error leyendo {file_path.name}: {e}")
-        return pd.DataFrame()
-
-    missing = [c for c in needed_cols if c not in df.columns]
-    if missing:
-        print(f"⚠️ {file_path.name} sin columnas necesarias: {missing}")
-        return pd.DataFrame()
-
-    df = df[needed_cols].copy()
-
-    df["best_back_odds"] = pd.to_numeric(df["best_back_odds"], errors="coerce")
-    df["best_back_amt"] = pd.to_numeric(df["best_back_amt"], errors="coerce")
-    df["best_lay_odds"] = pd.to_numeric(df["best_lay_odds"], errors="coerce")
-    df["best_lay_amt"] = pd.to_numeric(df["best_lay_amt"], errors="coerce")
-    df["spread"] = pd.to_numeric(df["spread"], errors="coerce")
-    df["sum_back_top3"] = pd.to_numeric(df["sum_back_top3"], errors="coerce")
-    df["sum_lay_top3"] = pd.to_numeric(df["sum_lay_top3"], errors="coerce")
-    df["blpr"] = pd.to_numeric(df["blpr"], errors="coerce")
-    df["tv_runner"] = pd.to_numeric(df["tv_runner"], errors="coerce")
-
-    df["selection"] = df["selection"].astype(str).str.upper().str.strip()
-    df["event_id"] = df["event_id"].astype(str).str.strip()
-    df["market_id"] = df["market_id"].astype(str).str.strip()
-
-    # 1) filtrar por watchlist activa
-    df["watch_key"] = list(zip(df["event_id"], df["market_id"]))
-    df = df[df["watch_key"].isin(active_watchlist.keys())].copy()
-
-    if df.empty:
-        return pd.DataFrame()
-
-    # 2) filtrar cuotas
-    df = df[
-        df["best_back_odds"].notna() &
-        (df["best_back_odds"] >= min_odd) &
-        (df["best_back_odds"] <= max_odd)
-    ].copy()
-
-    if df.empty:
-        return pd.DataFrame()
-
-    df = df.sort_values(["event_id", "market_id", "selection_id", "ts_pe"]).reset_index(drop=True)
-
+def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_odd, snapshot_generated_at):
     rows = []
 
-    for (_, _), g_event in df.groupby(["event_id", "market_id"], sort=False):
-        g_event = g_event.copy()
-        g_event["rank_odds"] = g_event.groupby("ts_pe")["best_back_odds"].rank(method="average")
+    for market in markets:
+        event_id = str(market.get("eventId", "")).strip()
+        market_id = str(market.get("marketId", "")).strip()
+        key = (event_id, market_id)
 
-        for (_, _), g in g_event.groupby(["market_id", "selection_id"], sort=False):
-            g = g.reset_index(drop=True)
+        if key not in watchlist_map:
+            continue
 
-            if len(g) < 3:
+        # regla del usuario: si no está en cuotas.json, no alertar
+        if event_id not in cuotas_map:
+            continue
+
+        runners = market.get("runners", {})
+        if not isinstance(runners, dict) or not runners:
+            continue
+
+        runner_items = []
+        for selection_id, r in runners.items():
+            odd = pd.to_numeric(r.get("best_back_odds"), errors="coerce")
+            if pd.isna(odd):
                 continue
+            if odd < min_odd or odd > max_odd:
+                continue
+            runner_items.append((str(selection_id), float(odd), r))
 
-            cur = g.iloc[-1]
-            p1 = g.iloc[-2]
-            p2 = g.iloc[-3]
+        if not runner_items:
+            continue
 
-            d1 = cur["best_back_odds"] - p1["best_back_odds"]
-            d2 = p1["best_back_odds"] - p2["best_back_odds"]
-            acceleration = d1 - d2
+        sorted_odds = sorted([odd for _, odd, _ in runner_items])
 
-            tv1 = cur["tv_runner"] - p1["tv_runner"]
-            tv2 = p1["tv_runner"] - p2["tv_runner"]
-            tv_acceleration = tv1 - tv2
-
-            pressure_ratio = safe_div(cur["blpr"], p1["blpr"])
-
-            drop1 = pct_drop(p1["best_back_odds"], cur["best_back_odds"])
-            drop2 = pct_drop(p2["best_back_odds"], cur["best_back_odds"])
-            drop_velocity = None
-            if drop1 is not None and drop2 is not None:
-                drop_velocity = drop1 - drop2
+        for selection_id, odd, r in runner_items:
+            selection = str(r.get("selection", "")).upper().strip()
+            rank_odds = sorted_odds.index(odd) + 1
 
             rows.append({
-                "source_file": file_path.name,
-                "ts_pe": cur["ts_pe"],
-                "start_pe": cur["start_pe"],
-                "liga": cur["liga"],
-                "event_id": str(cur["event_id"]),
-                "event_name": cur["event_name"],
-                "market_id": str(cur["market_id"]),
-                "market_type": str(cur["selection"]).upper(),
-                "selection_id": str(cur["selection_id"]),
-                "selection_name": cur["selection_name"],
-                "odd": cur["best_back_odds"],
-                "pressure": cur["blpr"],
-                "spread": cur["spread"],
-                "acceleration": acceleration,
-                "tv_acceleration": tv_acceleration,
-                "pressure_ratio": pressure_ratio,
-                "drop_velocity": drop_velocity,
-                "rank_odds": cur["rank_odds"]
+                "liga": market.get("liga", watchlist_map[key].get("Liga", "-")),
+                "ts_pe": snapshot_generated_at,
+                "snapshot_ts": snapshot_generated_at,
+                "event_id": event_id,
+                "event_name": market.get("eventName", watchlist_map[key].get("eventName", "-")),
+                "market_id": market_id,
+                "market_type": selection,
+                "selection_id": str(selection_id),
+                "selection_name": r.get("name", f"SEL_{selection_id}"),
+                "odd": float(odd),
+                "pressure": pd.to_numeric(r.get("blpr"), errors="coerce"),
+                "spread": pd.to_numeric(r.get("spread"), errors="coerce"),
+                "tv_runner": pd.to_numeric(r.get("tv_runner"), errors="coerce"),
+                "rank_odds": rank_odds,
+                "start_pe": market.get("start_pe", ""),
             })
 
-    return pd.DataFrame(rows)
+    return rows
 
 
 # ============================================
-# CICLO PRINCIPAL
+# HISTORY LOOKUP (SOLO 2 PREVIOS ÚTILES)
+# ============================================
+def history_file_for_liga(liga: str) -> Path:
+    slug = normalize_slug(liga)
+    return HISTORY_DIR / f"orbitx_{slug}.csv"
+
+
+def build_needed_keys_by_file(snapshot_rows):
+    needed = defaultdict(set)
+    for row in snapshot_rows:
+        path = history_file_for_liga(row["liga"])
+        key = (row["event_id"], row["market_id"], row["selection_id"])
+        needed[path].add(key)
+    return needed
+
+
+def load_recent_rows_for_needed_keys(needed_by_file):
+    """
+    Escanea cada csv solo una vez y guarda las últimas 4 filas por key.
+    Guardar 4 nos permite:
+    - si la última coincide con snapshot -> usar -2 y -3
+    - si no coincide -> usar -1 y -2
+    """
+    recent_map = {k: deque(maxlen=4) for keys in needed_by_file.values() for k in keys}
+
+    for file_path, needed_keys in needed_by_file.items():
+        if not file_path.exists():
+            print(f"⚠️ No existe history file: {file_path.name}")
+            continue
+
+        print(f"📄 Escaneando history: {file_path.name} | keys activas: {len(needed_keys)}")
+
+        with file_path.open("r", encoding="utf-8", errors="ignore", newline="") as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                event_id = str(row.get("event_id", "")).strip()
+                market_id = str(row.get("market_id", "")).strip()
+                selection_id = str(row.get("selection_id", "")).strip()
+                key = (event_id, market_id, selection_id)
+
+                if key not in needed_keys:
+                    continue
+
+                recent_map[key].append({
+                    "ts_pe": row.get("ts_pe", ""),
+                    "odd": pd.to_numeric(row.get("best_back_odds"), errors="coerce"),
+                    "pressure": pd.to_numeric(row.get("blpr"), errors="coerce"),
+                    "spread": pd.to_numeric(row.get("spread"), errors="coerce"),
+                    "tv_runner": pd.to_numeric(row.get("tv_runner"), errors="coerce"),
+                })
+
+    return recent_map
+
+
+# ============================================
+# FEATURE BUILD
+# ============================================
+def pick_prev_rows(cur: dict, history_rows: list):
+    """
+    Implementación exacta pedida por el usuario:
+    - cur = snapshot
+    - si history[-1] coincide con snapshot -> p1=history[-2], p2=history[-3]
+    - si no coincide -> p1=history[-1], p2=history[-2]
+    """
+    if len(history_rows) < 2:
+        return None, None
+
+    rows = list(history_rows)
+
+    if len(rows) >= 3 and same_snapshot_as_history(cur, rows[-1]):
+        return rows[-2], rows[-3]
+
+    return rows[-1], rows[-2] if len(rows) >= 2 else (None, None)
+
+
+def build_feature_rows(snapshot_rows, recent_map):
+    rows = []
+
+    for cur in snapshot_rows:
+        key = (cur["event_id"], cur["market_id"], cur["selection_id"])
+        history_rows = list(recent_map.get(key, deque()))
+
+        if len(history_rows) < 2:
+            continue
+
+        p1, p2 = pick_prev_rows(cur, history_rows)
+        if p1 is None or p2 is None:
+            continue
+
+        d1 = cur["odd"] - p1["odd"]
+        d2 = p1["odd"] - p2["odd"]
+        acceleration = d1 - d2
+
+        tv1 = cur["tv_runner"] - p1["tv_runner"]
+        tv2 = p1["tv_runner"] - p2["tv_runner"]
+        tv_acceleration = tv1 - tv2
+
+        pressure_ratio = safe_div(cur["pressure"], p1["pressure"])
+
+        drop1 = pct_drop(p1["odd"], cur["odd"])
+        drop2 = pct_drop(p2["odd"], cur["odd"])
+        drop_velocity = None
+        if drop1 is not None and drop2 is not None:
+            drop_velocity = drop1 - drop2
+
+        row = {
+            "liga": cur["liga"],
+            "ts_pe": cur["ts_pe"],
+            "start_pe": cur["start_pe"],
+            "event_id": cur["event_id"],
+            "event_name": cur["event_name"],
+            "market_id": cur["market_id"],
+            "market_type": cur["market_type"],
+            "selection_id": cur["selection_id"],
+            "selection_name": cur["selection_name"],
+            "odd": cur["odd"],
+            "pressure": cur["pressure"],
+            "spread": cur["spread"],
+            "acceleration": acceleration,
+            "tv_acceleration": tv_acceleration,
+            "pressure_ratio": pressure_ratio,
+            "drop_velocity": drop_velocity,
+            "rank_odds": cur["rank_odds"],
+        }
+        rows.append(row)
+
+    return rows
+
+
+# ============================================
+# MAIN
 # ============================================
 def main():
     threshold_alert = env_float("ORBITX_ALERTS_THRESHOLD", DEFAULT_THRESHOLD_ALERT)
@@ -424,46 +572,54 @@ def main():
         print("❌ Faltan SMART_BOT_TOKEN o SMART_BOT_CHAT_ID en orbitx_alerts_v6.env")
         return
 
-    active_watchlist = load_watchlist(WATCHLIST_FILE)
+    watchlist_map = load_watchlist(WATCHLIST_FILE)
     cuotas_map = load_cuotas(CUOTAS_FILE)
+    snapshot_markets, snapshot_generated_at = load_snapshot(SNAPSHOT_FILE)
 
-    if not active_watchlist:
-        print("⚠️ Watchlist vacía, no hay mercados activos para evaluar")
+    if not watchlist_map:
+        print("⚠️ Watchlist vacía")
         return
+
+    if not snapshot_markets:
+        print("⚠️ Snapshot vacío")
+        return
+
+    if not snapshot_generated_at:
+        snapshot_generated_at = now_pe_str()
 
     bundle = joblib.load(MODEL_FILE)
     model = bundle["model"]
     features = bundle["features"]
 
     print(f"✅ Modelo cargado: {MODEL_FILE}")
-    print(f"📂 Leyendo history desde: {INPUT_DIR}")
+    print(f"📂 Universo: watchlist ∩ cuotas ∩ snapshot")
 
-    files = sorted(INPUT_DIR.glob("*.csv"))
-    if not files:
-        print(f"❌ No se encontraron CSV en {INPUT_DIR}")
+    snapshot_rows = build_active_snapshot_rows(
+        snapshot_markets,
+        watchlist_map=watchlist_map,
+        cuotas_map=cuotas_map,
+        min_odd=min_odd,
+        max_odd=max_odd,
+        snapshot_generated_at=snapshot_generated_at
+    )
+
+    if not snapshot_rows:
+        print("⚠️ No hay selecciones snapshot válidas tras filtros base")
         return
 
-    all_parts = []
-    for file_path in files:
-        part = process_file(
-            file_path,
-            min_odd=min_odd,
-            max_odd=max_odd,
-            active_watchlist=active_watchlist
-        )
-        print(f"✅ {file_path.name} -> filas construidas: {len(part)}")
-        if not part.empty:
-            all_parts.append(part)
+    needed_by_file = build_needed_keys_by_file(snapshot_rows)
+    recent_map = load_recent_rows_for_needed_keys(needed_by_file)
 
-    if not all_parts:
-        print("❌ No se pudo construir ninguna fila para scoring")
+    feature_rows = build_feature_rows(snapshot_rows, recent_map)
+    if not feature_rows:
+        print("⚠️ No se pudieron construir features (faltan previos útiles)")
         return
 
-    score_df = pd.concat(all_parts, ignore_index=True)
+    score_df = pd.DataFrame(feature_rows)
     score_df = score_df.dropna(subset=features).copy()
 
     if score_df.empty:
-        print("❌ No quedaron filas válidas tras dropna")
+        print("⚠️ No quedaron filas válidas tras dropna(features)")
         return
 
     score_df["proba_fall"] = model.predict_proba(score_df[features])[:, 1]
@@ -482,9 +638,7 @@ def main():
         pd.DataFrame().to_csv(OUTPUT_FILE, index=False)
         return
 
-    score_df["is_alert"] = 1
     score_df["alert_key"] = score_df.apply(build_alert_key, axis=1)
-
     score_df = score_df.sort_values(
         ["proba_fall", "tv_acceleration", "acceleration", "event_name"],
         ascending=[False, False, False, True]
@@ -497,6 +651,8 @@ def main():
 
     new_alerts = score_df[~score_df["alert_key"].isin(sent_keys)].copy()
 
+    print(f"📊 Snapshot rows activas: {len(snapshot_rows)}")
+    print(f"📊 Features válidas: {len(pd.DataFrame(feature_rows))}")
     print(f"📊 Alertas operables actuales: {len(score_df)}")
     print(f"🆕 Alertas nuevas a enviar: {len(new_alerts)}")
 
@@ -509,7 +665,7 @@ def main():
     for row in new_alerts.itertuples(index=False):
         match_data = cuotas_map.get(str(row.event_id))
         if not match_data:
-            print(f"⚠️ No se encontró eventId {row.event_id} en cuotas.json")
+            print(f"⚠️ Skip sin cuotas.json: {row.event_id}")
             continue
 
         msg = build_telegram_message(row, match_data)
