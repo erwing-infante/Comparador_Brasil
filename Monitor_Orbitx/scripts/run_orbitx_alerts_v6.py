@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,27 +20,22 @@ INPUT_DIR = PROJECT_DIR / "data" / "history"
 MODEL_FILE = PROJECT_DIR / "models" / "premov_v6_rf.joblib"
 OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v6_all_history.csv"
 STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v6.json"
-ENV_FILE = PROJECT_DIR / ".env"
 CUOTAS_FILE = MAIN_PROJECT_DIR / "data" / "cuotas.json"
 
 TZ_PE = ZoneInfo("America/Lima")
 
 # ============================================
-# CONFIG
+# DEFAULT CONFIG
 # ============================================
-CHECK_INTERVAL_SEC = 30
-
-THRESHOLD_ALERT = 0.45
-MIN_PROBA_TO_SEND = 0.45
-
-MIN_ODD = 1.30
-MAX_ODD = 14.00
-
-MIN_ABS_TV_ACCELERATION = 500
-MIN_ABS_ACCELERATION = 0.05
-MAX_SPREAD = 0.10
-
-MAX_STATE_KEYS = 5000
+DEFAULT_CHECK_INTERVAL_SEC = 30
+DEFAULT_THRESHOLD_ALERT = 0.45
+DEFAULT_MIN_PROBA_TO_SEND = 0.45
+DEFAULT_MIN_ODD = 1.30
+DEFAULT_MAX_ODD = 14.00
+DEFAULT_MIN_ABS_TV_ACCELERATION = 500.0
+DEFAULT_MIN_ABS_ACCELERATION = 0.05
+DEFAULT_MAX_SPREAD = 0.10
+DEFAULT_MAX_STATE_KEYS = 5000
 
 MARKET_LABELS = {
     "HOME": "LOCAL",
@@ -48,22 +44,29 @@ MARKET_LABELS = {
 }
 
 # ============================================
+# ENV HELPERS
+# ============================================
+def env_str(name: str, default: str = "") -> str:
+    return os.getenv(name, default).strip()
+
+
+def env_float(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)).strip())
+    except Exception:
+        return default
+
+
+def env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)).strip())
+    except Exception:
+        return default
+
+
+# ============================================
 # HELPERS GENERALES
 # ============================================
-def load_env(env_path: Path):
-    env = {}
-    if not env_path.exists():
-        return env
-
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, v = line.split("=", 1)
-        env[k.strip()] = v.strip().strip('"').strip("'")
-    return env
-
-
 def pct_drop(old, new):
     if pd.isna(old) or pd.isna(new) or old == 0:
         return None
@@ -186,7 +189,7 @@ def build_telegram_message(row, match_data: dict):
     market_code = str(row.market_type).upper()
     market_label = MARKET_LABELS.get(market_code, market_code)
 
-    liga = match_data.get("Liga", "-")
+    liga = match_data.get("Liga", row.liga if hasattr(row, "liga") else "-")
     partido = match_data.get("name", row.event_name)
 
     dt_pe = parse_utc_to_pe(match_data.get("date", ""))
@@ -236,7 +239,7 @@ def build_telegram_message(row, match_data: dict):
 # ============================================
 # PROCESAR CADA CSV DE HISTORY
 # ============================================
-def process_file(file_path: Path) -> pd.DataFrame:
+def process_file(file_path: Path, min_odd: float, max_odd: float) -> pd.DataFrame:
     needed_cols = [
         "ts_pe",
         "start_pe",
@@ -285,8 +288,8 @@ def process_file(file_path: Path) -> pd.DataFrame:
 
     df = df[
         df["best_back_odds"].notna() &
-        (df["best_back_odds"] >= MIN_ODD) &
-        (df["best_back_odds"] <= MAX_ODD)
+        (df["best_back_odds"] >= min_odd) &
+        (df["best_back_odds"] <= max_odd)
     ].copy()
 
     if df.empty:
@@ -354,23 +357,36 @@ def process_file(file_path: Path) -> pd.DataFrame:
 # CICLO PRINCIPAL
 # ============================================
 def main():
+    threshold_alert = env_float("ORBITX_ALERTS_THRESHOLD", DEFAULT_THRESHOLD_ALERT)
+    min_proba_to_send = env_float("ORBITX_ALERTS_MIN_PROBA", DEFAULT_MIN_PROBA_TO_SEND)
+    min_odd = env_float("ORBITX_ALERTS_MIN_ODD", DEFAULT_MIN_ODD)
+    max_odd = env_float("ORBITX_ALERTS_MAX_ODD", DEFAULT_MAX_ODD)
+    min_abs_tv_acceleration = env_float("ORBITX_ALERTS_MIN_TV_ACCEL", DEFAULT_MIN_ABS_TV_ACCELERATION)
+    min_abs_acceleration = env_float("ORBITX_ALERTS_MIN_ACCEL", DEFAULT_MIN_ABS_ACCELERATION)
+    max_spread = env_float("ORBITX_ALERTS_MAX_SPREAD", DEFAULT_MAX_SPREAD)
+    max_state_keys = env_int("ORBITX_ALERTS_MAX_STATE_KEYS", DEFAULT_MAX_STATE_KEYS)
+
+    telegram_token = env_str("SMART_BOT_TOKEN", "")
+    chat_ids = [
+        env_str("SMART_BOT_CHAT_ID", ""),
+        env_str("SMART_BOT_CHAT_ID_2", ""),
+        env_str("SMART_BOT_CHAT_ID_3", ""),
+    ]
+    chat_ids = [c for c in chat_ids if c]
+
     if not MODEL_FILE.exists():
         print(f"❌ No existe el modelo: {MODEL_FILE}")
         return
 
-    env = load_env(ENV_FILE)
-    telegram_token = env.get("TELEGRAM_BOT_TOKEN", "")
-    telegram_chat_id = env.get("TELEGRAM_CHAT_ID", "")
-
-    if not telegram_token or not telegram_chat_id:
-        print("❌ Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID en .env")
+    if not telegram_token or not chat_ids:
+        print("❌ Faltan SMART_BOT_TOKEN o SMART_BOT_CHAT_ID en orbitx_alerts_v6.env")
         return
 
     cuotas_map = load_cuotas(CUOTAS_FILE)
 
     bundle = joblib.load(MODEL_FILE)
     model = bundle["model"]
-    FEATURES = bundle["features"]
+    features = bundle["features"]
 
     print(f"✅ Modelo cargado: {MODEL_FILE}")
     print(f"📂 Leyendo history desde: {INPUT_DIR}")
@@ -382,7 +398,7 @@ def main():
 
     all_parts = []
     for file_path in files:
-        part = process_file(file_path)
+        part = process_file(file_path, min_odd=min_odd, max_odd=max_odd)
         print(f"✅ {file_path.name} -> filas construidas: {len(part)}")
         if not part.empty:
             all_parts.append(part)
@@ -392,21 +408,21 @@ def main():
         return
 
     score_df = pd.concat(all_parts, ignore_index=True)
-    score_df = score_df.dropna(subset=FEATURES).copy()
+    score_df = score_df.dropna(subset=features).copy()
 
     if score_df.empty:
         print("❌ No quedaron filas válidas tras dropna")
         return
 
-    score_df["proba_fall"] = model.predict_proba(score_df[FEATURES])[:, 1]
-    score_df["is_alert_model"] = (score_df["proba_fall"] >= THRESHOLD_ALERT).astype(int)
+    score_df["proba_fall"] = model.predict_proba(score_df[features])[:, 1]
+    score_df["is_alert_model"] = (score_df["proba_fall"] >= threshold_alert).astype(int)
 
     score_df = score_df[
         (score_df["is_alert_model"] == 1) &
-        (score_df["proba_fall"] >= MIN_PROBA_TO_SEND) &
-        (score_df["tv_acceleration"].abs() > MIN_ABS_TV_ACCELERATION) &
-        (score_df["acceleration"].abs() > MIN_ABS_ACCELERATION) &
-        (score_df["spread"] <= MAX_SPREAD)
+        (score_df["proba_fall"] >= min_proba_to_send) &
+        (score_df["tv_acceleration"].abs() > min_abs_tv_acceleration) &
+        (score_df["acceleration"].abs() > min_abs_acceleration) &
+        (score_df["spread"] <= max_spread)
     ].copy()
 
     if score_df.empty:
@@ -447,14 +463,15 @@ def main():
         msg = build_telegram_message(row, match_data)
 
         try:
-            send_telegram(telegram_token, telegram_chat_id, msg)
+            for chat_id in chat_ids:
+                send_telegram(telegram_token, chat_id, msg)
             sent_keys.add(row.alert_key)
             sent_now += 1
             print(f"📨 Enviado: {row.event_name} | {row.market_type} | {row.odd}")
         except Exception as e:
             print(f"⚠️ Error enviando alerta: {e}")
 
-    state["sent_keys"] = sorted(sent_keys)[-MAX_STATE_KEYS:]
+    state["sent_keys"] = sorted(sent_keys)[-max_state_keys:]
     save_state(STATE_FILE, state)
 
     print(f"✅ Estado actualizado en: {STATE_FILE}")
@@ -466,13 +483,20 @@ def main():
 # LOOP
 # ============================================
 if __name__ == "__main__":
+    env = {}  # dummy visible scope
     while True:
         try:
+            env = {
+                "SMART_BOT_TOKEN": env_str("SMART_BOT_TOKEN", ""),
+                "SMART_BOT_CHAT_ID": env_str("SMART_BOT_CHAT_ID", ""),
+            }
+            interval_sec = env_int("ORBITX_ALERTS_INTERVAL_SEC", DEFAULT_CHECK_INTERVAL_SEC)
+
             print("==================================================")
             print(f"Iniciando ciclo: {now_pe_str()} (Perú)")
             main()
         except Exception as e:
             print(f"❌ Error en ciclo principal: {e}")
 
-        print(f"⏳ Esperando {CHECK_INTERVAL_SEC} segundos...\n")
-        time.sleep(CHECK_INTERVAL_SEC)
+        print(f"⏳ Esperando {interval_sec} segundos...\n")
+        time.sleep(interval_sec)
