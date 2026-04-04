@@ -1,10 +1,6 @@
-import csv
 import json
 import os
-import re
 import time
-import unicodedata
-from collections import defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -17,21 +13,21 @@ import requests
 # PATHS
 # ============================================
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = SCRIPT_DIR.parent                    # /root/proyectos/Mancorabet/Monitor_Orbitx
-MAIN_PROJECT_DIR = PROJECT_DIR.parent             # /root/proyectos/Mancorabet
+PROJECT_DIR = SCRIPT_DIR.parent
+MAIN_PROJECT_DIR = PROJECT_DIR.parent
 
-HISTORY_DIR = PROJECT_DIR / "data" / "history"
 WATCHLIST_FILE = PROJECT_DIR / "data" / "watchlists" / "watchlist.json"
 SNAPSHOT_FILE = PROJECT_DIR / "data" / "snapshot.json"
+INDEX_FILE = PROJECT_DIR / "data" / "history_recent_index.json"
 MODEL_FILE = PROJECT_DIR / "models" / "premov_v6_rf.joblib"
-OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v7.csv"
-STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v7.json"
+OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v7_1.csv"
+STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v7_1.json"
 CUOTAS_FILE = MAIN_PROJECT_DIR / "data" / "cuotas.json"
 
 TZ_PE = ZoneInfo("America/Lima")
 
 # ============================================
-# DEFAULT CONFIG
+# CONFIG DEFAULTS
 # ============================================
 DEFAULT_CHECK_INTERVAL_SEC = 30
 DEFAULT_THRESHOLD_ALERT = 0.45
@@ -49,25 +45,11 @@ MARKET_LABELS = {
     "AWAY": "VISITA"
 }
 
-FEATURES_EXPECTED = [
-    "odd",
-    "pressure",
-    "spread",
-    "acceleration",
-    "tv_acceleration",
-    "pressure_ratio",
-    "drop_velocity",
-    "rank_odds",
-]
-
-SNAPSHOT_GENERATED_AT = None
-
 # ============================================
-# ENV HELPERS
+# ENV
 # ============================================
 def env_str(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
-
 
 def env_float(name: str, default: float) -> float:
     try:
@@ -75,41 +57,50 @@ def env_float(name: str, default: float) -> float:
     except Exception:
         return default
 
-
 def env_int(name: str, default: int) -> int:
     try:
         return int(os.getenv(name, str(default)).strip())
     except Exception:
         return default
 
-
 # ============================================
-# HELPERS GENERALES
+# HELPERS
 # ============================================
-def normalize_slug(text: str) -> str:
-    text = unicodedata.normalize("NFKD", str(text))
-    text = "".join(c for c in text if not unicodedata.combining(c))
-    text = text.lower().strip()
-    text = re.sub(r"[^a-z0-9]+", "_", text)
-    text = re.sub(r"_+", "_", text).strip("_")
-    return text
-
-
 def pct_drop(old, new):
     if pd.isna(old) or pd.isna(new) or old == 0:
         return None
     return (old - new) / old * 100.0
-
 
 def safe_div(a, b):
     if pd.isna(a) or pd.isna(b) or b == 0:
         return None
     return a / b
 
+def fmt_num(x, nd=2, default="-"):
+    if x is None or pd.isna(x):
+        return default
+    return f"{float(x):.{nd}f}"
 
 def build_alert_key(row):
     return f"{row['event_id']}|{row['market_id']}|{row['selection_id']}|{row['ts_pe']}"
 
+def parse_iso_dt(value: str):
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+def parse_utc_to_pe(date_str: str):
+    if not date_str:
+        return None
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M UTC").replace(tzinfo=timezone.utc)
+        return dt.astimezone(TZ_PE)
+    except Exception:
+        return None
+
+def now_pe_str():
+    return datetime.now(TZ_PE).strftime("%Y-%m-%d %H:%M:%S")
 
 def load_state(path: Path):
     if not path.exists():
@@ -119,10 +110,8 @@ def load_state(path: Path):
     except Exception:
         return {"sent_keys": []}
 
-
 def save_state(path: Path, state: dict):
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-
 
 def send_telegram(bot_token: str, chat_id: str, text: str):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -137,146 +126,73 @@ def send_telegram(bot_token: str, chat_id: str, text: str):
     )
     resp.raise_for_status()
 
-
-def fmt_num(x, nd=2, default="-"):
-    if x is None or pd.isna(x):
-        return default
-    return f"{float(x):.{nd}f}"
-
-
-def parse_utc_to_pe(date_str: str):
-    if not date_str:
-        return None
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M UTC").replace(tzinfo=timezone.utc)
-        return dt.astimezone(TZ_PE)
-    except Exception:
-        return None
-
-
-def parse_iso_dt(value: str):
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except Exception:
-        return None
-
-
-def now_pe_str():
-    return datetime.now(TZ_PE).strftime("%Y-%m-%d %H:%M:%S")
-
-
-def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
-    """
-    Detecta si la última fila del history es el mismo estado que el snapshot.
-    Comparamos por ts_pe y odd principalmente.
-    """
-    cur_ts = str(cur.get("snapshot_ts", "")).strip()
-    hist_ts = str(hist_row.get("ts_pe", "")).strip()
-
-    cur_odd = pd.to_numeric(cur.get("odd"), errors="coerce")
-    hist_odd = pd.to_numeric(hist_row.get("odd"), errors="coerce")
-
-    if cur_ts and hist_ts and cur_ts == hist_ts:
-        return True
-
-    if pd.notna(cur_odd) and pd.notna(hist_odd):
-        if abs(float(cur_odd) - float(hist_odd)) < 1e-9 and cur_ts and hist_ts:
-            # si la cuota coincide y el timestamp está muy cerca, también lo consideramos duplicado
-            cur_dt = parse_iso_dt(cur_ts)
-            hist_dt = parse_iso_dt(hist_ts)
-            if cur_dt and hist_dt:
-                if abs((cur_dt - hist_dt).total_seconds()) <= 2:
-                    return True
-
-    return False
-
-
 # ============================================
-# WATCHLIST
+# LOADERS
 # ============================================
-def load_watchlist(watchlist_path: Path):
-    if not watchlist_path.exists():
-        print(f"⚠️ No existe watchlist.json: {watchlist_path}")
-        return {}
-
+def load_json(path: Path, label: str):
+    if not path.exists():
+        print(f"⚠️ No existe {label}: {path}")
+        return None
     try:
-        data = json.loads(watchlist_path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"⚠️ Error leyendo watchlist.json: {e}")
-        return {}
+        print(f"⚠️ Error leyendo {label}: {e}")
+        return None
 
+def load_watchlist():
+    data = load_json(WATCHLIST_FILE, "watchlist.json")
     if not isinstance(data, list):
-        print("⚠️ watchlist.json no es una lista")
         return {}
-
     out = {}
     for item in data:
         event_id = str(item.get("eventId", "")).strip()
         market_id = str(item.get("marketId", "")).strip()
-        if not event_id or not market_id:
-            continue
-        out[(event_id, market_id)] = item
-
+        if event_id and market_id:
+            out[(event_id, market_id)] = item
     print(f"✅ watchlist.json cargado: {len(out)} mercados activos")
     return out
 
-
-# ============================================
-# SNAPSHOT
-# ============================================
-def load_snapshot(snapshot_path: Path):
-    if not snapshot_path.exists():
-        print(f"⚠️ No existe snapshot.json: {snapshot_path}")
+def load_snapshot():
+    data = load_json(SNAPSHOT_FILE, "snapshot.json")
+    if not isinstance(data, dict):
         return [], None
-
-    try:
-        data = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"⚠️ Error leyendo snapshot.json: {e}")
-        return [], None
-
     markets = data.get("markets", [])
     generated_at = data.get("generated_at")
-
     if not isinstance(markets, list):
-        print("⚠️ snapshot.json no tiene 'markets' válido")
         return [], generated_at
-
     print(f"✅ snapshot.json cargado: {len(markets)} mercados")
     return markets, generated_at
 
-
-# ============================================
-# CUOTAS.JSON
-# ============================================
-def load_cuotas(cuotas_path: Path):
-    if not cuotas_path.exists():
-        print(f"⚠️ No existe cuotas.json: {cuotas_path}")
+def load_cuotas():
+    data = load_json(CUOTAS_FILE, "cuotas.json")
+    if not isinstance(data, dict):
         return {}
-
-    try:
-        data = json.loads(cuotas_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"⚠️ Error leyendo cuotas.json: {e}")
-        return {}
-
-    event_map = {}
-
+    out = {}
     for liga, matches in data.items():
         if liga == "metadata":
             continue
         if not isinstance(matches, list):
             continue
-
         for item in matches:
             event_id = str(item.get("eventId", "")).strip()
             if event_id:
-                event_map[event_id] = item
+                out[event_id] = item
+    print(f"✅ cuotas.json cargado: {len(out)} eventos indexados")
+    return out
 
-    print(f"✅ cuotas.json cargado: {len(event_map)} eventos indexados")
-    return event_map
+def load_index():
+    data = load_json(INDEX_FILE, "history_recent_index.json")
+    if not isinstance(data, dict):
+        return {}
+    rows = data.get("rows", {})
+    if not isinstance(rows, dict):
+        return {}
+    print(f"✅ history_recent_index.json cargado: {len(rows)} keys")
+    return rows
 
-
+# ============================================
+# CUOTAS HELPERS
+# ============================================
 def get_apuesta_total_odd(match_data: dict, market_code: str):
     all_odds = match_data.get("all_odds", [])
     for row in all_odds:
@@ -289,7 +205,6 @@ def get_apuesta_total_odd(match_data: dict, market_code: str):
                 return row.get("away")
     return None
 
-
 def calc_loss_pct(match_data: dict):
     try:
         h = float(match_data["best_home"]["odd"])
@@ -298,7 +213,6 @@ def calc_loss_pct(match_data: dict):
         return ((1 / h) + (1 / d) + (1 / a) - 1) * 100
     except Exception:
         return None
-
 
 def build_telegram_message(row, match_data: dict):
     market_code = str(row.market_type).upper()
@@ -326,7 +240,7 @@ def build_telegram_message(row, match_data: dict):
 
     loss_pct = calc_loss_pct(match_data)
 
-    msg = (
+    return (
         "🔥 MOVIMIENTO ORBITX\n\n"
         f"{partido}\n"
         f"Liga: {liga}\n"
@@ -348,11 +262,9 @@ def build_telegram_message(row, match_data: dict):
         f"• %Pérdida: {fmt_num(loss_pct, 3)}%\n\n"
         f"⏱️ {now_pe_str()} (Perú)"
     )
-    return msg
-
 
 # ============================================
-# UNIVERSO ACTIVO
+# SNAPSHOT UNIVERSE
 # ============================================
 def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_odd, snapshot_generated_at):
     rows = []
@@ -365,32 +277,28 @@ def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_
         if key not in watchlist_map:
             continue
 
-        # regla del usuario: si no está en cuotas.json, no alertar
         if event_id not in cuotas_map:
             continue
 
         runners = market.get("runners", {})
-        if not isinstance(runners, dict) or not runners:
+        if not isinstance(runners, dict):
             continue
 
-        runner_items = []
-        for selection_id, r in runners.items():
-            odd = pd.to_numeric(r.get("best_back_odds"), errors="coerce")
+        valid = []
+        for selection_id, runner in runners.items():
+            odd = pd.to_numeric(runner.get("best_back_odds"), errors="coerce")
             if pd.isna(odd):
                 continue
             if odd < min_odd or odd > max_odd:
                 continue
-            runner_items.append((str(selection_id), float(odd), r))
+            valid.append((str(selection_id), float(odd), runner))
 
-        if not runner_items:
+        if not valid:
             continue
 
-        sorted_odds = sorted([odd for _, odd, _ in runner_items])
+        sorted_odds = sorted([odd for _, odd, _ in valid])
 
-        for selection_id, odd, r in runner_items:
-            selection = str(r.get("selection", "")).upper().strip()
-            rank_odds = sorted_odds.index(odd) + 1
-
+        for selection_id, odd, runner in valid:
             rows.append({
                 "liga": market.get("liga", watchlist_map[key].get("Liga", "-")),
                 "ts_pe": snapshot_generated_at,
@@ -398,86 +306,44 @@ def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_
                 "event_id": event_id,
                 "event_name": market.get("eventName", watchlist_map[key].get("eventName", "-")),
                 "market_id": market_id,
-                "market_type": selection,
-                "selection_id": str(selection_id),
-                "selection_name": r.get("name", f"SEL_{selection_id}"),
-                "odd": float(odd),
-                "pressure": pd.to_numeric(r.get("blpr"), errors="coerce"),
-                "spread": pd.to_numeric(r.get("spread"), errors="coerce"),
-                "tv_runner": pd.to_numeric(r.get("tv_runner"), errors="coerce"),
-                "rank_odds": rank_odds,
+                "market_type": str(runner.get("selection", "")).upper().strip(),
+                "selection_id": selection_id,
+                "selection_name": runner.get("name", f"SEL_{selection_id}"),
+                "odd": odd,
+                "pressure": pd.to_numeric(runner.get("blpr"), errors="coerce"),
+                "spread": pd.to_numeric(runner.get("spread"), errors="coerce"),
+                "tv_runner": pd.to_numeric(runner.get("tv_runner"), errors="coerce"),
+                "rank_odds": sorted_odds.index(odd) + 1,
                 "start_pe": market.get("start_pe", ""),
             })
 
     return rows
 
-
 # ============================================
-# HISTORY LOOKUP (SOLO 2 PREVIOS ÚTILES)
+# PREV ROW SELECTION
 # ============================================
-def history_file_for_liga(liga: str) -> Path:
-    slug = normalize_slug(liga)
-    return HISTORY_DIR / f"orbitx_{slug}.csv"
+def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
+    cur_ts = str(cur.get("snapshot_ts", "")).strip()
+    hist_ts = str(hist_row.get("ts_pe", "")).strip()
 
+    cur_odd = pd.to_numeric(cur.get("odd"), errors="coerce")
+    hist_odd = pd.to_numeric(hist_row.get("best_back_odds"), errors="coerce")
+    if pd.isna(hist_odd):
+        hist_odd = pd.to_numeric(hist_row.get("odd"), errors="coerce")
 
-def build_needed_keys_by_file(snapshot_rows):
-    needed = defaultdict(set)
-    for row in snapshot_rows:
-        path = history_file_for_liga(row["liga"])
-        key = (row["event_id"], row["market_id"], row["selection_id"])
-        needed[path].add(key)
-    return needed
+    if cur_ts and hist_ts and cur_ts == hist_ts:
+        return True
 
+    if pd.notna(cur_odd) and pd.notna(hist_odd):
+        if abs(float(cur_odd) - float(hist_odd)) < 1e-9:
+            cur_dt = parse_iso_dt(cur_ts)
+            hist_dt = parse_iso_dt(hist_ts)
+            if cur_dt and hist_dt and abs((cur_dt - hist_dt).total_seconds()) <= 2:
+                return True
 
-def load_recent_rows_for_needed_keys(needed_by_file):
-    """
-    Escanea cada csv solo una vez y guarda las últimas 4 filas por key.
-    Guardar 4 nos permite:
-    - si la última coincide con snapshot -> usar -2 y -3
-    - si no coincide -> usar -1 y -2
-    """
-    recent_map = {k: deque(maxlen=4) for keys in needed_by_file.values() for k in keys}
+    return False
 
-    for file_path, needed_keys in needed_by_file.items():
-        if not file_path.exists():
-            print(f"⚠️ No existe history file: {file_path.name}")
-            continue
-
-        print(f"📄 Escaneando history: {file_path.name} | keys activas: {len(needed_keys)}")
-
-        with file_path.open("r", encoding="utf-8", errors="ignore", newline="") as f:
-            reader = csv.DictReader(f)
-
-            for row in reader:
-                event_id = str(row.get("event_id", "")).strip()
-                market_id = str(row.get("market_id", "")).strip()
-                selection_id = str(row.get("selection_id", "")).strip()
-                key = (event_id, market_id, selection_id)
-
-                if key not in needed_keys:
-                    continue
-
-                recent_map[key].append({
-                    "ts_pe": row.get("ts_pe", ""),
-                    "odd": pd.to_numeric(row.get("best_back_odds"), errors="coerce"),
-                    "pressure": pd.to_numeric(row.get("blpr"), errors="coerce"),
-                    "spread": pd.to_numeric(row.get("spread"), errors="coerce"),
-                    "tv_runner": pd.to_numeric(row.get("tv_runner"), errors="coerce"),
-                })
-
-    return recent_map
-
-
-# ============================================
-# FEATURE BUILD
-# ============================================
 def pick_prev_rows(cur: dict, history_rows: list):
-    """
-    Implementación exacta pedida por el usuario:
-    - cur = snapshot
-    - si history[-1] coincide con snapshot -> p1=history[-2], p2=history[-3]
-    - si no coincide -> p1=history[-1], p2=history[-2]
-    """
     if len(history_rows) < 2:
         return None, None
 
@@ -486,40 +352,55 @@ def pick_prev_rows(cur: dict, history_rows: list):
     if len(rows) >= 3 and same_snapshot_as_history(cur, rows[-1]):
         return rows[-2], rows[-3]
 
-    return rows[-1], rows[-2] if len(rows) >= 2 else (None, None)
+    if len(rows) >= 2:
+        return rows[-1], rows[-2]
 
+    return None, None
 
-def build_feature_rows(snapshot_rows, recent_map):
-    rows = []
+# ============================================
+# FEATURES
+# ============================================
+def build_feature_rows(snapshot_rows, index_rows):
+    out = []
 
     for cur in snapshot_rows:
-        key = (cur["event_id"], cur["market_id"], cur["selection_id"])
-        history_rows = list(recent_map.get(key, deque()))
+        key = f"{cur['event_id']}|{cur['market_id']}|{cur['selection_id']}"
+        hist = index_rows.get(key, [])
 
-        if len(history_rows) < 2:
+        if len(hist) < 2:
             continue
 
-        p1, p2 = pick_prev_rows(cur, history_rows)
+        p1, p2 = pick_prev_rows(cur, hist)
         if p1 is None or p2 is None:
             continue
 
-        d1 = cur["odd"] - p1["odd"]
-        d2 = p1["odd"] - p2["odd"]
+        p1_odd = pd.to_numeric(p1.get("best_back_odds", p1.get("odd")), errors="coerce")
+        p2_odd = pd.to_numeric(p2.get("best_back_odds", p2.get("odd")), errors="coerce")
+        p1_pressure = pd.to_numeric(p1.get("blpr", p1.get("pressure")), errors="coerce")
+        p2_pressure = pd.to_numeric(p2.get("blpr", p2.get("pressure")), errors="coerce")
+        p1_tv = pd.to_numeric(p1.get("tv_runner"), errors="coerce")
+        p2_tv = pd.to_numeric(p2.get("tv_runner"), errors="coerce")
+
+        if any(pd.isna(x) for x in [p1_odd, p2_odd, p1_pressure, p1_tv, p2_tv]):
+            continue
+
+        d1 = cur["odd"] - p1_odd
+        d2 = p1_odd - p2_odd
         acceleration = d1 - d2
 
-        tv1 = cur["tv_runner"] - p1["tv_runner"]
-        tv2 = p1["tv_runner"] - p2["tv_runner"]
+        tv1 = cur["tv_runner"] - p1_tv
+        tv2 = p1_tv - p2_tv
         tv_acceleration = tv1 - tv2
 
-        pressure_ratio = safe_div(cur["pressure"], p1["pressure"])
+        pressure_ratio = safe_div(cur["pressure"], p1_pressure)
 
-        drop1 = pct_drop(p1["odd"], cur["odd"])
-        drop2 = pct_drop(p2["odd"], cur["odd"])
+        drop1 = pct_drop(p1_odd, cur["odd"])
+        drop2 = pct_drop(p2_odd, cur["odd"])
         drop_velocity = None
         if drop1 is not None and drop2 is not None:
             drop_velocity = drop1 - drop2
 
-        row = {
+        out.append({
             "liga": cur["liga"],
             "ts_pe": cur["ts_pe"],
             "start_pe": cur["start_pe"],
@@ -537,11 +418,9 @@ def build_feature_rows(snapshot_rows, recent_map):
             "pressure_ratio": pressure_ratio,
             "drop_velocity": drop_velocity,
             "rank_odds": cur["rank_odds"],
-        }
-        rows.append(row)
+        })
 
-    return rows
-
+    return out
 
 # ============================================
 # MAIN
@@ -572,9 +451,10 @@ def main():
         print("❌ Faltan SMART_BOT_TOKEN o SMART_BOT_CHAT_ID en orbitx_alerts_v6.env")
         return
 
-    watchlist_map = load_watchlist(WATCHLIST_FILE)
-    cuotas_map = load_cuotas(CUOTAS_FILE)
-    snapshot_markets, snapshot_generated_at = load_snapshot(SNAPSHOT_FILE)
+    watchlist_map = load_watchlist()
+    cuotas_map = load_cuotas()
+    snapshot_markets, snapshot_generated_at = load_snapshot()
+    index_rows = load_index()
 
     if not watchlist_map:
         print("⚠️ Watchlist vacía")
@@ -591,9 +471,6 @@ def main():
     model = bundle["model"]
     features = bundle["features"]
 
-    print(f"✅ Modelo cargado: {MODEL_FILE}")
-    print(f"📂 Universo: watchlist ∩ cuotas ∩ snapshot")
-
     snapshot_rows = build_active_snapshot_rows(
         snapshot_markets,
         watchlist_map=watchlist_map,
@@ -604,15 +481,12 @@ def main():
     )
 
     if not snapshot_rows:
-        print("⚠️ No hay selecciones snapshot válidas tras filtros base")
+        print("⚠️ No hay selecciones snapshot válidas")
         return
 
-    needed_by_file = build_needed_keys_by_file(snapshot_rows)
-    recent_map = load_recent_rows_for_needed_keys(needed_by_file)
-
-    feature_rows = build_feature_rows(snapshot_rows, recent_map)
+    feature_rows = build_feature_rows(snapshot_rows, index_rows)
     if not feature_rows:
-        print("⚠️ No se pudieron construir features (faltan previos útiles)")
+        print("⚠️ No se pudieron construir features")
         return
 
     score_df = pd.DataFrame(feature_rows)
@@ -652,7 +526,7 @@ def main():
     new_alerts = score_df[~score_df["alert_key"].isin(sent_keys)].copy()
 
     print(f"📊 Snapshot rows activas: {len(snapshot_rows)}")
-    print(f"📊 Features válidas: {len(pd.DataFrame(feature_rows))}")
+    print(f"📊 Features válidas: {len(feature_rows)}")
     print(f"📊 Alertas operables actuales: {len(score_df)}")
     print(f"🆕 Alertas nuevas a enviar: {len(new_alerts)}")
 
@@ -685,7 +559,6 @@ def main():
     print(f"✅ Estado actualizado en: {STATE_FILE}")
     print(f"✅ CSV actualizado en: {OUTPUT_FILE}")
     print(f"✅ Alertas enviadas en este ciclo: {sent_now}")
-
 
 # ============================================
 # LOOP
