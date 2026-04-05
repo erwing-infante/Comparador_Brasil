@@ -485,14 +485,45 @@ def load_recent_rows_from_tail(snapshot_rows, tail_lines: int):
                 continue
 
             rows = []
-            for _, r in g.tail(4).iterrows():
-                rows.append({
+            last = None
+
+            for _, r in g.sort_values("ts_pe", ascending=False).iterrows():
+
+                current = {
                     "ts_pe": r.get("ts_pe", ""),
                     "best_back_odds": r.get("best_back_odds"),
                     "spread": r.get("spread"),
                     "blpr": r.get("blpr"),
                     "tv_runner": r.get("tv_runner"),
-                })
+                }
+
+                if last is None:
+                    rows.append(current)
+                    last = current
+                    continue
+
+                # Detectar cambio real
+                changed = False
+
+                if abs(float(current["best_back_odds"] or 0) - float(last["best_back_odds"] or 0)) > 1e-9:
+                    changed = True
+
+                if abs(float(current["tv_runner"] or 0) - float(last["tv_runner"] or 0)) > 1e-6:
+                    changed = True
+
+                if abs(float(current["blpr"] or 0) - float(last["blpr"] or 0)) > 1e-6:
+                    changed = True
+
+                if changed:
+                    rows.append(current)
+                    last = current
+
+                # ya tenemos suficientes estados
+                if len(rows) >= 3:
+                    break
+
+            # invertir para que quede cronológico
+            rows = list(reversed(rows))
 
             recent_map[key] = rows
 
