@@ -225,6 +225,92 @@ def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
 
     return False
 
+# ============================================
+# TELEGRAM ANTI-429
+# ============================================
+def extract_retry_after_seconds(resp_json: dict, default_wait: float) -> float:
+    try:
+        params = resp_json.get("parameters", {})
+        retry_after = params.get("retry_after")
+        if retry_after is not None:
+            return max(float(retry_after), default_wait)
+    except Exception:
+        pass
+    return default_wait
+
+
+def send_telegram_with_retry(
+    bot_token: str,
+    chat_id: str,
+    text: str,
+    retry_max: int,
+    retry_default_wait: float
+) -> bool:
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    for attempt in range(1, retry_max + 1):
+        try:
+            resp = requests.post(
+                url,
+                json={
+                    "chat_id": chat_id,
+                    "text": text,
+                    "disable_web_page_preview": True
+                },
+                timeout=20
+            )
+
+            if resp.status_code == 200:
+                return True
+
+            if resp.status_code == 429:
+                wait_sec = retry_default_wait
+                try:
+                    payload = resp.json()
+                    wait_sec = extract_retry_after_seconds(payload, retry_default_wait)
+                except Exception:
+                    pass
+
+                print(f"⚠️ Telegram 429 en chat {chat_id}. Reintento {attempt}/{retry_max} tras {wait_sec:.1f}s")
+                time.sleep(wait_sec)
+                continue
+
+            print(f"⚠️ Telegram error {resp.status_code} en chat {chat_id}: {resp.text[:300]}")
+            return False
+
+        except requests.RequestException as e:
+            print(f"⚠️ Error de red Telegram en chat {chat_id}, intento {attempt}/{retry_max}: {e}")
+            time.sleep(retry_default_wait)
+
+    return False
+
+
+def send_telegram_all_chats(
+    bot_token: str,
+    chat_ids: list[str],
+    text: str,
+    retry_max: int,
+    retry_default_wait: float,
+    sleep_between_msg: float
+) -> bool:
+    all_ok = True
+
+    for idx, chat_id in enumerate(chat_ids):
+        ok = send_telegram_with_retry(
+            bot_token=bot_token,
+            chat_id=chat_id,
+            text=text,
+            retry_max=retry_max,
+            retry_default_wait=retry_default_wait
+        )
+
+        if not ok:
+            all_ok = False
+
+        if idx < len(chat_ids) - 1:
+            time.sleep(sleep_between_msg)
+
+    return all_ok
 
 # ============================================
 # LOADERS
