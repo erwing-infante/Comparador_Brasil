@@ -1,4 +1,6 @@
+import io
 import json
+import math
 import os
 import time
 from datetime import datetime, timezone
@@ -16,12 +18,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
 MAIN_PROJECT_DIR = PROJECT_DIR.parent
 
+HISTORY_DIR = PROJECT_DIR / "data" / "history"
 WATCHLIST_FILE = PROJECT_DIR / "data" / "watchlists" / "watchlist.json"
 SNAPSHOT_FILE = PROJECT_DIR / "data" / "snapshot.json"
-INDEX_FILE = PROJECT_DIR / "data" / "history_recent_index.json"
 MODEL_FILE = PROJECT_DIR / "models" / "premov_v6_rf.joblib"
-OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v7_1.csv"
-STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v7_1.json"
+OUTPUT_FILE = PROJECT_DIR / "data" / "orbitx_snapshot_alerts_v6.csv"
+STATE_FILE = PROJECT_DIR / "data" / "orbitx_alerts_state_v6.json"
 CUOTAS_FILE = MAIN_PROJECT_DIR / "data" / "cuotas.json"
 
 TZ_PE = ZoneInfo("America/Lima")
@@ -38,6 +40,7 @@ DEFAULT_MIN_ABS_TV_ACCELERATION = 500.0
 DEFAULT_MIN_ABS_ACCELERATION = 0.05
 DEFAULT_MAX_SPREAD = 0.10
 DEFAULT_MAX_STATE_KEYS = 5000
+DEFAULT_TAIL_LINES = 20000
 
 MARKET_LABELS = {
     "HOME": "LOCAL",
@@ -45,8 +48,45 @@ MARKET_LABELS = {
     "AWAY": "VISITA"
 }
 
+LIGA_TO_FILE = {
+    "Brasileirao": "orbitx_brasileirao.csv",
+    "Bundesliga": "orbitx_bundesliga.csv",
+    "Championship": "orbitx_championship.csv",
+    "Copa Alemana": "orbitx_copa_alemana.csv",
+    "Copa del Rey": "orbitx_copa_del_rey.csv",
+    "Copa Italia": "orbitx_copa_italia.csv",
+    "Copa Libertadores": "orbitx_copa_libertadores.csv",
+    "Copa Sudamericana": "orbitx_copa_sudamericana.csv",
+    "EFL Cup": "orbitx_efl_cup.csv",
+    "Eredivisie": "orbitx_eredivisie.csv",
+    "FA Cup": "orbitx_fa_cup.csv",
+    "La Liga": "orbitx_la_liga.csv",
+    "La Liga 2": "orbitx_la_liga_2.csv",
+    "Liga 1 Perú": "orbitx_liga_1_perú.csv",
+    "Liga MX": "orbitx_liga_mx.csv",
+    "Ligue 1": "orbitx_ligue_1.csv",
+    "MLS": "orbitx_mls.csv",
+    "Premier League": "orbitx_premier_league.csv",
+    "Primeira Liga": "orbitx_primeira_liga.csv",
+    "Serie A": "orbitx_serie_a.csv",
+    "UEFA Champions League": "orbitx_uefa_champions_league.csv",
+    "UEFA Conference League": "orbitx_uefa_conference_league.csv",
+    "UEFA Europa League": "orbitx_uefa_europa_league.csv",
+}
+
+FEATURES_EXPECTED = [
+    "odd",
+    "pressure",
+    "spread",
+    "acceleration",
+    "tv_acceleration",
+    "pressure_ratio",
+    "drop_velocity",
+    "rank_odds",
+]
+
 # ============================================
-# ENV
+# ENV HELPERS
 # ============================================
 def env_str(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
@@ -84,12 +124,6 @@ def fmt_num(x, nd=2, default="-"):
 def build_alert_key(row):
     return f"{row['event_id']}|{row['market_id']}|{row['selection_id']}|{row['ts_pe']}"
 
-def parse_iso_dt(value: str):
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except Exception:
-        return None
-
 def parse_utc_to_pe(date_str: str):
     if not date_str:
         return None
@@ -99,16 +133,27 @@ def parse_utc_to_pe(date_str: str):
     except Exception:
         return None
 
+def parse_iso_dt(value: str):
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
 def now_pe_str():
     return datetime.now(TZ_PE).strftime("%Y-%m-%d %H:%M:%S")
 
-def load_state(path: Path):
+def load_json(path: Path, label: str, default):
     if not path.exists():
-        return {"sent_keys": []}
+        print(f"⚠️ No existe {label}: {path}")
+        return default
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {"sent_keys": []}
+    except Exception as e:
+        print(f"⚠️ Error leyendo {label}: {e}")
+        return default
+
+def load_state(path: Path):
+    return load_json(path, "state", {"sent_keys": []})
 
 def save_state(path: Path, state: dict):
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -117,30 +162,56 @@ def send_telegram(bot_token: str, chat_id: str, text: str):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     resp = requests.post(
         url,
-        json={
-            "chat_id": chat_id,
-            "text": text,
-            "disable_web_page_preview": True
-        },
+        json={"chat_id": chat_id, "text": text, "disable_web_page_preview": True},
         timeout=20
     )
     resp.raise_for_status()
 
+def tail_csv(filepath: Path, n_lines: int) -> str:
+    with filepath.open("rb") as f:
+        header = f.readline().decode("utf-8", errors="ignore")
+    with filepath.open("rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        bs = 8192
+        blocks = []
+        lines = 0
+        pos = size
+        while pos > 0 and lines < n_lines + 2:
+            rs = min(bs, pos)
+            pos -= rs
+            f.seek(pos)
+            data = f.read(rs)
+            blocks.append(data)
+            lines += data.count(b"\n")
+        data = b"".join(reversed(blocks)).decode("utf-8", errors="ignore")
+        tail = data.splitlines()[-n_lines:]
+    return header.rstrip("\n") + "\n" + "\n".join(tail) + "\n"
+
+def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
+    cur_ts = str(cur.get("snapshot_ts", "")).strip()
+    hist_ts = str(hist_row.get("ts_pe", "")).strip()
+
+    cur_odd = pd.to_numeric(cur.get("odd"), errors="coerce")
+    hist_odd = pd.to_numeric(hist_row.get("best_back_odds", hist_row.get("odd")), errors="coerce")
+
+    if cur_ts and hist_ts and cur_ts == hist_ts:
+        return True
+
+    if pd.notna(cur_odd) and pd.notna(hist_odd):
+        if abs(float(cur_odd) - float(hist_odd)) < 1e-9:
+            cur_dt = parse_iso_dt(cur_ts)
+            hist_dt = parse_iso_dt(hist_ts)
+            if cur_dt and hist_dt and abs((cur_dt - hist_dt).total_seconds()) <= 2:
+                return True
+
+    return False
+
 # ============================================
 # LOADERS
 # ============================================
-def load_json(path: Path, label: str):
-    if not path.exists():
-        print(f"⚠️ No existe {label}: {path}")
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"⚠️ Error leyendo {label}: {e}")
-        return None
-
 def load_watchlist():
-    data = load_json(WATCHLIST_FILE, "watchlist.json")
+    data = load_json(WATCHLIST_FILE, "watchlist.json", [])
     if not isinstance(data, list):
         return {}
     out = {}
@@ -153,7 +224,7 @@ def load_watchlist():
     return out
 
 def load_snapshot():
-    data = load_json(SNAPSHOT_FILE, "snapshot.json")
+    data = load_json(SNAPSHOT_FILE, "snapshot.json", {})
     if not isinstance(data, dict):
         return [], None
     markets = data.get("markets", [])
@@ -164,7 +235,7 @@ def load_snapshot():
     return markets, generated_at
 
 def load_cuotas():
-    data = load_json(CUOTAS_FILE, "cuotas.json")
+    data = load_json(CUOTAS_FILE, "cuotas.json", {})
     if not isinstance(data, dict):
         return {}
     out = {}
@@ -179,16 +250,6 @@ def load_cuotas():
                 out[event_id] = item
     print(f"✅ cuotas.json cargado: {len(out)} eventos indexados")
     return out
-
-def load_index():
-    data = load_json(INDEX_FILE, "history_recent_index.json")
-    if not isinstance(data, dict):
-        return {}
-    rows = data.get("rows", {})
-    if not isinstance(rows, dict):
-        return {}
-    print(f"✅ history_recent_index.json cargado: {len(rows)} keys")
-    return rows
 
 # ============================================
 # CUOTAS HELPERS
@@ -277,6 +338,7 @@ def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_
         if key not in watchlist_map:
             continue
 
+        # si no está en cuotas.json, no sirve
         if event_id not in cuotas_map:
             continue
 
@@ -320,29 +382,91 @@ def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_
     return rows
 
 # ============================================
-# PREV ROW SELECTION
+# HISTORY FROM TAIL
 # ============================================
-def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
-    cur_ts = str(cur.get("snapshot_ts", "")).strip()
-    hist_ts = str(hist_row.get("ts_pe", "")).strip()
+def build_needed_keys_by_liga(snapshot_rows):
+    out = {}
+    for row in snapshot_rows:
+        liga = row["liga"]
+        if liga not in out:
+            out[liga] = set()
+        out[liga].add((row["event_id"], row["market_id"], row["selection_id"]))
+    return out
 
-    cur_odd = pd.to_numeric(cur.get("odd"), errors="coerce")
-    hist_odd = pd.to_numeric(hist_row.get("best_back_odds"), errors="coerce")
-    if pd.isna(hist_odd):
-        hist_odd = pd.to_numeric(hist_row.get("odd"), errors="coerce")
+def load_recent_rows_from_tail(snapshot_rows, tail_lines: int):
+    needed_by_liga = build_needed_keys_by_liga(snapshot_rows)
+    recent_map = {}
 
-    if cur_ts and hist_ts and cur_ts == hist_ts:
-        return True
+    for row in snapshot_rows:
+        key = f"{row['event_id']}|{row['market_id']}|{row['selection_id']}"
+        recent_map[key] = []
 
-    if pd.notna(cur_odd) and pd.notna(hist_odd):
-        if abs(float(cur_odd) - float(hist_odd)) < 1e-9:
-            cur_dt = parse_iso_dt(cur_ts)
-            hist_dt = parse_iso_dt(hist_ts)
-            if cur_dt and hist_dt and abs((cur_dt - hist_dt).total_seconds()) <= 2:
-                return True
+    for liga, needed_keys in needed_by_liga.items():
+        filename = LIGA_TO_FILE.get(liga)
+        if not filename:
+            print(f"⚠️ Liga sin mapeo a archivo: {liga}")
+            continue
 
-    return False
+        path = HISTORY_DIR / filename
+        if not path.exists():
+            print(f"⚠️ No existe history file: {filename}")
+            continue
 
+        print(f"📄 Leyendo tail: {filename} | keys activas: {len(needed_keys)} | tail={tail_lines}")
+
+        try:
+            csv_text = tail_csv(path, tail_lines)
+            df = pd.read_csv(io.StringIO(csv_text))
+        except Exception as e:
+            print(f"⚠️ Error leyendo tail de {filename}: {e}")
+            continue
+
+        needed_cols = {
+            "ts_pe", "event_id", "market_id", "selection_id",
+            "best_back_odds", "spread", "blpr", "tv_runner"
+        }
+        if not needed_cols.issubset(set(df.columns)):
+            print(f"⚠️ {filename} no tiene columnas necesarias")
+            continue
+
+        df["event_id"] = df["event_id"].astype(str).str.strip()
+        df["market_id"] = df["market_id"].astype(str).str.strip()
+        df["selection_id"] = df["selection_id"].astype(str).str.strip()
+
+        df["best_back_odds"] = pd.to_numeric(df["best_back_odds"], errors="coerce")
+        df["spread"] = pd.to_numeric(df["spread"], errors="coerce")
+        df["blpr"] = pd.to_numeric(df["blpr"], errors="coerce")
+        df["tv_runner"] = pd.to_numeric(df["tv_runner"], errors="coerce")
+
+        for event_id, market_id, selection_id in needed_keys:
+            key = f"{event_id}|{market_id}|{selection_id}"
+
+            g = df[
+                (df["event_id"] == event_id) &
+                (df["market_id"] == market_id) &
+                (df["selection_id"] == selection_id)
+            ].sort_values("ts_pe")
+
+            if g.empty:
+                continue
+
+            rows = []
+            for _, r in g.tail(4).iterrows():
+                rows.append({
+                    "ts_pe": r.get("ts_pe", ""),
+                    "best_back_odds": r.get("best_back_odds"),
+                    "spread": r.get("spread"),
+                    "blpr": r.get("blpr"),
+                    "tv_runner": r.get("tv_runner"),
+                })
+
+            recent_map[key] = rows
+
+    return recent_map
+
+# ============================================
+# PREV PICK
+# ============================================
 def pick_prev_rows(cur: dict, history_rows: list):
     if len(history_rows) < 2:
         return None, None
@@ -360,12 +484,12 @@ def pick_prev_rows(cur: dict, history_rows: list):
 # ============================================
 # FEATURES
 # ============================================
-def build_feature_rows(snapshot_rows, index_rows):
+def build_feature_rows(snapshot_rows, history_recent_map):
     out = []
 
     for cur in snapshot_rows:
         key = f"{cur['event_id']}|{cur['market_id']}|{cur['selection_id']}"
-        hist = index_rows.get(key, [])
+        hist = history_recent_map.get(key, [])
 
         if len(hist) < 2:
             continue
@@ -374,10 +498,9 @@ def build_feature_rows(snapshot_rows, index_rows):
         if p1 is None or p2 is None:
             continue
 
-        p1_odd = pd.to_numeric(p1.get("best_back_odds", p1.get("odd")), errors="coerce")
-        p2_odd = pd.to_numeric(p2.get("best_back_odds", p2.get("odd")), errors="coerce")
-        p1_pressure = pd.to_numeric(p1.get("blpr", p1.get("pressure")), errors="coerce")
-        p2_pressure = pd.to_numeric(p2.get("blpr", p2.get("pressure")), errors="coerce")
+        p1_odd = pd.to_numeric(p1.get("best_back_odds"), errors="coerce")
+        p2_odd = pd.to_numeric(p2.get("best_back_odds"), errors="coerce")
+        p1_pressure = pd.to_numeric(p1.get("blpr"), errors="coerce")
         p1_tv = pd.to_numeric(p1.get("tv_runner"), errors="coerce")
         p2_tv = pd.to_numeric(p2.get("tv_runner"), errors="coerce")
 
@@ -434,6 +557,7 @@ def main():
     min_abs_acceleration = env_float("ORBITX_ALERTS_MIN_ACCEL", DEFAULT_MIN_ABS_ACCELERATION)
     max_spread = env_float("ORBITX_ALERTS_MAX_SPREAD", DEFAULT_MAX_SPREAD)
     max_state_keys = env_int("ORBITX_ALERTS_MAX_STATE_KEYS", DEFAULT_MAX_STATE_KEYS)
+    tail_lines = env_int("ORBITX_ALERTS_TAIL_LINES", DEFAULT_TAIL_LINES)
 
     telegram_token = env_str("SMART_BOT_TOKEN", "")
     chat_ids = [
@@ -454,7 +578,6 @@ def main():
     watchlist_map = load_watchlist()
     cuotas_map = load_cuotas()
     snapshot_markets, snapshot_generated_at = load_snapshot()
-    index_rows = load_index()
 
     if not watchlist_map:
         print("⚠️ Watchlist vacía")
@@ -471,6 +594,9 @@ def main():
     model = bundle["model"]
     features = bundle["features"]
 
+    print(f"✅ Modelo cargado: {MODEL_FILE}")
+    print(f"⚡ Modo híbrido: snapshot + tail history + cuotas")
+
     snapshot_rows = build_active_snapshot_rows(
         snapshot_markets,
         watchlist_map=watchlist_map,
@@ -484,7 +610,9 @@ def main():
         print("⚠️ No hay selecciones snapshot válidas")
         return
 
-    feature_rows = build_feature_rows(snapshot_rows, index_rows)
+    history_recent_map = load_recent_rows_from_tail(snapshot_rows, tail_lines=tail_lines)
+    feature_rows = build_feature_rows(snapshot_rows, history_recent_map)
+
     if not feature_rows:
         print("⚠️ No se pudieron construir features")
         return
