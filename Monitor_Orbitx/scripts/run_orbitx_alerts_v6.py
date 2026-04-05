@@ -1,6 +1,5 @@
 import io
 import json
-import math
 import os
 import time
 from datetime import datetime, timezone
@@ -40,7 +39,7 @@ DEFAULT_MIN_ABS_TV_ACCELERATION = 500.0
 DEFAULT_MIN_ABS_ACCELERATION = 0.05
 DEFAULT_MAX_SPREAD = 0.10
 DEFAULT_MAX_STATE_KEYS = 5000
-DEFAULT_TAIL_LINES = 20000
+DEFAULT_TAIL_LINES = 10000
 
 MARKET_LABELS = {
     "HOME": "LOCAL",
@@ -91,17 +90,20 @@ FEATURES_EXPECTED = [
 def env_str(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
 
+
 def env_float(name: str, default: float) -> float:
     try:
         return float(os.getenv(name, str(default)).strip())
     except Exception:
         return default
 
+
 def env_int(name: str, default: int) -> int:
     try:
         return int(os.getenv(name, str(default)).strip())
     except Exception:
         return default
+
 
 # ============================================
 # HELPERS
@@ -111,18 +113,22 @@ def pct_drop(old, new):
         return None
     return (old - new) / old * 100.0
 
+
 def safe_div(a, b):
     if pd.isna(a) or pd.isna(b) or b == 0:
         return None
     return a / b
+
 
 def fmt_num(x, nd=2, default="-"):
     if x is None or pd.isna(x):
         return default
     return f"{float(x):.{nd}f}"
 
+
 def build_alert_key(row):
     return f"{row['event_id']}|{row['market_id']}|{row['selection_id']}|{row['ts_pe']}"
+
 
 def parse_utc_to_pe(date_str: str):
     if not date_str:
@@ -133,14 +139,17 @@ def parse_utc_to_pe(date_str: str):
     except Exception:
         return None
 
+
 def parse_iso_dt(value: str):
     try:
         return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     except Exception:
         return None
 
+
 def now_pe_str():
     return datetime.now(TZ_PE).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def load_json(path: Path, label: str, default):
     if not path.exists():
@@ -152,11 +161,14 @@ def load_json(path: Path, label: str, default):
         print(f"⚠️ Error leyendo {label}: {e}")
         return default
 
+
 def load_state(path: Path):
     return load_json(path, "state", {"sent_keys": []})
 
+
 def save_state(path: Path, state: dict):
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
 
 def send_telegram(bot_token: str, chat_id: str, text: str):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -167,9 +179,11 @@ def send_telegram(bot_token: str, chat_id: str, text: str):
     )
     resp.raise_for_status()
 
+
 def tail_csv(filepath: Path, n_lines: int) -> str:
     with filepath.open("rb") as f:
         header = f.readline().decode("utf-8", errors="ignore")
+
     with filepath.open("rb") as f:
         f.seek(0, 2)
         size = f.tell()
@@ -177,6 +191,7 @@ def tail_csv(filepath: Path, n_lines: int) -> str:
         blocks = []
         lines = 0
         pos = size
+
         while pos > 0 and lines < n_lines + 2:
             rs = min(bs, pos)
             pos -= rs
@@ -184,9 +199,12 @@ def tail_csv(filepath: Path, n_lines: int) -> str:
             data = f.read(rs)
             blocks.append(data)
             lines += data.count(b"\n")
+
         data = b"".join(reversed(blocks)).decode("utf-8", errors="ignore")
         tail = data.splitlines()[-n_lines:]
+
     return header.rstrip("\n") + "\n" + "\n".join(tail) + "\n"
+
 
 def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
     cur_ts = str(cur.get("snapshot_ts", "")).strip()
@@ -207,6 +225,7 @@ def same_snapshot_as_history(cur: dict, hist_row: dict) -> bool:
 
     return False
 
+
 # ============================================
 # LOADERS
 # ============================================
@@ -214,30 +233,38 @@ def load_watchlist():
     data = load_json(WATCHLIST_FILE, "watchlist.json", [])
     if not isinstance(data, list):
         return {}
+
     out = {}
     for item in data:
         event_id = str(item.get("eventId", "")).strip()
         market_id = str(item.get("marketId", "")).strip()
         if event_id and market_id:
             out[(event_id, market_id)] = item
+
     print(f"✅ watchlist.json cargado: {len(out)} mercados activos")
     return out
+
 
 def load_snapshot():
     data = load_json(SNAPSHOT_FILE, "snapshot.json", {})
     if not isinstance(data, dict):
         return [], None
+
     markets = data.get("markets", [])
     generated_at = data.get("generated_at")
+
     if not isinstance(markets, list):
         return [], generated_at
+
     print(f"✅ snapshot.json cargado: {len(markets)} mercados")
     return markets, generated_at
+
 
 def load_cuotas():
     data = load_json(CUOTAS_FILE, "cuotas.json", {})
     if not isinstance(data, dict):
         return {}
+
     out = {}
     for liga, matches in data.items():
         if liga == "metadata":
@@ -248,8 +275,10 @@ def load_cuotas():
             event_id = str(item.get("eventId", "")).strip()
             if event_id:
                 out[event_id] = item
+
     print(f"✅ cuotas.json cargado: {len(out)} eventos indexados")
     return out
+
 
 # ============================================
 # CUOTAS HELPERS
@@ -266,6 +295,7 @@ def get_apuesta_total_odd(match_data: dict, market_code: str):
                 return row.get("away")
     return None
 
+
 def calc_loss_pct(match_data: dict):
     try:
         h = float(match_data["best_home"]["odd"])
@@ -274,6 +304,7 @@ def calc_loss_pct(match_data: dict):
         return ((1 / h) + (1 / d) + (1 / a) - 1) * 100
     except Exception:
         return None
+
 
 def build_telegram_message(row, match_data: dict):
     market_code = str(row.market_type).upper()
@@ -323,6 +354,7 @@ def build_telegram_message(row, match_data: dict):
         f"• %Pérdida: {fmt_num(loss_pct, 3)}%\n\n"
         f"⏱️ {now_pe_str()} (Perú)"
     )
+
 
 # ============================================
 # SNAPSHOT UNIVERSE
@@ -381,6 +413,7 @@ def build_active_snapshot_rows(markets, watchlist_map, cuotas_map, min_odd, max_
 
     return rows
 
+
 # ============================================
 # HISTORY FROM TAIL
 # ============================================
@@ -392,6 +425,7 @@ def build_needed_keys_by_liga(snapshot_rows):
             out[liga] = set()
         out[liga].add((row["event_id"], row["market_id"], row["selection_id"]))
     return out
+
 
 def load_recent_rows_from_tail(snapshot_rows, tail_lines: int):
     needed_by_liga = build_needed_keys_by_liga(snapshot_rows)
@@ -464,6 +498,7 @@ def load_recent_rows_from_tail(snapshot_rows, tail_lines: int):
 
     return recent_map
 
+
 # ============================================
 # PREV PICK
 # ============================================
@@ -480,6 +515,7 @@ def pick_prev_rows(cur: dict, history_rows: list):
         return rows[-1], rows[-2]
 
     return None, None
+
 
 # ============================================
 # FEATURES
@@ -545,6 +581,7 @@ def build_feature_rows(snapshot_rows, history_recent_map):
 
     return out
 
+
 # ============================================
 # MAIN
 # ============================================
@@ -606,19 +643,23 @@ def main():
         snapshot_generated_at=snapshot_generated_at
     )
 
-    if not snapshot_rows:
-        print("⚠️ No hay selecciones snapshot válidas")
-        return
-
     history_recent_map = load_recent_rows_from_tail(snapshot_rows, tail_lines=tail_lines)
     feature_rows = build_feature_rows(snapshot_rows, history_recent_map)
+
+    print(f"📊 Snapshot rows activas: {len(snapshot_rows)}")
+    print(f"📊 Feature rows construidas: {len(feature_rows)}")
 
     if not feature_rows:
         print("⚠️ No se pudieron construir features")
         return
 
     score_df = pd.DataFrame(feature_rows)
+
+    print(f"📊 Antes dropna: {len(score_df)}")
+
     score_df = score_df.dropna(subset=features).copy()
+
+    print(f"📊 Después dropna(features): {len(score_df)}")
 
     if score_df.empty:
         print("⚠️ No quedaron filas válidas tras dropna(features)")
@@ -627,13 +668,31 @@ def main():
     score_df["proba_fall"] = model.predict_proba(score_df[features])[:, 1]
     score_df["is_alert_model"] = (score_df["proba_fall"] >= threshold_alert).astype(int)
 
-    score_df = score_df[
-        (score_df["is_alert_model"] == 1) &
-        (score_df["proba_fall"] >= min_proba_to_send) &
-        (score_df["tv_acceleration"].abs() > min_abs_tv_acceleration) &
-        (score_df["acceleration"].abs() > min_abs_acceleration) &
-        (score_df["spread"] <= max_spread)
-    ].copy()
+    print("\n🔍 TOP 10 PROBAS:")
+    print(score_df.sort_values("proba_fall", ascending=False)[
+        ["event_name", "market_type", "odd", "proba_fall", "tv_acceleration", "acceleration", "spread"]
+    ].head(10).to_string(index=False))
+
+    df = score_df.copy()
+
+    print(f"\n📊 TOTAL ANTES FILTROS: {len(df)}")
+
+    df = df[df["is_alert_model"] == 1]
+    print(f"📊 Después modelo (proba >= {threshold_alert}): {len(df)}")
+
+    df = df[df["proba_fall"] >= min_proba_to_send]
+    print(f"📊 Después proba mínima ({min_proba_to_send}): {len(df)}")
+
+    df = df[df["tv_acceleration"].abs() > min_abs_tv_acceleration]
+    print(f"📊 Después tv_acceleration ({min_abs_tv_acceleration}): {len(df)}")
+
+    df = df[df["acceleration"].abs() > min_abs_acceleration]
+    print(f"📊 Después acceleration ({min_abs_acceleration}): {len(df)}")
+
+    df = df[df["spread"] <= max_spread]
+    print(f"📊 Después spread ({max_spread}): {len(df)}")
+
+    score_df = df.copy()
 
     if score_df.empty:
         print("⚠️ No quedaron alertas operables")
@@ -653,10 +712,7 @@ def main():
 
     new_alerts = score_df[~score_df["alert_key"].isin(sent_keys)].copy()
 
-    print(f"📊 Snapshot rows activas: {len(snapshot_rows)}")
-    print(f"📊 Features válidas: {len(feature_rows)}")
-    print(f"📊 Alertas operables actuales: {len(score_df)}")
-    print(f"🆕 Alertas nuevas a enviar: {len(new_alerts)}")
+    print(f"\n🆕 Alertas nuevas a enviar: {len(new_alerts)}")
 
     if new_alerts.empty:
         print("✅ No hay alertas nuevas")
@@ -687,6 +743,7 @@ def main():
     print(f"✅ Estado actualizado en: {STATE_FILE}")
     print(f"✅ CSV actualizado en: {OUTPUT_FILE}")
     print(f"✅ Alertas enviadas en este ciclo: {sent_now}")
+
 
 # ============================================
 # LOOP
