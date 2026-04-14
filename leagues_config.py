@@ -5,7 +5,6 @@ BOOKMAKERS = [
     "Bet365",
     "Betsafe",
     "1xbet",
-    "Coolbet",
     "Betcris"
 ]
 
