@@ -56,8 +56,8 @@ LIGAS_EQUIVALENCIAS = [
     ("UEFA Champions League", "Europa", "125", "UEFA Champions League"),
     ("UEFA Europa League", "Europa", "2719", "UEFA Europa League"),
     ("UEFA Europa Conference League", "Europa", "203553622255214592", "UEFA Conference League"),
-    ("Clasificación Copa Libertadores", "Sudamérica", "7322", "Copa Libertadores"),
-    ("Copa Sudamericana Clasificatoria", "Sudamérica", "552510194681483264", "Copa Sudamericana"),
+    ("Copa Libertadores", "Sudamérica", "133", "Copa Libertadores"),
+    ("Copa Sudamericana", "Sudamérica", "1699", "Copa Sudamericana"),
     ("Eliminatorias europeas", "Internacional", "466", "Eliminatorias Europa - WC26"),
 ]
 
