@@ -698,7 +698,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "ca platense": "platense",
     "ee.uu.": "estados Unidos",
     "eua": "estados Unidos",
-    "Catar": "qatar",
+    "catar": "qatar",
     "curacao": "curazao",
     "curasao": "curazao",
     "espana": "españa",
