@@ -63,6 +63,7 @@ LIGAS_STAKE = [
     ("Copa Sudamericana", 398),
 
     ("Eliminatorias Europa - WC26", 18773),
+    ("Copa Mundial 2026", 18736),
 ]
 
 # ============================================================

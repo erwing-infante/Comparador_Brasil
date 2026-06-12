@@ -59,6 +59,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Copa Libertadores", "Sudamérica", "133", "Copa Libertadores"),
     ("Copa Sudamericana", "Sudamérica", "1699", "Copa Sudamericana"),
     ("Eliminatorias europeas", "Internacional", "466", "Eliminatorias Europa - WC26"),
+    ("Copa Mundial 2026", "Internacional", "453456007969169408", "Copa Mundial 2026"),
 ]
 
 # ================= HELPERS =================

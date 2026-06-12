@@ -33,6 +33,11 @@ ARCHIVOS = {
     "gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
     "betano": os.path.join(DATA_DIR, "cuotas_betano.json"),
     "stake": os.path.join(DATA_DIR, "cuotas_stake.json"),
+    "1xbet": os.path.join(DATA_DIR, "cuotas_1xbet.json"),
+    "pinnacle": os.path.join(DATA_DIR, "cuotas_pinnacle.json"),
+    "betsson": os.path.join(DATA_DIR, "cuotas_betsson.json"),
+    "betsafe": os.path.join(DATA_DIR, "cuotas_betsafe.json"),
+    "inkabet": os.path.join(DATA_DIR, "cuotas_inkabet.json"),
     "teapuesto": os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 }
 
@@ -40,7 +45,7 @@ ARCHIVOS = {
 SIM_THRESHOLD = 0.40
 
 # Casas excluidas en local/visita
-BOOKMAKERS_EXCLUIR_HA = {"betcris", "betsafe", "1xbet", "coolbet"}
+BOOKMAKERS_EXCLUIR_HA = {"betcris", "1xbet", "coolbet", "pinnacle"}
 
 # ============================================================
 # NORMALIZACIÓN DE EQUIPOS (MISMA LÓGICA)

@@ -71,6 +71,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Eliminatorias Asia AFC - WC26", "Asia", "Eliminatorias Asia AFC - WC26"),
     ("Eliminatorias CONCACAF - WC26", "Americas", "Eliminatorias CONCACAF - WC26"),
     ("Eliminatorias Europa - WC 2026", "Europa", "Eliminatorias Europa - WC26"),
+    ("Copa Mundo 2026", "Mundo", "Copa Mundial 2026"),
 ]
 
 NOMBRES_1X2 = {"1x2", "resultado final", "match result", "ft result", "ganador"}

@@ -58,6 +58,7 @@ LIGAS_OLIMPO = [
     ("Copa Libertadores", "football/copa_libertadores", True),
     ("Copa Sudamericana", "football/copa_sudamericana", True),
     ("Eliminatorias Europa - WC26", "football/world_cup_qualifying_-_europe", True),
+    ("Copa Mundial 2026", "football/world_cup_2026", True),
 ]
 
 # ============================================================

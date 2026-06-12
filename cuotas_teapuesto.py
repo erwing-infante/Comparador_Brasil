@@ -1,26 +1,43 @@
 import json
 import os
+import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import requests
 
 # ==========================================================
 # CONFIG
 # ==========================================================
 TOURNAMENT_EVENTS_URL = "https://api-latam.core-ix.com/api/v1/tournament-events"
+EVENTS_URL = "https://api-latam.core-ix.com/api/v1/events"
+EVENT_DETAILS_URL = "https://api-latam.core-ix.com/api/v1/event-details"
 
 SPORT_ID = 1
 LANG_EVENTS = "es"
-TIME_RANGE = "all"  # ✅ el único que trae todo (hoy confirmaste)
+TIME_RANGE = "all"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
-DIAS_A_FUTURO = 3  # ✅ próximos 3 días
+
+# Para escáner real usa 3. Para pruebas largas usa 60.
+DIAS_A_FUTURO = 3
+
+# Mundial usa event-details por partido. Esto acelera.
+MAX_WORKERS_MUNDIAL = 8
+
+AUTH_TEAPUESTO = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3ODEyMTgwMDksImlzcyI6ImxhdGFtX2FwaSIsImV4cCI6MTQ3Nzk4Njk5MCwidXNlcl9pZCI6MCwidXNlcl90eXBlIjowLCJtYWNoaW5lX2lkIjowLCJ1c2VyX3RpbWVvdXQiOjAsImlwIjoiMTkwLjIzNy4xMi4yMDQiLCJybmRfa2V5IjowfQ.Zov-bnsXeQWC3vfC2BiilrLxuFt5jnUAgrwaZL9fZgM"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
     "Accept": "application/json, text/plain, */*",
     "Origin": "https://www.teapuesto.pe",
     "Referer": "https://www.teapuesto.pe/",
+}
+
+HEADERS_POST = {
+    **HEADERS,
+    "Content-Type": "application/json",
 }
 
 BASE_DIR = os.path.dirname(__file__)
@@ -30,7 +47,8 @@ os.makedirs(DATA_DIR, exist_ok=True)
 OUT_PATH = os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 
 # ==========================================================
-# LIGAS EQUIVALENTES (EMBEBIDAS)
+# LIGAS NORMALES
+# No metas 1197 aquí porque rompe /tournament-events
 # ==========================================================
 LIGAS_EQUIVALENCIAS = {
     "1105": "Premier League",
@@ -48,6 +66,10 @@ LIGAS_EQUIVALENCIAS = {
     "10531": "Copa Sudamericana",
 }
 
+MUNDIAL_ID = 1197
+MUNDIAL_NAME = "Copa Mundial 2026"
+
+
 # ==========================================================
 # UTILS
 # ==========================================================
@@ -56,12 +78,9 @@ def to_iso_like_doradobet(dt: datetime) -> str:
 
 
 def parse_start_time(start_time_str: str) -> datetime | None:
-    """
-    API devuelve 'YYYY-MM-DD HH:MM:SS' (sin zona).
-    Lo interpretamos como hora local Perú (America/Lima).
-    """
     if not start_time_str:
         return None
+
     try:
         dt_naive = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
         return dt_naive.replace(tzinfo=TZ_LOCAL)
@@ -72,16 +91,50 @@ def parse_start_time(start_time_str: str) -> datetime | None:
 def parse_teams(event_name: str):
     if not event_name:
         return None, None
+
     seps = [" - ", " vs. ", " vs ", " v "]
+
     for sep in seps:
         if sep in event_name:
             a, b = event_name.split(sep, 1)
             return a.strip(), b.strip()
+
     return None, None
 
 
+def is_future_prematch(ev, now, window_end):
+    dt = parse_start_time(ev.get("start_time"))
+
+    if not dt:
+        return False, None
+
+    if not (now < dt <= window_end):
+        return False, dt
+
+    status_s = str(ev.get("status") or "").strip().lower()
+    period_s = str(ev.get("period") or "").strip().lower()
+    clock_s = str(ev.get("clock") or "").strip()
+    score_v = ev.get("score")
+
+    if status_s in ("live", "inplay", "in_play", "started", "inprogress", "in_progress", "running", "playing"):
+        return False, dt
+
+    if period_s not in ("", "0", "pre", "prematch", "pre-match", "notstarted", "not_started", "scheduled"):
+        return False, dt
+
+    if clock_s not in ("", "0", "00:00", "00:00:00"):
+        return False, dt
+
+    if score_v not in (None, "", 0, "0"):
+        s = str(score_v).strip()
+        if s not in ("0-0", "0:0", "0 - 0", "0 : 0"):
+            return False, dt
+
+    return True, dt
+
+
 # ==========================================================
-# FETCH
+# FETCH LIGAS NORMALES
 # ==========================================================
 def fetch_tournament_events(tournament_ids):
     params = [
@@ -89,23 +142,30 @@ def fetch_tournament_events(tournament_ids):
         ("lang", LANG_EVENTS),
         ("time_range", TIME_RANGE),
     ]
+
     for tid in tournament_ids:
         params.append(("tournament_ids[]", tid))
 
-    r = requests.get(TOURNAMENT_EVENTS_URL, headers=HEADERS, params=params, timeout=45)
+    r = requests.get(
+        TOURNAMENT_EVENTS_URL,
+        headers=HEADERS,
+        params=params,
+        timeout=45
+    )
+
     r.raise_for_status()
     return r.json()
 
 
 # ==========================================================
-# PARSER
+# PARSER LIGAS NORMALES
 # ==========================================================
-def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
+def extract_1x2_normal(payload: dict, window_start: datetime, window_end: datetime):
     out = []
     data = payload.get("data", {})
     tournaments = data.get("tournaments", {}) or {}
 
-    status_por_liga = {}  # tid_str -> dict(count_eventos, count_odds)
+    status_por_liga = {}
 
     for tid_str, liga_name in LIGAS_EQUIVALENCIAS.items():
         tinfo = tournaments.get(tid_str)
@@ -115,15 +175,12 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
             continue
 
         events = tinfo.get("events", []) or []
-
-        # filtrado por próximos 3 días
         events_filtrados = []
+
         for ev in events:
-            dt = parse_start_time(ev.get("start_time"))
-            if not dt:
-                continue
-            if window_start <= dt <= window_end:
-                events_filtrados.append(ev)
+            ok, dt = is_future_prematch(ev, window_start, window_end)
+            if ok:
+                events_filtrados.append((ev, dt))
 
         if not events_filtrados:
             status_por_liga[tid_str] = {"liga": liga_name, "eventos": 0, "odds": 0}
@@ -131,68 +188,30 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
 
         count_odds = 0
 
-        for ev in events_filtrados:
+        for ev, dt in events_filtrados:
             ev_id = ev.get("id")
             ev_name = ev.get("name") or ""
-            dt = parse_start_time(ev.get("start_time"))
-            if not dt:
-                continue
-
-            # ✅ filtro: excluir eventos en vivo (sin romper pre-match)
-            # Idea: live si hay reloj/minuto corriendo, periodo de juego real, o score real.
-            period_s = str(ev.get("period") or "").strip().lower()
-            clock_s = str(ev.get("clock") or "").strip()
-            score_v = ev.get("score")
-
-            is_live_by_period = (
-                period_s not in ("", "0", "pre", "prematch", "pre-match", "notstarted", "not_started", "scheduled")
-                and any(k in period_s for k in ("1st", "2nd", "ht", "half", "q", "set", "period", "extra", "ot", "pen"))
-            )
-
-            is_live_by_clock = (
-                clock_s not in ("", "0", "00:00", "00:00:00")
-            )
-
-            is_live_by_score = False
-            if isinstance(score_v, dict):
-                # Solo consideramos "score real" si hay algún valor > 0 o si tiene estructura típica de live
-                vals = []
-                for k in ("home", "away", "home_score", "away_score"):
-                    if k in score_v:
-                        vals.append(score_v.get(k))
-                try:
-                    is_live_by_score = any((v is not None) and float(str(v)) > 0 for v in vals)
-                except Exception:
-                    is_live_by_score = False
-            elif score_v not in (None, "", 0, "0"):
-                # Si viene como string raro, lo tomamos como hint live solo si no es "0-0"/"0:0"
-                s = str(score_v).strip()
-                is_live_by_score = s not in ("0-0", "0:0", "0 - 0", "0 : 0")
-
-            # Flags típicos (si existen)
-            status_s = str(ev.get("status") or "").strip().lower()
-            is_live_by_status = status_s in ("live", "inplay", "in_play", "started", "inprogress", "in_progress", "running", "playing")
-
-            if is_live_by_status or is_live_by_period or is_live_by_clock or is_live_by_score:
-                continue
 
             home, away = parse_teams(ev_name)
             partido = f"{home} vs {away}" if home and away else ev_name
 
-            # mercado 1x2
             market_1x2 = None
+
             for m in (ev.get("markets", []) or []):
-                if str(m.get("name", "")).lower() == "1x2":
+                if str(m.get("name", "")).lower().strip() == "1x2":
                     market_1x2 = m
                     break
+
             if not market_1x2:
                 continue
 
             odds_items = None
+
             for mo in (market_1x2.get("market_odds", []) or []):
                 if mo.get("odds"):
                     odds_items = mo["odds"]
                     break
+
             if not odds_items:
                 continue
 
@@ -200,29 +219,20 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
 
             for o in odds_items:
                 pid = str(o.get("provider_odd_id", "")).strip()
+                order = o.get("order")
                 val = o.get("value")
+
                 if val is None:
                     continue
-                if pid == "1":
-                    cuota_local = float(val)
-                elif pid == "2":
-                    cuota_empate = float(val)
-                elif pid == "3":
-                    cuota_visita = float(val)
 
-            # fallback por order
-            if cuota_local is None or cuota_empate is None or cuota_visita is None:
-                for o in odds_items:
-                    order = o.get("order")
-                    val = o.get("value")
-                    if val is None:
-                        continue
-                    if order == 1 and cuota_local is None:
-                        cuota_local = float(val)
-                    elif order == 2 and cuota_empate is None:
-                        cuota_empate = float(val)
-                    elif order == 3 and cuota_visita is None:
-                        cuota_visita = float(val)
+                val = float(val)
+
+                if pid == "1" or order == 1:
+                    cuota_local = val
+                elif pid == "2" or order == 2:
+                    cuota_empate = val
+                elif pid == "3" or order == 3:
+                    cuota_visita = val
 
             if cuota_local is None or cuota_empate is None or cuota_visita is None:
                 continue
@@ -232,7 +242,7 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
             out.append({
                 "Liga": liga_name,
                 "Partido": partido,
-                "Fecha": to_iso_like_doradobet(dt.replace(tzinfo=None)),  # ISO sin zona como DoradoBet
+                "Fecha": to_iso_like_doradobet(dt.replace(tzinfo=None)),
                 "Casa": "TeApuesto",
                 "Local": home,
                 "Visita": away,
@@ -252,23 +262,265 @@ def extract_1x2(payload: dict, window_start: datetime, window_end: datetime):
 
 
 # ==========================================================
+# MUNDIAL
+# ==========================================================
+def fetch_mundial_events():
+    r = requests.get(
+        EVENTS_URL,
+        headers=HEADERS,
+        params={
+            "sport_id": SPORT_ID,
+            "lang": LANG_EVENTS,
+            "tournament_id": MUNDIAL_ID,
+        },
+        timeout=30
+    )
+
+    r.raise_for_status()
+    data = r.json().get("data", [])
+
+    if not isinstance(data, list):
+        return []
+
+    return data
+
+
+def fetch_event_details(event_id):
+    payload = {
+        "event_id": str(event_id),
+        "platform": "desktop",
+        "language_id": 3,
+        "code": "es-ES",
+        "language_code": "spa",
+        "version": "v3",
+        "site_code": "ta",
+        "auth": AUTH_TEAPUESTO,
+    }
+
+    try:
+        r = requests.post(
+            EVENT_DETAILS_URL,
+            headers=HEADERS_POST,
+            json=payload,
+            timeout=25
+        )
+
+        if r.status_code != 200:
+            return None
+
+        return r.json()
+
+    except Exception:
+        return None
+
+
+def get_data_dict(payload):
+    if not isinstance(payload, dict):
+        return {}
+
+    data = payload.get("data", {})
+
+    if isinstance(data, dict):
+        return data
+
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict) and ("market_groups" in item or "event" in item):
+                return item
+
+    return {}
+
+
+def extract_1x2_from_event_details(payload):
+    data = get_data_dict(payload)
+    market_groups = data.get("market_groups", []) or []
+
+    for group in market_groups:
+        group_name = str(group.get("name") or "").lower().strip()
+
+        if group_name != "apuestas principales":
+            continue
+
+        for market in group.get("markets", []) or []:
+            market_name = str(market.get("name") or "").lower().strip()
+
+            if market_name != "1x2":
+                continue
+
+            for mo in market.get("market_odds", []) or []:
+                odds = mo.get("odds", []) or []
+
+                cuotas = {
+                    "Local": None,
+                    "Empate": None,
+                    "Visita": None,
+                }
+
+                for odd in odds:
+                    order = odd.get("order")
+                    value = odd.get("value")
+
+                    if value is None:
+                        continue
+
+                    value = float(value)
+
+                    if order == 1:
+                        cuotas["Local"] = value
+                    elif order == 2:
+                        cuotas["Empate"] = value
+                    elif order == 3:
+                        cuotas["Visita"] = value
+
+                if all(v is not None for v in cuotas.values()):
+                    return cuotas
+
+    return None
+
+
+def get_teams_from_details(payload):
+    data = get_data_dict(payload)
+    ev = data.get("event", {}) or {}
+    competitors = ev.get("competitors", {}) or {}
+
+    home = away = None
+
+    if isinstance(competitors, dict):
+        for c in competitors.values():
+            if not isinstance(c, dict):
+                continue
+
+            if str(c.get("type") or "").lower() == "home":
+                home = c.get("name")
+            elif str(c.get("type") or "").lower() == "away":
+                away = c.get("name")
+
+    return home, away
+
+
+def process_mundial_event(ev):
+    event_id = ev.get("id")
+    event_name = ev.get("name") or ""
+    dt = parse_start_time(ev.get("start_time"))
+
+    if not event_id or not dt:
+        return None
+
+    details = fetch_event_details(event_id)
+
+    if not details:
+        return None
+
+    cuotas = extract_1x2_from_event_details(details)
+
+    if not cuotas:
+        return None
+
+    home, away = get_teams_from_details(details)
+
+    if not home or not away:
+        home, away = parse_teams(event_name)
+
+    if not home or not away:
+        return None
+
+    return {
+        "Liga": MUNDIAL_NAME,
+        "Partido": f"{home} vs {away}",
+        "Fecha": to_iso_like_doradobet(dt.replace(tzinfo=None)),
+        "Casa": "TeApuesto",
+        "Local": home,
+        "Visita": away,
+        "Cuota Local": cuotas["Local"],
+        "Cuota Empate": cuotas["Empate"],
+        "Cuota Visita": cuotas["Visita"],
+        "EventId": event_id,
+    }
+
+
+def extract_mundial_1x2(window_start, window_end):
+    events = fetch_mundial_events()
+
+    candidatos = []
+
+    for ev in events:
+        event_name = ev.get("name") or ""
+
+        if not any(sep in event_name for sep in [" vs. ", " vs ", " - ", " v "]):
+            continue
+
+        ok, dt = is_future_prematch(ev, window_start, window_end)
+
+        if not ok:
+            continue
+
+        candidatos.append(ev)
+
+    rows = []
+
+    if not candidatos:
+        return rows, {
+            "liga": MUNDIAL_NAME,
+            "eventos": 0,
+            "odds": 0,
+        }
+
+    print(f"🌎 Mundial: consultando {len(candidatos)} eventos en paralelo...")
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_MUNDIAL) as executor:
+        futures = [executor.submit(process_mundial_event, ev) for ev in candidatos]
+
+        for future in as_completed(futures):
+            row = future.result()
+            if row:
+                rows.append(row)
+
+    rows.sort(key=lambda x: x["Fecha"])
+
+    return rows, {
+        "liga": MUNDIAL_NAME,
+        "eventos": len(candidatos),
+        "odds": len(rows),
+    }
+
+
+# ==========================================================
 # MAIN
 # ==========================================================
 def main():
     now = datetime.now(TZ_LOCAL)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
+    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (Perú)")
+
+    all_rows = []
+    status_total = {}
+
+    # 1) Ligas normales rápidas
     tournament_ids = [int(x) for x in LIGAS_EQUIVALENCIAS.keys()]
 
-    payload = fetch_tournament_events(tournament_ids)
-    rows, status = extract_1x2(payload, window_start=now, window_end=window_end)
+    try:
+        payload = fetch_tournament_events(tournament_ids)
+        rows, status = extract_1x2_normal(payload, window_start=now, window_end=window_end)
+        all_rows.extend(rows)
+        status_total.update(status)
+    except Exception as e:
+        print(f"❌ Error ligas normales: {e}")
+
+    # 2) Mundial por endpoint especial
+    try:
+        mundial_rows, mundial_status = extract_mundial_1x2(now, window_end)
+        all_rows.extend(mundial_rows)
+        status_total["1197"] = mundial_status
+    except Exception as e:
+        print(f"❌ Error Mundial: {e}")
+
+    all_rows.sort(key=lambda x: x["Fecha"])
 
     with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(rows, f, ensure_ascii=False, indent=2)
+        json.dump(all_rows, f, ensure_ascii=False, indent=2)
 
-    # Logs limpios por liga
-    print(f"📆 Ventana: {now.strftime('%Y-%m-%d %H:%M:%S')} -> {window_end.strftime('%Y-%m-%d %H:%M:%S')} (Perú)")
-    for tid_str, info in status.items():
+    for tid_str, info in status_total.items():
         liga = info["liga"]
         evs = info["eventos"]
         odds = info["odds"]
@@ -280,7 +532,7 @@ def main():
         else:
             print(f"✅ {liga}: OK ({evs} eventos, {odds} con 1x2)")
 
-    print(f"\n💾 Total guardado: {len(rows)} partidos -> {OUT_PATH}")
+    print(f"\n💾 Total guardado: {len(all_rows)} partidos -> {OUT_PATH}")
 
 
 if __name__ == "__main__":

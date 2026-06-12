@@ -71,6 +71,7 @@ LIGAS_EQUIVALENCIAS = [
     ("UEFA Champions League", "Europa", "UEFA Champions League"),
     ("UEFA Europa League", "Europa", "UEFA Europa League"),
     ("UEFA Conference League", "Europa", "UEFA Conference League"),
+    ("Copa Mundial 2026", "Mundo", "Copa Mundial 2026"),
 ]
 
 NOMBRES_1X2 = {"1x2", "resultado final", "match result", "ft result", "ganador"}
