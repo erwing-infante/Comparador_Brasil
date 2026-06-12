@@ -12,6 +12,7 @@ import requests
 URL = "https://col-1xbet.com/service-api/LineFeed/Get1x2_VZip"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
+TZ_FECHA_1XBET = ZoneInfo("UTC")  # 1xbet viene 5 horas atrás; se toma como UTC
 DIAS_A_FUTURO = 3  # 72 horas
 
 CASA = "1xbet"
@@ -78,7 +79,7 @@ def unix_to_local_datetime(ts):
         return None
 
     try:
-        return datetime.fromtimestamp(int(ts), TZ_LOCAL)
+        return datetime.fromtimestamp(int(ts), TZ_FECHA_1XBET)
     except Exception:
         return None
 
@@ -88,15 +89,6 @@ def to_iso_like_doradobet(dt):
 
 
 def is_live_or_started(ev):
-    """
-    En 1xbet prematch normalmente:
-    - S = timestamp futuro
-    - SS suele venir vacío o estructura no-live
-    - HS/HSRT/periodos live no deben usarse
-
-    Aun así filtramos duro por fecha: now < fecha <= now+72h.
-    """
-    # Si trae indicadores live fuertes, lo sacamos
     live_flags = [
         ev.get("Live"),
         ev.get("LIV"),
@@ -108,7 +100,6 @@ def is_live_or_started(ev):
     if any(str(x).lower() in ("true", "1", "yes") for x in live_flags if x is not None):
         return True
 
-    # Si status viene raro como evento empezado
     for k in ("SS", "MS", "SST"):
         v = ev.get(k)
 
@@ -124,15 +115,6 @@ def is_live_or_started(ev):
 
 
 def extract_1x2(ev):
-    """
-    1xbet:
-    E[] = odds principales
-    G=1 = mercado 1X2
-    T=1 Local
-    T=2 Empate
-    T=3 Visita
-    C = cuota decimal
-    """
     cuota_local = None
     cuota_empate = None
     cuota_visita = None
@@ -197,10 +179,10 @@ def fetch_1xbet():
 # MAIN
 # ==========================================================
 def main():
-    now = datetime.now(TZ_LOCAL)
+    now = datetime.now(TZ_FECHA_1XBET)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
-    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (Perú)")
+    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (UTC/formato casas)")
 
     payload = fetch_1xbet()
     events = payload.get("Value", []) or []
@@ -229,7 +211,6 @@ def main():
         if not dt:
             continue
 
-        # Solo próximos 72h y nada ya iniciado/jugado
         if not (now < dt <= window_end):
             continue
 

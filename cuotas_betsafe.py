@@ -14,14 +14,14 @@ import requests
 BASE_URL = "https://www.betsafe.pe"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
+TZ_FECHA_BETSAFE = ZoneInfo("UTC")  # Betsafe se guarda en formato UTC/casas
 DIAS_A_FUTURO = 3
 
 CASA = "Betsafe"
 
 BRAND_ID = "cfe0dfc1-9a3c-41cb-8817-7b3e71fddc9f"
 
-COOKIE = """OBG-MARKET=es; _ga=GA1.1.1630320344.1773758685; OBG-SB-THEME=dark; OptanonAlertBoxClosed=2026-03-17T14:44:52.278Z; CONSENT=%7B%22marketing%22%3A1%2C%22functional%22%3A1%2C%22performance%22%3A1%2C%22targeting%22%3A1%7D; fs_cid=1.1; _gcl_au=1.1.969978760.1773758693; adformfrpid=7190881648779138713; _fbp=fb.1.1773758694861.564566834397579583; __qca=P1-ae7a364c-d6b9-4f55-a6ce-51ad5240d116; Client_Status_Current=Existing Customer; clientstadium=RDC; Customer_Level=RDC; Acquisition_Status_Current=Existing; Start_Acquisition=Existing; Start_Client_Status=Existing Customer; fabricBeta=FABRICBETA; _hjSessionUser_152962=eyJpZCI6ImE1NWQ0MmJmLWIxMWUtNTJjNi05NmQyLTBkNDQ3MDNjNjFjZSIsImNyZWF0ZWQiOjE3NzY1MTY2NDEyMzgsImV4aXN0aW5nIjp0cnVlfQ==; GUID_Cookie=6373943e-102e-4386-baea-7cac863d8514; crw-_ga=2026-06-12-365; OPTIMIZELY_USER_ID=19ebd2c0-d2c0-4000-8bd2c0e850.-.a4b; __zzatgib-w-bab-betsafe=MDA0dC0cTApcfEJcdGswPi17CT4VHThHKHIzd2VbPyNRX3kWIUBdVgosFhU1JVZMDxAWRj5xdjFsZiJlfVonTBM/dRdZRkE2XBpLdWUvDDk6a2wkUlFDS2N8GgprLxoYf2wlWH8PW0JBbnglLTFmJ3xLKTUdETJeV1U0O2dBVH9NbHARGkBUC0wLXAlDNV8ga2tKTUQoFVlxEV5ERHZ3LHBiHl9JFhxHWFV/IktCNCQgVjo8FkVHcC8xQGYhUUNLX3gfGDpoXXsJXWYbRk0UdHZfbxt/JlocOWMgSlxVCC4cE390J08Nf00JEjUwG0VXXSN4Gl0PEh1FF2ZetFM7qw==; agentroutestate=gxPHxUxro-6cldINGo-7cQ; Initdone=1; OriginReferrer=; OriginLandingURL=https://www.betsafe.pe/es; TrafficType=Other Traffic; AffCookie=Missing AffCode; OptanonConsent=isGpcEnabled=0&datestamp=Fri+Jun+12+2026+13%3A53%3A35+GMT-0500+(hora+est%C3%A1ndar+de+Per%C3%BA)&version=202401.2.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=3dde03d8-4023-411f-976d-dc248f80cf9e&interactionCount=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0003%3A1%2CC0002%3A1%2CC0004%3A1&AwaitingReconsent=false&geolocation=PE%3BPIU; LAST-SAVED-VISITED-PAGE=%2Fes%2Fapuestas-deportivas; fs_uid=#o-AD9G-eu1#a017e8d2-8346-404f-a7b6-c47d34037efa:06f23cd7-9323-4dc3-8be7-9e6c64497045:1781290416096::1#78b534c6##/1810231846; OBG-LOBBY=sportsbook; session=d107007f2cc1ea7e-0000000000915861; fs_lua=1.1781290665874; aws-waf-token=201bf163-774f-473c-8048-a59892023626:EAoAmLuFUxMoAAAA:nb4XQlrPNc7+nLGCATdQ7jpHL9j+V/9TCIoZ9lNyx8T4RX2JyfBPLA6q1D2tdh7mmpOighfm8AqX6m+1sXmWMhvSXB986P2LfbZgXLsCed2OukJqPvMhj/SyfIOwDoS8PmrBsNF1AKi8304QcYZcuVkfA20c6F7kPnnqVHoFeS6yyOi3afNuB5vkRXnCjMI=; cfidsgib-w-bab-betsafe=X2R/XEcsuNFvs12ndRj4+lW8XKXnsqBIXGdob3U0DOIVXxtIdZgKldYDcCpAjzWma8wpIcM1NTgvfo932iQymY8dA2EMkjK8tOf7jRHySFoWy/6VoLv6dud+iJ1S/IhX1BPgnhWiTsn8pxDG+6ALC2J+cWu6Wi82dAatZ5o=; cfidsgib-w-bab-betsafe=X2R/XEcsuNFvs12ndRj4+lW8XKXnsqBIXGdob3U0DOIVXxtIdZgKldYDcCpAjzWma8wpIcM1NTgvfo932iQymY8dA2EMkjK8tOf7jRHySFoWy/6VoLv6dud+iJ1S/IhX1BPgnhWiTsn8pxDG+6ALC2J+cWu6Wi82dAatZ5o=; _ga_NDFXVTB6FL=GS2.1.s1781290417$o17$g1$t1781290975$j60$l0$h2085379371; FPGSID=1.1781290417.1781290976.G-NDFXVTB6FL.YGrPgeOV3vAsKb14dmjogg
-"""
+COOKIE = """OBG-MARKET=es; _ga=GA1.1.1630320344.1773758685; OBG-SB-THEME=dark; OptanonAlertBoxClosed=2026-03-17T14:44:52.278Z; CONSENT=%7B%22marketing%22%3A1%2C%22functional%22%3A1%2C%22performance%22%3A1%2C%22targeting%22%3A1%7D; fs_cid=1.1; _gcl_au=1.1.969978760.1773758693; adformfrpid=7190881648779138713; _fbp=fb.1.1773758694861.564566834397579583; __qca=P1-ae7a364c-d6b9-4f55-a6ce-51ad5240d116; Client_Status_Current=Existing Customer; clientstadium=RDC; Customer_Level=RDC; Acquisition_Status_Current=Existing; Start_Acquisition=Existing; Start_Client_Status=Existing Customer; fabricBeta=FABRICBETA; _hjSessionUser_152962=eyJpZCI6ImE1NWQ0MmJmLWIxMWUtNTJjNi05NmQyLTBkNDQ3MDNjNjFjZSIsImNyZWF0ZWQiOjE3NzY1MTY2NDEyMzgsImV4aXN0aW5nIjp0cnVlfQ==; GUID_Cookie=6373943e-102e-4386-baea-7cac863d8514; crw-_ga=2026-06-12-365; OPTIMIZELY_USER_ID=19ebd2c0-d2c0-4000-8bd2c0e850.-.a4b; __zzatgib-w-bab-betsafe=MDA0dC0cTApcfEJcdGswPi17CT4VHThHKHIzd2VbPyNRX3kWIUBdVgosFhU1JVZMDxAWRj5xdjFsZiJlfVonTBM/dRdZRkE2XBpLdWUvDDk6a2wkUlFDS2N8GgprLxoYf2wlWH8PW0JBbnglLTFmJ3xLKTUdETJeV1U0O2dBVH9NbHARGkBUC0wLXAlDNV8ga2tKTUQoFVlxEV5ERHZ3LHBiHl9JFhxHWFV/IktCNCQgVjo8FkVHcC8xQGYhUUNLX3gfGDpoXXsJXWYbRk0UdHZfbxt/JlocOWMgSlxVCC4cE390J08Nf00JEjUwG0VXXSN4Gl0PEh1FF2ZetFM7qw==; agentroutestate=gxPHxUxro-6cldINGo-7cQ; Initdone=1; OriginReferrer=; OriginLandingURL=https://www.betsafe.pe/es; TrafficType=Other Traffic; AffCookie=Missing AffCode; OptanonConsent=isGpcEnabled=0&datestamp=Fri+Jun+12+2026+13%3A53%3A35+GMT-0500+(hora+est%C3%A1ndar+de+Per%C3%BA)&version=202401.2.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=3dde03d8-4023-411f-976d-dc248f80cf9e&interactionCount=1&landingPath=NotLandingPage&groups=C0001%3A1%2CC0003%3A1%2CC0002%3A1%2CC0004%3A1&AwaitingReconsent=false&geolocation=PE%3BPIU; LAST-SAVED-VISITED-PAGE=%2Fes%2Fapuestas-deportivas; fs_uid=#o-AD9G-eu1#a017e8d2-8346-404f-a7b6-c47d34037efa:06f23cd7-9323-4dc3-8be7-9e6c64497045:1781290416096::1#78b534c6##/1810231846; OBG-LOBBY=sportsbook; session=d107007f2cc1ea7e-0000000000915861; fs_lua=1.1781290665874; aws-waf-token=201bf163-774f-473c-8048-a59892023626:EAoAmLuFUxMoAAAA:nb4XQlrPNc7+nLGCATdQ7jpHL9j+V/9TCIoZ9lNyx8T4RX2JyfBPLA6q1D2tdh7mmpOighfm8AqX6m+1sXmWMhvSXB986P2LfbZgXLsCed2OukJqPvMhj/SyfIOwDoS8PmrBsNF1AKi8304QcYZcuVkfA20c6F7kPnnqVHoFeS6yyOi3afNuB5vkRXnCjMI=; cfidsgib-w-bab-betsafe=X2R/XEcsuNFvs12ndRj4+lW8XKXnsqBIXGdob3U0DOIVXxtIdZgKldYDcCpAjzWma8wpIcM1NTgvfo932iQymY8dA2EMkjK8tOf7jRHySFoWy/6VoLv6dud+iJ1S/IhX1BPgnhWiTsn8pxDG+6ALC2J+cWu6Wi82dAatZ5o=; cfidsgib-w-bab-betsafe=X2R/XEcsuNFvs12ndRj4+lW8XKXnsqBIXGdob3U0DOIVXxtIdZgKldYDcCpAjzWma8wpIcM1NTgvfo932iQymY8dA2EMkjK8tOf7jRHySFoWy/6VoLv6dud+iJ1S/IhX1BPgnhWiTsn8pxDG+6ALC2J+cWu6Wi82dAatZ5o=; _ga_NDFXVTB6FL=GS2.1.s1781290417$o17$g1$t1781290975$j60$l0$h2085379371; FPGSID=1.1781290417.1781290976.G-NDFXVTB6FL.YGrPgeOV3vAsKb14dmjogg"""
 
 SESSION_TOKEN = ""
 
@@ -62,12 +62,14 @@ def clean_cookie():
 def parse_iso_utc_to_local(s):
     if not s:
         return None
+
     try:
         if s.endswith("Z"):
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
         else:
             dt = datetime.fromisoformat(s)
-        return dt.astimezone(TZ_LOCAL)
+
+        return dt.astimezone(TZ_FECHA_BETSAFE)
     except Exception:
         return None
 
@@ -278,6 +280,7 @@ def procesar_evento(ev):
         return None
 
     dt = parse_iso_utc_to_local(fecha_raw)
+
     if not dt:
         return None
 
@@ -325,10 +328,10 @@ def main():
         print("❌ Falta pegar COOKIE completa del curl bueno de Betsafe.")
         return
 
-    now = datetime.now(TZ_LOCAL)
+    now = datetime.now(TZ_FECHA_BETSAFE)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
-    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (Perú)")
+    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (UTC/formato casas)")
 
     session = requests.Session()
 
@@ -363,6 +366,7 @@ def main():
                 continue
 
             dt = parse_iso_utc_to_local(ev.get("startDate") or ev.get("startTime"))
+
             if not dt:
                 continue
 

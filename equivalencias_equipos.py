@@ -696,4 +696,10 @@ EQUIVALENCIAS_EQUIPOS = {
     "universidad central venezuela": "ucv",
     "ca penarol montevideo": "penarol",
     "ca platense": "platense",
+    "ee.uu.": "estados Unidos",
+    "eua": "estados Unidos",
+    "Catar": "qatar",
+    "curacao": "curazao",
+    "curasao": "curazao",
+    "espana": "españa",
 }

@@ -19,11 +19,8 @@ LANG_EVENTS = "es"
 TIME_RANGE = "all"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
-
-# Para escáner real usa 3. Para pruebas largas usa 60.
 DIAS_A_FUTURO = 3
 
-# Mundial usa event-details por partido. Esto acelera.
 MAX_WORKERS_MUNDIAL = 8
 
 AUTH_TEAPUESTO = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3ODEyMTgwMDksImlzcyI6ImxhdGFtX2FwaSIsImV4cCI6MTQ3Nzk4Njk5MCwidXNlcl9pZCI6MCwidXNlcl90eXBlIjowLCJtYWNoaW5lX2lkIjowLCJ1c2VyX3RpbWVvdXQiOjAsImlwIjoiMTkwLjIzNy4xMi4yMDQiLCJybmRfa2V5IjowfQ.Zov-bnsXeQWC3vfC2BiilrLxuFt5jnUAgrwaZL9fZgM"
@@ -46,10 +43,6 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 OUT_PATH = os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 
-# ==========================================================
-# LIGAS NORMALES
-# No metas 1197 aquí porque rompe /tournament-events
-# ==========================================================
 LIGAS_EQUIVALENCIAS = {
     "1105": "Premier League",
     "1745": "EFL Cup",
@@ -92,14 +85,113 @@ def parse_teams(event_name: str):
     if not event_name:
         return None, None
 
-    seps = [" - ", " vs. ", " vs ", " v "]
-
-    for sep in seps:
+    for sep in [" - ", " vs. ", " vs ", " v "]:
         if sep in event_name:
             a, b = event_name.split(sep, 1)
             return a.strip(), b.strip()
 
     return None, None
+
+
+def has_live_flag(ev: dict) -> bool:
+    live_keys = [
+        "is_live",
+        "isLive",
+        "live",
+        "Live",
+        "in_live",
+        "inLive",
+        "inplay",
+        "in_play",
+        "is_inplay",
+        "isInplay",
+    ]
+
+    for k in live_keys:
+        v = ev.get(k)
+
+        if v is True:
+            return True
+
+        if isinstance(v, (int, float)) and v == 1:
+            return True
+
+        if isinstance(v, str) and v.strip().lower() in ("1", "true", "yes", "live", "inplay", "in_play"):
+            return True
+
+    return False
+
+
+def has_live_status(ev: dict) -> bool:
+    status_keys = [
+        "status",
+        "event_status",
+        "eventStatus",
+        "state",
+        "phase",
+        "match_status",
+        "matchStatus",
+    ]
+
+    bad_words = [
+        "live",
+        "inplay",
+        "in_play",
+        "started",
+        "inprogress",
+        "in_progress",
+        "running",
+        "playing",
+        "halftime",
+        "half-time",
+        "1st",
+        "2nd",
+        "first half",
+        "second half",
+        "closed",
+        "settled",
+        "finished",
+        "ended",
+        "resulted",
+        "cancelled",
+        "canceled",
+        "suspended",
+    ]
+
+    for k in status_keys:
+        s = str(ev.get(k) or "").strip().lower()
+
+        if not s:
+            continue
+
+        if any(word in s for word in bad_words):
+            return True
+
+    return False
+
+
+def has_live_period_clock_score(ev: dict) -> bool:
+    period_s = str(ev.get("period") or ev.get("current_period") or ev.get("period_name") or "").strip().lower()
+    clock_s = str(ev.get("clock") or ev.get("timer") or ev.get("match_time") or ev.get("time") or "").strip()
+    minute_s = str(ev.get("minute") or ev.get("matchMinute") or "").strip()
+    score_v = ev.get("score") or ev.get("scores") or ev.get("result")
+
+    if period_s not in ("", "0", "pre", "prematch", "pre-match", "notstarted", "not_started", "scheduled"):
+        return True
+
+    if clock_s not in ("", "0", "00:00", "00:00:00"):
+        return True
+
+    if minute_s not in ("", "0"):
+        return True
+
+    if score_v not in (None, "", 0, "0"):
+        s = str(score_v).strip()
+
+        if s not in ("0-0", "0:0", "0 - 0", "0 : 0"):
+            return True
+
+    return False
 
 
 def is_future_prematch(ev, now, window_end):
@@ -108,27 +200,19 @@ def is_future_prematch(ev, now, window_end):
     if not dt:
         return False, None
 
+    # Solo futuros dentro de ventana
     if not (now < dt <= window_end):
         return False, dt
 
-    status_s = str(ev.get("status") or "").strip().lower()
-    period_s = str(ev.get("period") or "").strip().lower()
-    clock_s = str(ev.get("clock") or "").strip()
-    score_v = ev.get("score")
-
-    if status_s in ("live", "inplay", "in_play", "started", "inprogress", "in_progress", "running", "playing"):
+    # Filtro fuerte contra live
+    if has_live_flag(ev):
         return False, dt
 
-    if period_s not in ("", "0", "pre", "prematch", "pre-match", "notstarted", "not_started", "scheduled"):
+    if has_live_status(ev):
         return False, dt
 
-    if clock_s not in ("", "0", "00:00", "00:00:00"):
+    if has_live_period_clock_score(ev):
         return False, dt
-
-    if score_v not in (None, "", 0, "0"):
-        s = str(score_v).strip()
-        if s not in ("0-0", "0:0", "0 - 0", "0 : 0"):
-            return False, dt
 
     return True, dt
 
@@ -150,7 +234,7 @@ def fetch_tournament_events(tournament_ids):
         TOURNAMENT_EVENTS_URL,
         headers=HEADERS,
         params=params,
-        timeout=45
+        timeout=45,
     )
 
     r.raise_for_status()
@@ -179,6 +263,7 @@ def extract_1x2_normal(payload: dict, window_start: datetime, window_end: dateti
 
         for ev in events:
             ok, dt = is_future_prematch(ev, window_start, window_end)
+
             if ok:
                 events_filtrados.append((ev, dt))
 
@@ -197,7 +282,7 @@ def extract_1x2_normal(payload: dict, window_start: datetime, window_end: dateti
 
             market_1x2 = None
 
-            for m in (ev.get("markets", []) or []):
+            for m in ev.get("markets", []) or []:
                 if str(m.get("name", "")).lower().strip() == "1x2":
                     market_1x2 = m
                     break
@@ -207,7 +292,7 @@ def extract_1x2_normal(payload: dict, window_start: datetime, window_end: dateti
 
             odds_items = None
 
-            for mo in (market_1x2.get("market_odds", []) or []):
+            for mo in market_1x2.get("market_odds", []) or []:
                 if mo.get("odds"):
                     odds_items = mo["odds"]
                     break
@@ -225,7 +310,10 @@ def extract_1x2_normal(payload: dict, window_start: datetime, window_end: dateti
                 if val is None:
                     continue
 
-                val = float(val)
+                try:
+                    val = float(val)
+                except Exception:
+                    continue
 
                 if pid == "1" or order == 1:
                     cuota_local = val
@@ -273,7 +361,7 @@ def fetch_mundial_events():
             "lang": LANG_EVENTS,
             "tournament_id": MUNDIAL_ID,
         },
-        timeout=30
+        timeout=30,
     )
 
     r.raise_for_status()
@@ -302,7 +390,7 @@ def fetch_event_details(event_id):
             EVENT_DETAILS_URL,
             headers=HEADERS_POST,
             json=payload,
-            timeout=25
+            timeout=25,
         )
 
         if r.status_code != 200:
@@ -363,7 +451,10 @@ def extract_1x2_from_event_details(payload):
                     if value is None:
                         continue
 
-                    value = float(value)
+                    try:
+                        value = float(value)
+                    except Exception:
+                        continue
 
                     if order == 1:
                         cuotas["Local"] = value
@@ -398,6 +489,25 @@ def get_teams_from_details(payload):
     return home, away
 
 
+def is_details_still_prematch(payload):
+    data = get_data_dict(payload)
+    ev = data.get("event", {}) or {}
+
+    if not ev:
+        return True
+
+    if has_live_flag(ev):
+        return False
+
+    if has_live_status(ev):
+        return False
+
+    if has_live_period_clock_score(ev):
+        return False
+
+    return True
+
+
 def process_mundial_event(ev):
     event_id = ev.get("id")
     event_name = ev.get("name") or ""
@@ -409,6 +519,10 @@ def process_mundial_event(ev):
     details = fetch_event_details(event_id)
 
     if not details:
+        return None
+
+    # Segundo filtro: por si el listado decía prematch pero el detalle ya está live
+    if not is_details_still_prematch(details):
         return None
 
     cuotas = extract_1x2_from_event_details(details)
@@ -465,13 +579,17 @@ def extract_mundial_1x2(window_start, window_end):
             "odds": 0,
         }
 
-    print(f"🌎 Mundial: consultando {len(candidatos)} eventos en paralelo...")
+    print(f"🌎 Mundial: consultando {len(candidatos)} eventos prematch en paralelo...")
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS_MUNDIAL) as executor:
         futures = [executor.submit(process_mundial_event, ev) for ev in candidatos]
 
         for future in as_completed(futures):
-            row = future.result()
+            try:
+                row = future.result()
+            except Exception:
+                row = None
+
             if row:
                 rows.append(row)
 
@@ -492,11 +610,11 @@ def main():
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
     print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (Perú)")
+    print("🔒 Filtro activo: SOLO PREMATCH / FUTUROS / NO LIVE")
 
     all_rows = []
     status_total = {}
 
-    # 1) Ligas normales rápidas
     tournament_ids = [int(x) for x in LIGAS_EQUIVALENCIAS.keys()]
 
     try:
@@ -507,7 +625,6 @@ def main():
     except Exception as e:
         print(f"❌ Error ligas normales: {e}")
 
-    # 2) Mundial por endpoint especial
     try:
         mundial_rows, mundial_status = extract_mundial_1x2(now, window_end)
         all_rows.extend(mundial_rows)
@@ -526,11 +643,11 @@ def main():
         odds = info["odds"]
 
         if evs == 0:
-            print(f"❌ {liga}: 0 eventos")
+            print(f"❌ {liga}: 0 eventos prematch")
         elif odds == 0:
-            print(f"⚠️ {liga}: {evs} eventos, 0 odds 1x2")
+            print(f"⚠️ {liga}: {evs} eventos prematch, 0 odds 1x2")
         else:
-            print(f"✅ {liga}: OK ({evs} eventos, {odds} con 1x2)")
+            print(f"✅ {liga}: OK ({evs} eventos prematch, {odds} con 1x2)")
 
     print(f"\n💾 Total guardado: {len(all_rows)} partidos -> {OUT_PATH}")
 

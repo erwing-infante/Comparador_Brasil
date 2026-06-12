@@ -14,6 +14,7 @@ import requests
 BASE_URL = "https://d-cf.inkabetplayground.net"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
+TZ_FECHA_INKABET = ZoneInfo("UTC")  # Inkabet se guarda en formato UTC/casas
 DIAS_A_FUTURO = 3
 
 CASA = "Inkabet"
@@ -62,12 +63,14 @@ def clean_cookie():
 def parse_iso_utc_to_local(s):
     if not s:
         return None
+
     try:
         if s.endswith("Z"):
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
         else:
             dt = datetime.fromisoformat(s)
-        return dt.astimezone(TZ_LOCAL)
+
+        return dt.astimezone(TZ_FECHA_INKABET)
     except Exception:
         return None
 
@@ -282,6 +285,7 @@ def procesar_evento(ev):
         return None
 
     dt = parse_iso_utc_to_local(fecha_raw)
+
     if not dt:
         return None
 
@@ -325,10 +329,10 @@ def procesar_evento(ev):
 # MAIN
 # ==========================================================
 def main():
-    now = datetime.now(TZ_LOCAL)
+    now = datetime.now(TZ_FECHA_INKABET)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
-    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (Perú)")
+    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (UTC/formato casas)")
 
     session = requests.Session()
 
@@ -363,6 +367,7 @@ def main():
                 continue
 
             dt = parse_iso_utc_to_local(ev.get("startDate") or ev.get("startTime"))
+
             if not dt:
                 continue
 
