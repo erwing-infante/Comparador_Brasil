@@ -25,7 +25,7 @@ HISTORICO_DIR = os.path.join(DATA_DIR, "historico_cuotas")
 TZ_LOCAL = ZoneInfo("America/Lima")
 
 ARCHIVOS = {
-    "oddsapi": os.path.join(DATA_DIR, "cuotas_oddsapi.json"),
+    #"oddsapi": os.path.join(DATA_DIR, "cuotas_oddsapi.json"),
     "apuestatotal": os.path.join(DATA_DIR, "cuotas_apuestatotal.json"),
     "doradobet": os.path.join(DATA_DIR, "cuotas_doradobet.json"),
     "atlanticcity": os.path.join(DATA_DIR, "cuotas_atlanticcity.json"),

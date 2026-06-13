@@ -11,7 +11,7 @@ BASE_DIR = r"D:\Proyectos\Mancorabet"
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 SCRIPTS_EXTRACTORES = [
-    "cuotas_oddsapi.py",
+    #"cuotas_oddsapi.py",
     "cuotas_apuestatotal.py",
     "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
