@@ -23,17 +23,24 @@ ERROR_LOG = os.path.join(OUT_DIR, "error_stake_log.txt")
 DEBUG_DIR = os.path.join(OUT_DIR, "debug_stake")
 os.makedirs(DEBUG_DIR, exist_ok=True)
 
-# Hidenseek actual capturado de Network
+USE_PROXY = True
+PROXY = "http://7b0f657793f8b923:exTpjJv7kcCPYnbL@res.proxy-seller.com:10000"
+
+PROXIES = {
+    "http": PROXY,
+    "https": PROXY,
+} if USE_PROXY else None
+
 HIDENSEEK = "bcc0f2180733cb82ce70d7136680a27383fcbae3"
 
 BASE_URL = "https://pre-143o-sp.websbkt.com/cache/143/es/pe/America-Lima/events-by-path.json"
 
-RETRIES = 3
-PARALLEL_WORKERS = 2
-STAGGER_BETWEEN_SUBMITS = (0.20, 0.45)
-SLEEP_BETWEEN_RETRIES_EXTRA = (0.50, 1.50)
+RETRIES = 2
+PARALLEL_WORKERS = 3
+STAGGER_BETWEEN_SUBMITS = (0.10, 0.25)
+SLEEP_BETWEEN_RETRIES_EXTRA = (0.30, 0.80)
+REQUEST_TIMEOUT = 15
 
-# ✅ filtro 72 horas
 HORAS_ADELANTE = 72
 NOW_UTC = datetime.now(timezone.utc)
 CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
@@ -49,10 +56,8 @@ LIGAS_STAKE = [
     ("Brasileirao", "football|brazil|serie-a"),
     ("UEFA Champions League", "football|europe|uefa-champions-league"),
     ("UEFA Europa League", "football|europe|uefa-europa-league"),
-
     ("Copa Libertadores", "football|south-america|copa-libertadores"),
     ("Copa Sudamericana", "football|south-america|copa-sudamericana"),
-
     ("Copa Mundial 2026", "football|world|fifa-world-cup"),
 ]
 
@@ -62,6 +67,7 @@ HEADERS = {
     "cache-control": "no-cache",
     "origin": "https://stake.pe",
     "pragma": "no-cache",
+    "priority": "u=1, i",
     "referer": "https://stake.pe/",
     "sec-ch-ua": '"Google Chrome";v="149", "Chromium";v="149", "Not)A;Brand";v="24"',
     "sec-ch-ua-mobile": "?0",
@@ -87,6 +93,7 @@ def log_error(msg):
 def save_debug(name, payload):
     safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
     path = os.path.join(DEBUG_DIR, f"{safe}.json")
+
     with open(path, "w", encoding="utf-8") as f:
         if isinstance(payload, (dict, list)):
             json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -102,7 +109,7 @@ def fecha_to_utc(fecha_raw):
         try:
             val = float(fecha_raw)
             if val > 10_000_000_000:
-                val = val / 1000
+                val = val / 1000.0
             return datetime.fromtimestamp(val, tz=timezone.utc)
         except Exception:
             return None
@@ -115,7 +122,7 @@ def fecha_to_utc(fecha_raw):
         try:
             val = float(s)
             if val > 10_000_000_000:
-                val = val / 1000
+                val = val / 1000.0
             return datetime.fromtimestamp(val, tz=timezone.utc)
         except Exception:
             return None
@@ -155,7 +162,8 @@ def fetch_path(canon, path_value):
                     "path": path_value,
                     "hidenseek": HIDENSEEK,
                 },
-                timeout=30,
+                proxies=PROXIES,
+                timeout=REQUEST_TIMEOUT,
             )
 
             text = r.text.strip()
@@ -164,17 +172,18 @@ def fetch_path(canon, path_value):
                 if text.startswith("{") or text.startswith("["):
                     return r.json()
 
-                save_debug(f"nonjson_{canon}_attempt{attempt}", text[:4000])
+                save_debug(f"nonjson_{canon}_attempt{attempt}", text[:5000])
                 raise RuntimeError(f"Respuesta no JSON: {text[:150]}")
 
             if r.status_code == 406:
-                raise RuntimeError("406 NotAcceptable: hidenseek vencido o request no aceptado")
+                raise RuntimeError("406 NotAcceptable: hidenseek vencido, IP/proxy bloqueado o request no aceptado")
 
-            save_debug(f"status_{r.status_code}_{canon}_attempt{attempt}", text[:4000])
+            save_debug(f"status_{r.status_code}_{canon}_attempt{attempt}", text[:5000])
             raise RuntimeError(f"Status {r.status_code}: {text[:150]}")
 
         except Exception as e:
             last_err = e
+
             if attempt < RETRIES:
                 time.sleep(attempt + random.uniform(*SLEEP_BETWEEN_RETRIES_EXTRA))
 
@@ -189,6 +198,7 @@ def parece_evento(obj):
         return False
 
     tiene_id = obj.get("id") or obj.get("eventId")
+
     tiene_fecha = (
         obj.get("date_start")
         or obj.get("dateStart")
@@ -197,6 +207,7 @@ def parece_evento(obj):
         or obj.get("eventDate")
         or obj.get("date")
     )
+
     tiene_equipos = (
         obj.get("teams")
         or obj.get("homeTeam")
@@ -215,8 +226,10 @@ def encontrar_eventos(payload):
         if isinstance(x, dict):
             if parece_evento(x):
                 eventos.append(x)
+
             for v in x.values():
                 scan(v)
+
         elif isinstance(x, list):
             for item in x:
                 scan(item)
@@ -236,6 +249,7 @@ def extract_fecha(ev):
     for k in ("date_start", "dateStart", "startTime", "start_time", "eventDate", "date"):
         if ev.get(k):
             return ev.get(k)
+
     return ""
 
 
@@ -275,7 +289,11 @@ def extract_teams(ev):
 
 
 def buscar_cuotas_1x2(obj):
-    cuotas = {"Local": "", "Empate": "", "Visita": ""}
+    cuotas = {
+        "Local": "",
+        "Empate": "",
+        "Visita": "",
+    }
 
     def scan(x):
         if isinstance(x, dict):
@@ -295,8 +313,10 @@ def buscar_cuotas_1x2(obj):
             if val != "":
                 if name == "1" or str(odd_id) == "3":
                     cuotas["Local"] = cuotas["Local"] or val
+
                 elif name == "X" or str(odd_id) == "4":
                     cuotas["Empate"] = cuotas["Empate"] or val
+
                 elif name == "2" or str(odd_id) == "5":
                     cuotas["Visita"] = cuotas["Visita"] or val
 
@@ -324,8 +344,6 @@ def procesar_liga(canon, path_value):
     eventos = encontrar_eventos(payload)
     regs = []
 
-    print(f"  [debug] {canon}: {len(eventos)} eventos recibidos")
-
     for ev in eventos:
         event_id = ev.get("id") or ev.get("eventId")
 
@@ -336,7 +354,6 @@ def procesar_liga(canon, path_value):
             log_error(f"[{canon}] eventId={event_id} Fecha inválida: {fecha_raw}")
             continue
 
-        # ✅ filtro 72 horas
         if dt > CUTOFF_UTC:
             continue
 
@@ -372,6 +389,7 @@ def main():
     print(f"✅ Ligas Stake a consultar: {len(LIGAS_STAKE)}")
     print(f"✅ Filtro activo: solo eventos <= {HORAS_ADELANTE} horas")
     print(f"✅ Paralelismo: {PARALLEL_WORKERS} workers")
+    print(f"✅ Proxy activo: {USE_PROXY}")
 
     registros = []
 
@@ -386,17 +404,10 @@ def main():
             try:
                 canon, regs = fut.result()
                 registros.extend(regs)
-                print(f"  - {canon}: {len(regs)} partidos")
+                print(f"  ✅ {canon}: {len(regs)} partidos")
             except Exception as e:
                 log_error(f"[FUTURE] EXCEPTION: {e}")
-                print("  - ERROR (ver log)")
-
-    if not registros:
-        print("❌ No se generaron registros.")
-        print("   Revisa:")
-        print("   - data/error_stake_log.txt")
-        print("   - data/debug_stake/")
-        return
+                print("  ❌ ERROR ver log")
 
     registros.sort(key=lambda r: (r.get("Liga", ""), sort_key_fecha(r)))
 
@@ -404,13 +415,10 @@ def main():
         json.dump(registros, f, ensure_ascii=False, indent=2)
 
     print(f"\n✅ Generado: {OUT_JSON}")
-    print(f"✅ Total partidos: {len(registros)}")
+    print(f"✅ Total partidos guardados: {len(registros)}")
 
-    for r in registros[:25]:
-        print(
-            f"- {r['Liga']} | {r['Partido']} | {r['Fecha']} | "
-            f"{r['Cuota Local']} / {r['Cuota Empate']} / {r['Cuota Visita']}"
-        )
+    if os.path.exists(ERROR_LOG):
+        print(f"⚠️ Revisa: {ERROR_LOG}")
 
 
 if __name__ == "__main__":
