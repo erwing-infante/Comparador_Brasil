@@ -704,7 +704,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "scotland": "escocia",
     "germany": "alemania",
     "curacao": "curazao",
-    "curacao": "curazao",
+    "curasao": "curazao",
     "netherlands": "paises bajos",
     "sweden": "suecia",
     "tunisia": "tunez",
