@@ -23,6 +23,7 @@ LIGAS_COMPETITION_ID = {
     "UEFA Conference League": 12375833,
     "Copa Libertadores": 12147796,
     "Copa Sudamericana": 12204604,
+    "Copa Mundial 2026": 12469077,
 }
 
 # Para completar luego:
