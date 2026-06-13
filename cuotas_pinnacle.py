@@ -8,6 +8,9 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+# ==========================================================
+# CONFIG
+# ==========================================================
 BASE = "https://guest.api.arcadia.pinnacle.com/0.1"
 
 PROXY = "http://7b0f657793f8b923:exTpjJv7kcCPYnbL@res.proxy-seller.com:10000"
@@ -16,7 +19,11 @@ PROXIES = {
     "https": PROXY,
 }
 
-TZ_LOCAL = ZoneInfo("America/Lima")
+# IMPORTANTE:
+# Se usa UTC para que la fecha salga igual al JSON de Apuesta Total:
+# 2026-06-13T19:00:00.000
+TZ_LOCAL = ZoneInfo("UTC")
+
 DIAS_A_FUTURO = 3
 CASA = "Pinnacle"
 MAX_WORKERS = 6
@@ -41,12 +48,19 @@ HEADERS = {
     "content-type": "application/json",
     "origin": "https://www.pinnacle.com",
     "referer": "https://www.pinnacle.com/",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    "user-agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/149.0.0.0 Safari/537.36"
+    ),
     "x-api-key": "CmX2KcMrXuFmNg6YFbmTxE0y9CIrOi0R",
     "x-device-uuid": "6f97bce1-ea2548d3-de8a9b22-4e4338ea",
 }
 
 
+# ==========================================================
+# UTILS
+# ==========================================================
 def save_debug(filename, content):
     path = os.path.join(DEBUG_DIR, filename)
 
@@ -69,6 +83,10 @@ def american_to_decimal(price):
 
 
 def parse_utc_to_local(s):
+    """
+    Pinnacle entrega startTime en UTC.
+    Lo mantenemos en UTC para que coincida con el formato de las otras casas.
+    """
     if not s:
         return None
 
@@ -85,6 +103,10 @@ def parse_utc_to_local(s):
 
 
 def to_json_fecha(dt):
+    """
+    Formato estándar Mancorabet:
+    2026-06-13T19:00:00.000
+    """
     return dt.strftime("%Y-%m-%dT%H:%M:%S.000")
 
 
@@ -189,6 +211,9 @@ def is_valid_matchup(ev, now, window_end):
     return now < dt <= window_end
 
 
+# ==========================================================
+# FETCH
+# ==========================================================
 def fetch_matchups(session, league_id):
     url = f"{BASE}/leagues/{league_id}/matchups"
 
@@ -219,6 +244,9 @@ def fetch_markets(session, matchup_id):
     return None, status_code, error
 
 
+# ==========================================================
+# PARSE ODDS
+# ==========================================================
 def extract_1x2(markets):
     if not markets:
         return None
@@ -320,11 +348,17 @@ def procesar_evento(ev, session):
     }
 
 
+# ==========================================================
+# MAIN
+# ==========================================================
 def main():
     now = datetime.now(TZ_LOCAL)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
-    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} Perú")
+    print(
+        f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> "
+        f"{window_end:%Y-%m-%d %H:%M:%S} UTC/formato casas"
+    )
 
     session = make_session()
 

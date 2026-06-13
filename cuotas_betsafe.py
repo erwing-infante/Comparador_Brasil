@@ -2,6 +2,7 @@ import json
 import os
 import time
 import uuid
+import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -13,8 +14,14 @@ import requests
 # ==========================================================
 BASE_URL = "https://www.betsafe.pe"
 
+PROXY = "http://7b0f657793f8b923:exTpjJv7kcCPYnbL@res.proxy-seller.com:10000"
+PROXIES = {
+    "http": PROXY,
+    "https": PROXY,
+}
+
 TZ_LOCAL = ZoneInfo("America/Lima")
-TZ_FECHA_BETSAFE = ZoneInfo("UTC")  # Betsafe se guarda en formato UTC/casas
+TZ_FECHA_BETSAFE = ZoneInfo("UTC")
 DIAS_A_FUTURO = 3
 
 CASA = "Betsafe"
@@ -49,12 +56,24 @@ LIGAS_BETSAFE = {
 GROUPABLE_NORMAL = "MW3W"
 GROUPABLE_PAGO = "MW3W2UPEP"
 
-MAX_WORKERS = 20
+MAX_WORKERS = 6
 
 
 # ==========================================================
 # UTILS
 # ==========================================================
+def save_debug(filename, content):
+    path = os.path.join(DEBUG_DIR, filename)
+
+    with open(path, "w", encoding="utf-8") as f:
+        if isinstance(content, str):
+            f.write(content)
+        else:
+            json.dump(content, f, ensure_ascii=False, indent=2)
+
+    return path
+
+
 def clean_cookie():
     return " ".join(COOKIE.strip().split())
 
@@ -111,7 +130,7 @@ def is_live_or_started(ev, now):
 
 
 # ==========================================================
-# HEADERS
+# HEADERS / SESSION
 # ==========================================================
 def base_headers(referer, identifier):
     h = {
@@ -153,6 +172,83 @@ def base_headers(referer, identifier):
     return h
 
 
+def make_session():
+    session = requests.Session()
+    session.proxies.update(PROXIES)
+
+    try:
+        r = session.get(
+            BASE_URL,
+            headers=base_headers(
+                BASE_URL + "/es/apuestas-deportivas",
+                "WARMUP_REQUEST",
+            ),
+            timeout=30,
+            allow_redirects=True,
+        )
+        print(f"🔌 Warmup Betsafe con proxy: {r.status_code}")
+    except Exception as e:
+        print(f"⚠️ Warmup Betsafe error: {e}")
+
+    return session
+
+
+# ==========================================================
+# REQUESTS
+# ==========================================================
+def safe_get_json(session, url, headers, params, debug_name):
+    try:
+        r = session.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=30,
+        )
+    except Exception as e:
+        save_debug(f"{debug_name}_exception.txt", str(e))
+        return None, 0, str(e)
+
+    content_type = str(r.headers.get("content-type", ""))
+
+    if r.status_code != 200:
+        save_debug(
+            f"{debug_name}_{r.status_code}.txt",
+            {
+                "url": r.url,
+                "status_code": r.status_code,
+                "headers": dict(r.headers),
+                "body": r.text[:5000],
+            },
+        )
+        return None, r.status_code, r.text[:300]
+
+    if "application/json" not in content_type:
+        save_debug(
+            f"{debug_name}_not_json.txt",
+            {
+                "url": r.url,
+                "status_code": r.status_code,
+                "content_type": content_type,
+                "body": r.text[:5000],
+            },
+        )
+        return None, r.status_code, f"not_json: {content_type}"
+
+    try:
+        return r.json(), r.status_code, ""
+    except Exception as e:
+        save_debug(
+            f"{debug_name}_json_error.txt",
+            {
+                "url": r.url,
+                "status_code": r.status_code,
+                "body": r.text[:5000],
+                "error": str(e),
+            },
+        )
+        return None, r.status_code, str(e)
+
+
 # ==========================================================
 # FETCH EVENTOS
 # ==========================================================
@@ -176,23 +272,20 @@ def fetch_events_table(session, competition_id, window_start, window_end):
         "priceFormats": "1",
     }
 
-    r = session.get(
-        url,
+    data, status_code, error = safe_get_json(
+        session=session,
+        url=url,
         headers=base_headers(referer, "EVENT_TABLE_REQUEST"),
         params=params,
-        timeout=30,
+        debug_name=f"events_table_{competition_id}",
     )
 
-    if r.status_code != 200:
-        return [], r.status_code, r.text[:300]
+    if status_code != 200 or not isinstance(data, dict):
+        return [], status_code, error
 
-    if "application/json" not in str(r.headers.get("content-type", "")):
-        return [], r.status_code, r.text[:300]
-
-    data = r.json()
     events = data.get("data", {}).get("events", []) or []
 
-    return events, r.status_code, ""
+    return events, status_code, ""
 
 
 # ==========================================================
@@ -208,20 +301,18 @@ def fetch_groupable(session, event_id, groupable_id):
         "_": str(int(time.time() * 1000)),
     }
 
-    r = session.get(
-        url,
+    data, status_code, error = safe_get_json(
+        session=session,
+        url=url,
         headers=base_headers(referer, "ACCORDION_REQUEST"),
         params=params,
-        timeout=30,
+        debug_name=f"accordion_{event_id}_{groupable_id}",
     )
 
-    if r.status_code != 200:
+    if status_code != 200:
         return None
 
-    if "application/json" not in str(r.headers.get("content-type", "")):
-        return None
-
-    return r.json()
+    return data
 
 
 def parse_groupable(payload, groupable_id):
@@ -267,9 +358,7 @@ def parse_groupable(payload, groupable_id):
     return cuotas
 
 
-def procesar_evento(ev):
-    session = requests.Session()
-
+def procesar_evento(ev, session):
     event_id = ev.get("id")
     label = ev.get("label") or ""
     fecha_raw = ev.get("startDate") or ev.get("startTime")
@@ -283,6 +372,8 @@ def procesar_evento(ev):
 
     if not dt:
         return None
+
+    time.sleep(random.uniform(0.2, 0.8))
 
     normal_payload = fetch_groupable(session, event_id, GROUPABLE_NORMAL)
     pago_payload = fetch_groupable(session, event_id, GROUPABLE_PAGO)
@@ -304,6 +395,15 @@ def procesar_evento(ev):
     cuota_empate = max(empate_candidates) if empate_candidates else None
 
     if cuota_local is None or cuota_empate is None or cuota_visita is None:
+        save_debug(
+            f"no_1x2_{event_id}.json",
+            {
+                "event_id": event_id,
+                "label": label,
+                "normal": normal,
+                "pago": pago,
+            },
+        )
         return None
 
     return {
@@ -331,9 +431,12 @@ def main():
     now = datetime.now(TZ_FECHA_BETSAFE)
     window_end = now + timedelta(days=DIAS_A_FUTURO)
 
-    print(f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> {window_end:%Y-%m-%d %H:%M:%S} (UTC/formato casas)")
+    print(
+        f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> "
+        f"{window_end:%Y-%m-%d %H:%M:%S} UTC/formato casas"
+    )
 
-    session = requests.Session()
+    session = make_session()
 
     eventos_para_cuotas = []
 
@@ -350,10 +453,10 @@ def main():
 
     for competition_id, liga_name in LIGAS_BETSAFE.items():
         events, table_status, error = fetch_events_table(
-            session,
-            competition_id,
-            now,
-            window_end,
+            session=session,
+            competition_id=competition_id,
+            window_start=now,
+            window_end=window_end,
         )
 
         status[str(competition_id)]["table_status"] = table_status
@@ -379,16 +482,25 @@ def main():
         status[str(competition_id)]["eventos"] = len(filtrados)
         eventos_para_cuotas.extend(filtrados)
 
+        print(
+            f"🌐 {liga_name}: eventos={len(filtrados)} | "
+            f"table={table_status}"
+        )
+
     rows = []
 
     if eventos_para_cuotas:
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            futures = [executor.submit(procesar_evento, ev) for ev in eventos_para_cuotas]
+            futures = [
+                executor.submit(procesar_evento, ev, session)
+                for ev in eventos_para_cuotas
+            ]
 
             for future in as_completed(futures):
                 try:
                     row = future.result()
-                except Exception:
+                except Exception as e:
+                    print(f"⚠️ Error procesando evento: {e}")
                     row = None
 
                 if not row:
@@ -415,7 +527,9 @@ def main():
         odds = info["odds"]
         table_status = info["table_status"]
 
-        if evs == 0:
+        if table_status in (401, 403, 406, 429):
+            print(f"🚫 {liga}: bloqueado/rechazado | table={table_status}")
+        elif evs == 0:
             print(f"❌ {liga}: 0 eventos | table={table_status}")
         elif odds == 0:
             print(f"⚠️ {liga}: {evs} eventos, 0 odds | table={table_status}")
