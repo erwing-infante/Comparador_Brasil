@@ -721,7 +721,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "spain": "españa",
     "espana": "españa",
     "iraq": "irak",
-    "argeria": "argelia",
+    "algeria": "argelia",
     "jordan": "jordania",
     "republica democratica del congo": "rd congo",
     "croatia": "croacia",
@@ -729,5 +729,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "czechia ": "republica checa",
     "south africa": "sudafrica",
     "south korea": "corea del sur",
-    "espana": "españa",
+    "england": "inglaterra",
+    "norway": "noruega",
+    "france": "francia",
 }
