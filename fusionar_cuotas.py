@@ -45,7 +45,7 @@ ARCHIVOS = {
 SIM_THRESHOLD = 0.40
 
 # Casas excluidas en local/visita
-BOOKMAKERS_EXCLUIR_HA = {"betcris", "1xbet", "coolbet", "pinnacle"}
+BOOKMAKERS_EXCLUIR_HA = {"betcris", "coolbet"}
 
 # ============================================================
 # NORMALIZACIÓN DE EQUIPOS (MISMA LÓGICA)
