@@ -732,4 +732,13 @@ EQUIVALENCIAS_EQUIPOS = {
     "england": "inglaterra",
     "norway": "noruega",
     "france": "francia",
+    "vitoria salvador": "vitoria",
+    "sociedade esportiva palmeiras": "palmeiras",
+    "psv eindhoven": "psv",
+    "cambuur leeuwaarden": "cambuur",
+    "universidad tecnica cajamarca": "utc cajamarca",
+    "atlas guadalajara": "atlas",
+    "nice": "niza",
+    "olympique lyonnais": "lyon",
+    "paris Sg": "paris saint germain",
 }

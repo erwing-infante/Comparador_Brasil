@@ -275,4 +275,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "uruguay": "uruguay",
     "usa": "estados unidos",
     "uzbekistan": "uzbekistan",
+    "juan pablo ii college": "juan pablo ii",
+    "asociacion deportiva tarma": "ad tarma",
 }
