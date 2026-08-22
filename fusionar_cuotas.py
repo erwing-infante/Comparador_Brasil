@@ -30,13 +30,13 @@ ARCHIVOS = {
     "doradobet": os.path.join(DATA_DIR, "cuotas_doradobet.json"),
     "atlanticcity": os.path.join(DATA_DIR, "cuotas_atlanticcity.json"),
     "olimpobet": os.path.join(DATA_DIR, "cuotas_olimpobet.json"),
-    #"gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
+    "gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
     "betano": os.path.join(DATA_DIR, "cuotas_betano.json"),
-    "stake": os.path.join(DATA_DIR, "cuotas_stake.json"),
+    #"stake": os.path.join(DATA_DIR, "cuotas_stake.json"),
     "1xbet": os.path.join(DATA_DIR, "cuotas_1xbet.json"),
     "pinnacle": os.path.join(DATA_DIR, "cuotas_pinnacle.json"),
     "betsson": os.path.join(DATA_DIR, "cuotas_betsson.json"),
-    "betsafe": os.path.join(DATA_DIR, "cuotas_betsafe.json"),
+    #"betsafe": os.path.join(DATA_DIR, "cuotas_betsafe.json"),
     "inkabet": os.path.join(DATA_DIR, "cuotas_inkabet.json"),
     "teapuesto": os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 }

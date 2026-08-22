@@ -1,5 +1,4 @@
 import subprocess
-import time
 import datetime
 import os
 
@@ -8,23 +7,32 @@ BASE_DIR = "/root/proyectos/Mancorabet"
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 SCRIPTS_EXTRACTORES = [
-    #"cuotas_oddsapi.py",
+    # "cuotas_oddsapi.py",
     "cuotas_apuestatotal.py",
     "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
     "cuotas_olimpobet.py",
-    #"cuotas_gangabet.py",
+    "cuotas_gangabet.py",
     "cuotas_teapuesto.py",
-    "cuotas_stake2.py",
+    # "cuotas_stake2.py",
     "cuotas_1xbet.py",
     "cuotas_pinnacle.py",
     "cuotas_betsson.py",
-    "cuotas_betsafe.py",
+    # "cuotas_betsafe.py",
     "cuotas_inkabet.py",
-    "cuotas_betano.py"
+    "cuotas_betano.py",
 ]
 
-SCRIPT_FUSION = "fusionar_cuotas.py"
+SCRIPT_FUSION_PA = "fusionar_cuotas.py"
+SCRIPT_FUSION_NOPA = "fusionar_cuotas_NoPA.py"
+
+# ======================================
+# ACTIVAR / DESACTIVAR MÓDULOS
+# ======================================
+
+EJECUTAR_SMART_ALERTS = True
+EJECUTAR_HISTORICO_BET365 = False
+EJECUTAR_MOVIMIENTOS_BET365 = False
 
 
 def ejecutar_script(script):
@@ -34,39 +42,61 @@ def ejecutar_script(script):
             capture_output=True,
             text=True,
             encoding="utf-8",
-            errors="replace"
+            errors="replace",
+            cwd=BASE_DIR,
         )
-        return resultado.stdout, resultado.stderr
+        return (
+            resultado.returncode,
+            resultado.stdout or "",
+            resultado.stderr or "",
+        )
     except Exception as e:
-        return "", str(e)
+        return 1, "", str(e)
 
 
 def oddsapi_fallo(output):
-    """Detecta si OddsAPI falló para borrar archivo viejo."""
     texto = output.lower()
     return (
-        "error" in texto or
-        "no se encontraron cuotas" in texto or
-        "oddsapi no responde" in texto or
-        "failed" in texto or
-        "timeout" in texto or
-        len(texto.strip()) == 0
+        "error" in texto
+        or "no se encontraron cuotas" in texto
+        or "oddsapi no responde" in texto
+        or "failed" in texto
+        or "timeout" in texto
+        or len(texto.strip()) == 0
     )
 
 
-def main():
+def imprimir_resultado(script, returncode, stdout, stderr):
+    print(f"\n----- Resultado {script} -----")
 
+    if stdout.strip():
+        print(stdout)
+
+    if stderr.strip():
+        print("[STDERR]")
+        print(stderr)
+
+    if returncode != 0:
+        print(f"[ERROR] {script} terminó con código {returncode}")
+    else:
+        print(f"[OK] {script} finalizó correctamente.")
+
+
+def main():
     print("\n==============================")
     print(f"Iniciando ciclo {datetime.datetime.now()}")
     print("==============================\n")
 
     # Asegurar Xvfb para Betano (DISPLAY :99)
-    os.system("pgrep Xvfb >/dev/null || (Xvfb :99 -screen 0 1280x800x24 >/tmp/xvfb.log 2>&1 &)")
+    os.system(
+        "pgrep Xvfb >/dev/null || "
+        "(Xvfb :99 -screen 0 1280x800x24 >/tmp/xvfb.log 2>&1 &)"
+    )
     os.environ["DISPLAY"] = ":99"
 
     procesos = []
 
-    # 1️⃣ Ejecutar extractores EN PARALELO
+    # 1. Ejecutar extractores en paralelo
     print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
 
     for script in SCRIPTS_EXTRACTORES:
@@ -74,35 +104,45 @@ def main():
         print(f"[INFO] Lanzando: {script}")
 
         env = os.environ.copy()
+
         if script == "cuotas_betano.py":
             env["DISPLAY"] = ":99"
             env["BETANO_HEADFUL"] = "1"
-            
-        p = subprocess.Popen(
-            [PYTHON, full_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            env=env
-        )
-        procesos.append((script, p))
 
-    # Procesar resultados de extractores
-    for script, p in procesos:
-        stdout, stderr = p.communicate()
+        try:
+            proceso = subprocess.Popen(
+                [PYTHON, full_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+                cwd=BASE_DIR,
+            )
+            procesos.append((script, proceso))
+        except Exception as e:
+            print(f"[ERROR] No se pudo lanzar {script}: {e}")
 
-        print(f"\n----- Resultado {script} -----")
-
+    for script, proceso in procesos:
+        stdout, stderr = proceso.communicate()
+        returncode = proceso.returncode
         output = (stdout or "") + "\n" + (stderr or "")
-        print(output)
 
-        # 🟨 Si OddsAPI falló → borrar archivo viejo
+        imprimir_resultado(
+            script,
+            returncode,
+            stdout or "",
+            stderr or "",
+        )
+
         if script == "cuotas_oddsapi.py" and oddsapi_fallo(output):
             ruta_odds = os.path.join(DATA_DIR, "cuotas_oddsapi.json")
 
-            print("[WARN] OddsAPI falló — eliminando archivo cuotas_oddsapi.json...")
+            print(
+                "[WARN] OddsAPI falló — eliminando archivo "
+                "cuotas_oddsapi.json..."
+            )
 
             try:
                 if os.path.exists(ruta_odds):
@@ -113,38 +153,61 @@ def main():
             except Exception as e:
                 print(f"[ERROR] No se pudo eliminar archivo OddsAPI: {e}")
 
-    # 2️⃣ Ejecutar FUSIÓN → genera cuotas.json actualizado
-    print("\n[INFO] Ejecutando fusión final...\n")
-    fusion_path = os.path.join(BASE_DIR, SCRIPT_FUSION)
-    stdout, stderr = ejecutar_script(fusion_path)
+    # 2. Fusión PA
+    print("\n[INFO] Ejecutando fusión PA → cuotas.json...\n")
 
-    print("----- Resultado fusionar_cuotas.py -----")
-    if stderr:
-        print("[ERROR]:")
-        print(stderr)
-    else:
-        print(stdout)
+    fusion_pa_path = os.path.join(BASE_DIR, SCRIPT_FUSION_PA)
+    returncode, stdout, stderr = ejecutar_script(fusion_pa_path)
 
-    # =============================================
-    # 3️⃣ SMART ALERTS (ahora sí con cuotas.json actualizado)
-    # =============================================
-    print("[INFO] Lanzando: smart_alerts.py")
-    os.system(f"{PYTHON} smart_alerts.py")
+    imprimir_resultado(
+        SCRIPT_FUSION_PA,
+        returncode,
+        stdout,
+        stderr,
+    )
 
-    # =============================================
-    # 4️⃣ HISTORICO BET365
-    # =============================================
-    print("[INFO] Histórico Bet365")
-    os.system(f"{PYTHON} historico_bet365.py")
+    # 3. Fusión NoPA
+    print("\n[INFO] Ejecutando fusión NoPA → cuotas_NoPA.json...\n")
 
-    # =============================================
-    # 5️⃣ MOVIMIENTOS BET365
-    # =============================================
-    print("[INFO] Movimientos bruscos Bet365")
-    os.system(f"{PYTHON} movimientos_bet365.py")
+    fusion_nopa_path = os.path.join(BASE_DIR, SCRIPT_FUSION_NOPA)
+    returncode, stdout, stderr = ejecutar_script(fusion_nopa_path)
+
+    imprimir_resultado(
+        SCRIPT_FUSION_NOPA,
+        returncode,
+        stdout,
+        stderr,
+    )
+
+    # 4. Smart Alerts
+    if EJECUTAR_SMART_ALERTS:
+        print("\n[INFO] Lanzando: smart_alerts.py")
+        returncode, stdout, stderr = ejecutar_script(
+            os.path.join(BASE_DIR, "smart_alerts.py")
+        )
+        imprimir_resultado("smart_alerts.py", returncode, stdout, stderr)
+
+    # 5. Histórico Bet365
+    if EJECUTAR_HISTORICO_BET365:
+        print("\n[INFO] Histórico Bet365")
+        returncode, stdout, stderr = ejecutar_script(
+            os.path.join(BASE_DIR, "historico_bet365.py")
+        )
+        imprimir_resultado("historico_bet365.py", returncode, stdout, stderr)
+
+    # 6. Movimientos Bet365
+    if EJECUTAR_MOVIMIENTOS_BET365:
+        print("\n[INFO] Movimientos bruscos Bet365")
+        returncode, stdout, stderr = ejecutar_script(
+            os.path.join(BASE_DIR, "movimientos_bet365.py")
+        )
+        imprimir_resultado("movimientos_bet365.py", returncode, stdout, stderr)
 
     print("\n==============================")
-    print(f"Ciclo completado a las {datetime.datetime.now().strftime('%H:%M:%S')}")
+    print(
+        "Ciclo completado a las "
+        f"{datetime.datetime.now().strftime('%H:%M:%S')}"
+    )
     print("==============================\n")
 
 

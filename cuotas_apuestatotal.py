@@ -48,6 +48,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Ligue 1", "Francia", "25", "Ligue 1"),
     ("Coupe de France", "Francia", "35", "Copa Francia"),
     ("Brasileirao, Serie A", "Brasil", "530", "Brasileirao"),
+    ("Copa de Brasil", "Brasil", "136", "Copa de Brasil"),
     ("Liga MX", "México", "632", "Liga MX"),
     ("MLS", "Estados Unidos", "224", "MLS"),
     ("Liga 1", "Perú", "203110137349808128", "Liga 1 Perú"),
@@ -58,8 +59,6 @@ LIGAS_EQUIVALENCIAS = [
     ("UEFA Europa Conference League", "Europa", "203553622255214592", "UEFA Conference League"),
     ("Copa Libertadores", "Sudamérica", "133", "Copa Libertadores"),
     ("Copa Sudamericana", "Sudamérica", "1699", "Copa Sudamericana"),
-    ("Eliminatorias europeas", "Internacional", "466", "Eliminatorias Europa - WC26"),
-    ("Copa Mundial 2026", "Internacional", "453456007969169408", "Copa Mundial 2026"),
 ]
 
 # ================= HELPERS =================
@@ -251,9 +250,19 @@ def get_markets(s, h, event_ids, max_retries=6):
 # ================= EXTRACT 1X2 (MSJXK REAL) =================
 def extract_1x2_msjxk(root):
     """
-    CAMBIO (solo aquí):
-      - Base = ML0 para Local/Visita
-      - Empate = max( ML0.Empate, ML5000.Empate si existe )
+    Separa ambos mercados por EventId:
+
+      ML0:
+        - Resultado Final normal.
+        - Se guarda en Cuota Local NoPA / Cuota Visita NoPA.
+
+      ML5000:
+        - Pago Anticipado / mercado especial.
+        - Se guarda en Cuota Local / Cuota Visita.
+        - Si no existe o está incompleto, Local y Visita PA quedan en None/null.
+
+      Empate:
+        - Se conserva la mayor cuota disponible entre ML0 y ML5000.
     """
     out = {}
 
@@ -267,81 +276,131 @@ def extract_1x2_msjxk(root):
     if not isinstance(markets, list):
         return out
 
-    def _extract_prices(m: dict):
-        sels = m.get("Selections") or []
-        if not isinstance(sels, list):
-            return ("", "", "")
+    def _extract_prices(market):
+        selections = market.get("Selections") or []
 
-        L = E = V = ""
+        if not isinstance(selections, list):
+            return {
+                "Local": None,
+                "Empate": None,
+                "Visita": None,
+            }
 
-        for s in sels:
-            if not isinstance(s, dict):
+        result = {
+            "Local": None,
+            "Empate": None,
+            "Visita": None,
+        }
+
+        for selection in selections:
+            if not isinstance(selection, dict):
                 continue
 
-            outcome = norm(s.get("OutcomeType") or "")
-            side = s.get("Side")
+            outcome = norm(selection.get("OutcomeType") or "")
+            side = selection.get("Side")
 
-            dec = ""
-            odds = s.get("DisplayOdds") or {}
-            if isinstance(odds, dict):
-                dec = str(odds.get("Decimal") or "").strip()
+            decimal_value = None
+            display_odds = selection.get("DisplayOdds") or {}
 
-            if not dec and isinstance(s.get("TrueOdds"), (int, float)):
-                dec = str(s.get("TrueOdds"))
+            if isinstance(display_odds, dict):
+                decimal_value = display_odds.get("Decimal")
 
-            if not dec:
+            if decimal_value in (None, ""):
+                decimal_value = selection.get("TrueOdds")
+
+            try:
+                odd = float(decimal_value)
+            except (TypeError, ValueError):
+                continue
+
+            if odd <= 1:
                 continue
 
             if outcome == "local" or side == 1:
-                L = dec
+                result["Local"] = odd
             elif outcome == "empate" or side == 2:
-                E = dec
+                result["Empate"] = odd
             elif outcome == "visita" or side == 3:
-                V = dec
+                result["Visita"] = odd
 
-        return (L, E, V)
+        return result
 
-    # group markets by eventId, keep ML0 and ML5000 separately
     by_event = {}
 
-    for m in markets:
-        if not isinstance(m, dict):
+    for market in markets:
+        if not isinstance(market, dict):
             continue
 
-        mt = m.get("MarketType") or {}
-        mt_id = str(mt.get("_id") or "") if isinstance(mt, dict) else ""
-        if mt_id not in ("ML0", "ML5000"):
+        market_type = market.get("MarketType") or {}
+        market_id = (
+            str(market_type.get("_id") or "")
+            if isinstance(market_type, dict)
+            else ""
+        )
+
+        if market_id not in ("ML0", "ML5000"):
             continue
 
-        eid = str(m.get("EventId") or "").strip()
-        if not eid:
+        event_id = str(market.get("EventId") or "").strip()
+
+        if not event_id:
             continue
 
-        by_event.setdefault(eid, {})[mt_id] = m
+        by_event.setdefault(event_id, {})[market_id] = market
 
-    for eid, mm in by_event.items():
-        m_base = mm.get("ML0")
-        if not m_base:
+    for event_id, event_markets in by_event.items():
+        normal_market = event_markets.get("ML0")
+
+        if not normal_market:
             continue
 
-        Lb, Eb, Vb = _extract_prices(m_base)
-        if not (Lb and Eb and Vb):
+        normal = _extract_prices(normal_market)
+
+        if (
+            normal["Local"] is None
+            or normal["Empate"] is None
+            or normal["Visita"] is None
+        ):
             continue
 
-        Efinal = Eb
+        pago = {
+            "Local": None,
+            "Empate": None,
+            "Visita": None,
+        }
 
-        m_sc = mm.get("ML5000")
-        if m_sc:
-            _, Esc, _ = _extract_prices(m_sc)
-            if Esc:
-                try:
-                    Efinal = str(max(float(Eb), float(Esc)))
-                except:
-                    Efinal = Eb
+        pago_market = event_markets.get("ML5000")
 
-        out[eid] = {"Local": Lb, "Empate": Efinal, "Visita": Vb}
+        if pago_market:
+            pago_extraido = _extract_prices(pago_market)
+
+            if (
+                pago_extraido["Local"] is not None
+                and pago_extraido["Visita"] is not None
+            ):
+                pago = pago_extraido
+
+        empates = [
+            value
+            for value in (
+                normal["Empate"],
+                pago["Empate"],
+            )
+            if value is not None
+        ]
+
+        cuota_empate = max(empates) if empates else None
+
+        out[event_id] = {
+            "LocalPA": normal["Local"],
+            "Empate": cuota_empate,
+            "VisitaPA": normal["Visita"],
+            "LocalNoPA": pago["Local"],
+            "VisitaNoPA": pago["Visita"],
+        }
 
     return out
+
 
 # ================= MAIN =================
 def main():
@@ -432,9 +491,17 @@ def main():
             "Casa": "Apuesta Total",
             "Local": local,
             "Visita": visita,
-            "Cuota Local": c["Local"],
+
+            # Pago Anticipado. Si ML5000 no existe o está
+            # incompleto, estos campos quedan como null.
+            "Cuota Local": c["LocalPA"],
             "Cuota Empate": c["Empate"],
-            "Cuota Visita": c["Visita"],
+            "Cuota Visita": c["VisitaPA"],
+
+            # Mercado 1X2 normal para el detector de surebets.
+            "Cuota Local NoPA": c["LocalNoPA"],
+            "Cuota Visita NoPA": c["VisitaNoPA"],
+
             "EventId": int(eid) if str(eid).isdigit() else eid
         })
 

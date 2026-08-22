@@ -1,34 +1,24 @@
 import json
 import os
+import threading
 import time
-import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
 
+
 # ==========================================================
 # CONFIG
 # ==========================================================
 BASE = "https://guest.api.arcadia.pinnacle.com/0.1"
 
-PROXY = "http://7b0f657793f8b923:exTpjJv7kcCPYnbL@res.proxy-seller.com:10000"
-PROXIES = {
-    "http": PROXY,
-    "https": PROXY,
-}
-
-# IMPORTANTE:
-# Se usa UTC para que la fecha salga igual al JSON de Apuesta Total:
-# 2026-06-13T19:00:00.000
 TZ_LOCAL = ZoneInfo("UTC")
-
 DIAS_A_FUTURO = 3
 CASA = "Pinnacle"
-MAX_WORKERS = 6
 
-BASE_DIR = os.path.dirname(__file__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DEBUG_DIR = os.path.join(DATA_DIR, "debug_pinnacle")
 
@@ -38,13 +28,65 @@ os.makedirs(DEBUG_DIR, exist_ok=True)
 OUT_PATH = os.path.join(DATA_DIR, "cuotas_pinnacle.json")
 STATUS_PATH = os.path.join(DEBUG_DIR, "status_pinnacle.json")
 
-LIGAS_PINNACLE = {
-    2686: "Copa Mundial 2026",
+
+PROXY = "http://ad9063918cd09688:0qAPgBHzQ1rdvs2O@res.proxy-seller.com:10000"
+
+PROXIES = {
+    "http": PROXY,
+    "https": PROXY,
 }
 
+# ==========================================================
+# LIGAS
+# ==========================================================
+# Solo IDs reales.
+# Se retiraron todos los 999999 repetidos porque en un dict
+# Python solo sobrevivía la última entrada.
+LIGAS_PINNACLE = {
+    1980: "Premier League",
+    1982: "EFL Cup",
+    1977: "Championship",
+    2196: "La Liga",
+    2436: "Serie A",
+    1842: "Bundesliga",
+    2036: "Ligue 1",
+    1834: "Brasileirao",
+    2242: "Liga MX",
+    2663: "MLS",
+    2366: "Liga 1 Perú",
+    2386: "Primeira Liga",
+    1928: "Eredivisie",
+    1833: "Copa de Brasil",
+    2627: "UEFA Champions League",
+    1875: "Copa Libertadores",
+    2472: "Copa Sudamericana",
+}
+
+
+# ==========================================================
+# VELOCIDAD Y RED
+# ==========================================================
+MAX_WORKERS_LIGAS = 8
+MAX_WORKERS_MERCADOS = 12
+
+TIMEOUT_MATCHUPS = (8, 25)
+TIMEOUT_MARKETS = (8, 25)
+
+MAX_INTENTOS_MATCHUPS = 2
+MAX_INTENTOS_MARKETS = 2
+
+MOSTRAR_LIGAS_VACIAS = False
+
+
+# ==========================================================
+# HEADERS
+# ==========================================================
 HEADERS = {
     "accept": "application/json",
-    "accept-language": "es-US,es-PE;q=0.9,es-419;q=0.8,es;q=0.7,en;q=0.6",
+    "accept-language": (
+        "es-US,es-PE;q=0.9,es-419;q=0.8,"
+        "es;q=0.7,en;q=0.6"
+    ),
     "content-type": "application/json",
     "origin": "https://www.pinnacle.com",
     "referer": "https://www.pinnacle.com/",
@@ -59,22 +101,69 @@ HEADERS = {
 
 
 # ==========================================================
-# UTILS
+# SESIÓN POR HILO
 # ==========================================================
+_thread_local = threading.local()
+
+
+def get_session():
+    session = getattr(_thread_local, "session", None)
+
+    if session is None:
+        session = requests.Session()
+
+        # Usa Proxy-Seller (para VPS).
+        session.trust_env = False
+        session.headers.update(HEADERS)
+        session.proxies.update(PROXIES)
+
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=20,
+            pool_maxsize=20,
+            max_retries=0,
+        )
+
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+
+        _thread_local.session = session
+
+    return session
+
+
+# ==========================================================
+# UTILIDADES
+# ==========================================================
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(
+            data,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+
 def save_debug(filename, content):
     path = os.path.join(DEBUG_DIR, filename)
 
-    with open(path, "w", encoding="utf-8") as f:
-        if isinstance(content, str):
-            f.write(content)
-        else:
-            json.dump(content, f, ensure_ascii=False, indent=2)
+    if isinstance(content, str):
+        with open(path, "w", encoding="utf-8") as file:
+            file.write(content)
+    else:
+        save_json(path, content)
 
     return path
 
 
 def american_to_decimal(price):
-    price = float(price)
+    try:
+        price = float(price)
+    except (TypeError, ValueError):
+        return None
+
+    if price == 0:
+        return None
 
     if price > 0:
         return round(1 + price / 100, 3)
@@ -82,175 +171,191 @@ def american_to_decimal(price):
     return round(1 + 100 / abs(price), 3)
 
 
-def parse_utc_to_local(s):
-    """
-    Pinnacle entrega startTime en UTC.
-    Lo mantenemos en UTC para que coincida con el formato de las otras casas.
-    """
-    if not s:
+def parse_utc(value):
+    if not value:
         return None
 
     try:
-        if s.endswith("Z"):
-            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
-        else:
-            dt = datetime.fromisoformat(s)
-
+        dt = datetime.fromisoformat(
+            str(value).replace("Z", "+00:00")
+        )
         return dt.astimezone(TZ_LOCAL)
-
     except Exception:
         return None
 
 
 def to_json_fecha(dt):
-    """
-    Formato estándar Mancorabet:
-    2026-06-13T19:00:00.000
-    """
     return dt.strftime("%Y-%m-%dT%H:%M:%S.000")
 
 
-def make_session():
-    session = requests.Session()
-    session.headers.update(HEADERS)
-    session.proxies.update(PROXIES)
-
-    try:
-        r = session.get(
-            "https://www.pinnacle.com/",
-            timeout=30,
-            allow_redirects=True,
-        )
-        print(f"🔌 Warmup Pinnacle con proxy: {r.status_code}")
-    except Exception as e:
-        print(f"⚠️ Warmup error: {e}")
-
-    return session
-
-
-def request_json(session, url, debug_name):
-    try:
-        r = session.get(
-            url,
-            timeout=30,
-        )
-    except Exception as e:
-        save_debug(f"{debug_name}_exception.txt", str(e))
-        return None, 0, str(e)
-
-    content_type = str(r.headers.get("content-type", ""))
-
-    if r.status_code != 200:
-        save_debug(
-            f"{debug_name}_{r.status_code}.txt",
-            {
-                "url": url,
-                "status_code": r.status_code,
-                "headers": dict(r.headers),
-                "body": r.text[:5000],
-            },
-        )
-        return None, r.status_code, r.text[:500]
-
-    if "application/json" not in content_type:
-        save_debug(
-            f"{debug_name}_not_json.txt",
-            {
-                "url": url,
-                "status_code": r.status_code,
-                "content_type": content_type,
-                "body": r.text[:5000],
-            },
-        )
-        return None, r.status_code, f"not_json: {content_type}"
-
-    try:
-        return r.json(), r.status_code, ""
-    except Exception as e:
-        save_debug(
-            f"{debug_name}_json_error.txt",
-            {
-                "url": url,
-                "status_code": r.status_code,
-                "body": r.text[:5000],
-                "error": str(e),
-            },
-        )
-        return None, r.status_code, str(e)
-
-
-def get_team(ev, alignment):
-    for p in ev.get("participants", []) or []:
-        if p.get("alignment") == alignment:
-            return p.get("name")
+def get_team(event, alignment):
+    for participant in event.get("participants", []) or []:
+        if participant.get("alignment") == alignment:
+            return participant.get("name")
 
     return None
 
 
-def is_valid_matchup(ev, now, window_end):
-    if ev.get("type") != "matchup":
+def is_valid_matchup(event, now, window_end):
+    if event.get("type") != "matchup":
         return False
 
-    if ev.get("parentId") is not None:
+    if event.get("parentId") is not None:
         return False
 
-    if ev.get("isLive") is True:
+    if event.get("isLive") is True:
         return False
 
-    if str(ev.get("status", "")).lower() not in ("pending", "open"):
+    if str(event.get("status", "")).lower() not in {
+        "pending",
+        "open",
+    }:
         return False
 
-    if not ev.get("hasMarkets"):
+    if not event.get("hasMarkets"):
         return False
 
-    dt = parse_utc_to_local(ev.get("startTime"))
+    dt = parse_utc(event.get("startTime"))
 
-    if not dt:
+    if dt is None:
         return False
 
     return now < dt <= window_end
 
 
 # ==========================================================
-# FETCH
+# REQUEST JSON
 # ==========================================================
-def fetch_matchups(session, league_id):
+def request_json(
+    url,
+    debug_name,
+    timeout,
+    max_intentos,
+):
+    session = get_session()
+
+    last_error = ""
+    status_code = None
+
+    for intento in range(1, max_intentos + 1):
+        try:
+            response = session.get(
+                url,
+                timeout=timeout,
+            )
+
+            status_code = response.status_code
+            content_type = str(
+                response.headers.get("content-type", "")
+            ).lower()
+
+            if response.status_code != 200:
+                last_error = (
+                    f"HTTP {response.status_code}: "
+                    f"{response.text[:500]}"
+                )
+
+            elif "application/json" not in content_type:
+                last_error = (
+                    f"not_json: {content_type} | "
+                    f"{response.text[:500]}"
+                )
+
+            else:
+                return {
+                    "ok": True,
+                    "payload": response.json(),
+                    "status_code": status_code,
+                    "error": "",
+                }
+
+        except (requests.RequestException, ValueError) as error:
+            last_error = str(error)
+
+        if intento < max_intentos:
+            time.sleep(0.4 * intento)
+
+    save_debug(
+        f"{debug_name}_error.json",
+        {
+            "url": url,
+            "status_code": status_code,
+            "error": last_error,
+        },
+    )
+
+    return {
+        "ok": False,
+        "payload": None,
+        "status_code": status_code,
+        "error": last_error,
+    }
+
+
+# ==========================================================
+# FETCH MATCHUPS
+# ==========================================================
+def fetch_matchups(league_id, league_name):
     url = f"{BASE}/leagues/{league_id}/matchups"
 
-    data, status_code, error = request_json(
-        session=session,
+    result = request_json(
         url=url,
         debug_name=f"matchups_{league_id}",
+        timeout=TIMEOUT_MATCHUPS,
+        max_intentos=MAX_INTENTOS_MATCHUPS,
     )
 
-    if isinstance(data, list):
-        return data, status_code, ""
+    payload = result.get("payload")
 
-    return [], status_code, error
+    if isinstance(payload, list):
+        matchups = payload
+    else:
+        matchups = []
+
+    return {
+        "league_id": league_id,
+        "league_name": league_name,
+        "matchups": matchups,
+        "status_code": result.get("status_code"),
+        "error": result.get("error", ""),
+    }
 
 
-def fetch_markets(session, matchup_id):
-    url = f"{BASE}/matchups/{matchup_id}/markets/straight"
+# ==========================================================
+# FETCH MARKETS
+# ==========================================================
+def fetch_markets(matchup):
+    matchup_id = matchup["id"]
 
-    data, status_code, error = request_json(
-        session=session,
+    url = (
+        f"{BASE}/matchups/"
+        f"{matchup_id}/markets/straight"
+    )
+
+    result = request_json(
         url=url,
         debug_name=f"markets_{matchup_id}",
+        timeout=TIMEOUT_MARKETS,
+        max_intentos=MAX_INTENTOS_MARKETS,
     )
 
-    if isinstance(data, list):
-        return data, status_code, ""
+    payload = result.get("payload")
 
-    return None, status_code, error
+    if not isinstance(payload, list):
+        payload = []
+
+    return {
+        "matchup": matchup,
+        "markets": payload,
+        "status_code": result.get("status_code"),
+        "error": result.get("error", ""),
+    }
 
 
 # ==========================================================
 # PARSE ODDS
 # ==========================================================
 def extract_1x2(markets):
-    if not markets:
-        return None
-
     candidates = []
 
     for market in markets:
@@ -264,23 +369,30 @@ def extract_1x2(markets):
             continue
 
         prices = market.get("prices", []) or []
-        designations = {p.get("designation") for p in prices}
 
-        if {"home", "draw", "away"}.issubset(designations):
+        designations = {
+            price.get("designation")
+            for price in prices
+        }
+
+        if {
+            "home",
+            "draw",
+            "away",
+        }.issubset(designations):
             candidates.append(market)
 
     if not candidates:
         return None
 
-    selected = None
-
-    for market in candidates:
-        if market.get("period") == 0:
-            selected = market
-            break
-
-    if selected is None:
-        selected = candidates[0]
+    selected = next(
+        (
+            market
+            for market in candidates
+            if market.get("period") == 0
+        ),
+        candidates[0],
+    )
 
     cuotas = {
         "Local": None,
@@ -288,63 +400,107 @@ def extract_1x2(markets):
         "Visita": None,
     }
 
-    for p in selected.get("prices", []) or []:
-        designation = p.get("designation")
-        price = p.get("price")
+    for price_item in selected.get("prices", []) or []:
+        designation = price_item.get("designation")
 
-        if price is None:
+        decimal = american_to_decimal(
+            price_item.get("price")
+        )
+
+        if decimal is None:
             continue
 
-        dec = american_to_decimal(price)
-
         if designation == "home":
-            cuotas["Local"] = dec
+            cuotas["Local"] = decimal
         elif designation == "draw":
-            cuotas["Empate"] = dec
+            cuotas["Empate"] = decimal
         elif designation == "away":
-            cuotas["Visita"] = dec
+            cuotas["Visita"] = decimal
 
-    if cuotas["Local"] and cuotas["Empate"] and cuotas["Visita"]:
+    if all(
+        cuotas[key] is not None
+        for key in (
+            "Local",
+            "Empate",
+            "Visita",
+        )
+    ):
         return cuotas
 
     return None
 
 
-def procesar_evento(ev, session):
-    matchup_id = ev.get("id")
-    dt = parse_utc_to_local(ev.get("startTime"))
-
-    local = get_team(ev, "home")
-    visita = get_team(ev, "away")
-
-    if not matchup_id or not dt or not local or not visita:
+# ==========================================================
+# PREPARAR EVENTO
+# ==========================================================
+def prepare_matchup(
+    event,
+    league_id,
+    league_name,
+    now,
+    window_end,
+):
+    if not is_valid_matchup(
+        event,
+        now,
+        window_end,
+    ):
         return None
 
-    time.sleep(random.uniform(0.2, 0.7))
+    matchup_id = event.get("id")
+    dt = parse_utc(event.get("startTime"))
+    local = get_team(event, "home")
+    visita = get_team(event, "away")
 
-    markets, status_code, error = fetch_markets(session, matchup_id)
-
-    if status_code != 200:
-        print(f"⚠️ Markets {matchup_id}: status={status_code} error={error}")
-        return None
-
-    cuotas = extract_1x2(markets)
-
-    if not cuotas:
-        save_debug(f"markets_no_1x2_{matchup_id}.json", markets or [])
+    if (
+        not matchup_id
+        or dt is None
+        or not local
+        or not visita
+    ):
         return None
 
     return {
-        "Liga": ev.get("LigaMancorabet"),
-        "Partido": f"{local} vs {visita}",
-        "Fecha": to_json_fecha(dt.replace(tzinfo=None)),
+        "id": matchup_id,
+        "league_id": league_id,
+        "league_name": league_name,
+        "local": local,
+        "visita": visita,
+        "fecha_dt": dt,
+    }
+
+
+# ==========================================================
+# CONSTRUIR FILA
+# ==========================================================
+def build_row(matchup, cuotas):
+    return {
+        "Liga": matchup["league_name"],
+        "Partido": (
+            f"{matchup['local']} "
+            f"vs {matchup['visita']}"
+        ),
+        "Fecha": to_json_fecha(
+            matchup["fecha_dt"].replace(
+                tzinfo=None
+            )
+        ),
         "Casa": CASA,
-        "Local": local,
-        "Visita": visita,
-        "Cuota Local": str(cuotas["Local"]),
-        "Cuota Empate": str(cuotas["Empate"]),
-        "Cuota Visita": str(cuotas["Visita"]),
-        "EventId": matchup_id,
+        "Local": matchup["local"],
+        "Visita": matchup["visita"],
+
+        # Pinnacle no tiene mercado de Pago Anticipado.
+        # Estos campos quedan en null para no mezclar sus
+        # cuotas con el programa actual de PA.
+        "Cuota Local": None,
+        "Cuota Empate": cuotas["Empate"],
+        "Cuota Visita": None,
+
+        # Mercado 1X2 normal para el escáner NoPA.
+        "Cuota Local NoPA": cuotas["Local"],
+        "Cuota Visita NoPA": cuotas["Visita"],
+
+        "EventId": matchup["id"],
     }
 
 
@@ -352,111 +508,217 @@ def procesar_evento(ev, session):
 # MAIN
 # ==========================================================
 def main():
-    now = datetime.now(TZ_LOCAL)
-    window_end = now + timedelta(days=DIAS_A_FUTURO)
+    started = time.perf_counter()
 
-    print(
-        f"📆 Ventana: {now:%Y-%m-%d %H:%M:%S} -> "
-        f"{window_end:%Y-%m-%d %H:%M:%S} UTC/formato casas"
+    now = datetime.now(TZ_LOCAL)
+    window_end = now + timedelta(
+        days=DIAS_A_FUTURO
     )
 
-    session = make_session()
-
-    eventos_para_cuotas = []
+    print(
+        f"📆 Pinnacle: "
+        f"{now:%Y-%m-%d %H:%M} -> "
+        f"{window_end:%Y-%m-%d %H:%M} UTC"
+    )
 
     status = {
-        str(lid): {
-            "liga": liga,
+        str(league_id): {
+            "liga": league_name,
             "eventos_recibidos": 0,
             "eventos_72h": 0,
             "odds": 0,
             "matchups_status": None,
             "error": "",
         }
-        for lid, liga in LIGAS_PINNACLE.items()
+        for league_id, league_name
+        in LIGAS_PINNACLE.items()
     }
 
-    for league_id, liga_name in LIGAS_PINNACLE.items():
-        matchups, st, err = fetch_matchups(session, league_id)
+    # ======================================================
+    # 1. LIGAS EN PARALELO
+    # ======================================================
+    league_results = []
 
-        status[str(league_id)]["matchups_status"] = st
-        status[str(league_id)]["error"] = err
-        status[str(league_id)]["eventos_recibidos"] = len(matchups)
-
-        filtrados = []
-
-        for ev in matchups:
-            if not is_valid_matchup(ev, now, window_end):
-                continue
-
-            ev["LigaMancorabet"] = liga_name
-            filtrados.append(ev)
-
-        status[str(league_id)]["eventos_72h"] = len(filtrados)
-        eventos_para_cuotas.extend(filtrados)
-
-        print(
-            f"🌐 {liga_name}: recibidos={len(matchups)} | "
-            f"72h={len(filtrados)} | status={st}"
+    with ThreadPoolExecutor(
+        max_workers=min(
+            MAX_WORKERS_LIGAS,
+            len(LIGAS_PINNACLE),
         )
+    ) as executor:
+        futures = [
+            executor.submit(
+                fetch_matchups,
+                league_id,
+                league_name,
+            )
+            for league_id, league_name
+            in LIGAS_PINNACLE.items()
+        ]
 
-        if st == 403:
-            print(
-                f"🚫 {liga_name}: 403 incluso con proxy. "
-                f"Revisa data/debug_pinnacle/matchups_{league_id}_403.txt"
+        for future in as_completed(futures):
+            league_results.append(
+                future.result()
             )
 
+    matchups = []
+    seen_matchups = set()
+
+    for result in league_results:
+        league_id = result["league_id"]
+        league_name = result["league_name"]
+        status_key = str(league_id)
+
+        status[status_key]["matchups_status"] = (
+            result["status_code"]
+        )
+        status[status_key]["error"] = (
+            result["error"]
+        )
+        status[status_key]["eventos_recibidos"] = len(
+            result["matchups"]
+        )
+
+        valid_count = 0
+
+        for event in result["matchups"]:
+            matchup = prepare_matchup(
+                event,
+                league_id,
+                league_name,
+                now,
+                window_end,
+            )
+
+            if matchup is None:
+                continue
+
+            matchup_key = str(matchup["id"])
+
+            if matchup_key in seen_matchups:
+                continue
+
+            seen_matchups.add(matchup_key)
+            matchups.append(matchup)
+            valid_count += 1
+
+        status[status_key]["eventos_72h"] = valid_count
+
+    # ======================================================
+    # 2. MERCADOS EN PARALELO
+    # ======================================================
     rows = []
 
-    if eventos_para_cuotas:
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-            futures = [
-                ex.submit(procesar_evento, ev, session)
-                for ev in eventos_para_cuotas
-            ]
+    if matchups:
+        with ThreadPoolExecutor(
+            max_workers=min(
+                MAX_WORKERS_MERCADOS,
+                len(matchups),
+            )
+        ) as executor:
+            future_map = {
+                executor.submit(
+                    fetch_markets,
+                    matchup,
+                ): matchup
+                for matchup in matchups
+            }
 
-            for fut in as_completed(futures):
-                try:
-                    row = fut.result()
-                except Exception as e:
-                    print(f"⚠️ Error procesando evento: {e}")
-                    row = None
+            for future in as_completed(future_map):
+                result = future.result()
+                matchup = result["matchup"]
 
-                if not row:
+                if result["status_code"] != 200:
                     continue
+
+                cuotas = extract_1x2(
+                    result["markets"]
+                )
+
+                if not cuotas:
+                    save_debug(
+                        f"markets_no_1x2_"
+                        f"{matchup['id']}.json",
+                        result["markets"],
+                    )
+                    continue
+
+                row = build_row(
+                    matchup,
+                    cuotas,
+                )
 
                 rows.append(row)
 
-                for lid, liga in LIGAS_PINNACLE.items():
-                    if liga == row["Liga"]:
-                        status[str(lid)]["odds"] += 1
-                        break
+                status[
+                    str(matchup["league_id"])
+                ]["odds"] += 1
 
-    rows.sort(key=lambda x: x["Fecha"])
+    # ======================================================
+    # 3. DEDUPLICAR
+    # ======================================================
+    unique_rows = {}
 
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(rows, f, ensure_ascii=False, indent=2)
+    for row in rows:
+        unique_rows[
+            str(row["EventId"])
+        ] = row
 
-    with open(STATUS_PATH, "w", encoding="utf-8") as f:
-        json.dump(status, f, ensure_ascii=False, indent=2)
+    rows = list(unique_rows.values())
 
-    for _, info in status.items():
-        liga = info["liga"]
-        evs = info["eventos_72h"]
-        odds = info["odds"]
-        st = info["matchups_status"]
+    rows.sort(
+        key=lambda item: (
+            item["Fecha"],
+            item["Liga"],
+            item["Partido"],
+        )
+    )
 
-        if st == 403:
-            print(f"🚫 {liga}: bloqueado 403")
-        elif evs == 0:
-            print(f"❌ {liga}: 0 eventos dentro de 72h")
-        elif odds == 0:
-            print(f"⚠️ {liga}: {evs} eventos, 0 odds")
+    save_json(OUT_PATH, rows)
+    save_json(STATUS_PATH, status)
+
+    # ======================================================
+    # RESUMEN COMPACTO
+    # ======================================================
+    print("\nRESUMEN")
+
+    for info in sorted(
+        status.values(),
+        key=lambda item: item["liga"],
+    ):
+        if (
+            info["eventos_72h"] == 0
+            and not info["error"]
+            and not MOSTRAR_LIGAS_VACIAS
+        ):
+            continue
+
+        if info["error"]:
+            print(
+                f"❌ {info['liga']}: "
+                f"{info['error'][:120]}"
+            )
+        elif info["eventos_72h"] == 0:
+            print(
+                f"— {info['liga']}: 0 eventos"
+            )
         else:
-            print(f"✅ {liga}: OK ({evs} eventos, {odds} con 1X2)")
+            print(
+                f"✅ {info['liga']}: "
+                f"{info['odds']}/"
+                f"{info['eventos_72h']} con 1X2"
+            )
 
-    print(f"\n💾 Total guardado: {len(rows)} partidos -> {OUT_PATH}")
-    print(f"🧾 Status guardado -> {STATUS_PATH}")
+    elapsed = (
+        time.perf_counter()
+        - started
+    )
+
+    print(
+        f"\n💾 {len(rows)} partidos | "
+        f"{elapsed:.2f}s"
+    )
+
+    print(OUT_PATH)
 
 
 if __name__ == "__main__":

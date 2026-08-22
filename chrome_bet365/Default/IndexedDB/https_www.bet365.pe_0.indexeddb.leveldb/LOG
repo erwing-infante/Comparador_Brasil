@@ -1,0 +1,5 @@
+2026/07/02-11:28:10.811 4848 Reusing MANIFEST D:\Proyectos\Mancorabet\chrome_bet365\Default\IndexedDB\https_www.bet365.pe_0.indexeddb.leveldb/MANIFEST-000001
+2026/07/02-11:28:10.812 4848 Recovering log #88
+2026/07/02-11:28:10.813 4848 Reusing old log D:\Proyectos\Mancorabet\chrome_bet365\Default\IndexedDB\https_www.bet365.pe_0.indexeddb.leveldb/000088.log 
+2026/07/02-11:28:10.813 4848 Delete type=2 #87
+2026/07/02-11:28:10.836 5138 Manual compaction at level-0 from '\x00'\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00(\x00\x00\x00' @ 0 : 0; will stop at (end)

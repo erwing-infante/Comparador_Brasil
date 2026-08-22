@@ -334,9 +334,18 @@ def extract_1x2_normal(payload: dict, window_start: datetime, window_end: dateti
                 "Casa": "TeApuesto",
                 "Local": home,
                 "Visita": away,
-                "Cuota Local": cuota_local,
+
+                # Este endpoint entrega el mercado 1X2 normal.
+                # No se ha identificado un mercado PA separado,
+                # por lo que PA queda en null.
+                "Cuota Local": None,
                 "Cuota Empate": cuota_empate,
-                "Cuota Visita": cuota_visita,
+                "Cuota Visita": None,
+
+                # Mercado 1X2 normal para surebets.
+                "Cuota Local NoPA": cuota_local,
+                "Cuota Visita NoPA": cuota_visita,
+
                 "EventId": ev_id,
             })
 
@@ -545,9 +554,17 @@ def process_mundial_event(ev):
         "Casa": "TeApuesto",
         "Local": home,
         "Visita": away,
-        "Cuota Local": cuotas["Local"],
+
+        # El detalle solo devuelve el 1X2 principal.
+        # Sin mercado PA separado, estos campos quedan null.
+        "Cuota Local": None,
         "Cuota Empate": cuotas["Empate"],
-        "Cuota Visita": cuotas["Visita"],
+        "Cuota Visita": None,
+
+        # Mercado normal para surebets.
+        "Cuota Local NoPA": cuotas["Local"],
+        "Cuota Visita NoPA": cuotas["Visita"],
+
         "EventId": event_id,
     }
 

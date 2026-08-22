@@ -1,0 +1,18 @@
+/*************************************************************************
+* ADOBE CONFIDENTIAL
+* ___________________
+*
+*  Copyright 2015 Adobe Systems Incorporated
+*  All Rights Reserved.
+*
+* NOTICE:  All information contained herein is, and remains
+* the property of Adobe Systems Incorporated and its suppliers,
+* if any.  The intellectual and technical concepts contained
+* herein are proprietary to Adobe Systems Incorporated and its
+* suppliers and are protected by all applicable intellectual property laws,
+* including trade secret and or copyright laws.
+* Dissemination of this information or reproduction of this material
+* is strictly forbidden unless prior written permission is obtained
+* from Adobe Systems Incorporated.
+**************************************************************************/
+import e from"../../browser/js/viewer/LruUtil.js";import{loggingApi as r}from"../../common/loggingApi.js";import{indexedDBScript as o}from"../../common/indexDB.js";import{events as t}from"../../common/analytics.js";import{SIDE_PANEL_HASH_ROUTES as n}from"../../common/constant.js";import{Cdn as i}from"./cdn.js";import{createSendAnalytics as a,getSidePanelTabId as l,sendMessageWithTab as s}from"./sidePanelUtil.js";import{registerHostedShellListeners as c}from"./shell-listeners.js";export async function initHomeMode(m,d,f){const p=l(),h=a(p);h(`DCBrowserExt:Home:Opened:${f||"Unspecified"}`);const g=new e,u=new i({initTimeStamp:m,hostedHashRoute:d||n.HOME,onIframeLoad:()=>h("DCBrowserExt:Home:IframeLoaded"),onIframeError:()=>h("DCBrowserExt:Home:IframeLoadError")});let F=!0;try{const e=await chrome.tabs.sendMessage(p,{main_op:"getGenAIEligibility"});F=e?.disqualified??!0}catch(e){r.error({message:"getGenAIEligibility failed",error:e.message,tabId:p})}finally{u.sendMessage({type:"sidepanelPageOnUpdate",disqualified:F})}c({cdn:u,sendAnalytics:h,tabId:p,touchpoint:f,home:{handlers:{handleFetchLocalRecents:async()=>{let e=[];try{e=await g.getFilteredItems()}catch(e){r.error({message:"handleFetchLocalRecents failed",error:String(e)})}u.sendMessage({type:"RecentUrls",recentUrls:e})},handleOpenRecentFileLink:e=>{s({main_op:"openRecentFileLink",recent_file_url:decodeURIComponent(e.recent_file_url),file_name:e.file_name},p)},handleCreateNewTabWithUrl:e=>{try{const{protocol:o}=new URL(e?.url);if("https:"!==o&&"http:"!==o)return void r.error({message:"createNewTabWithUrl rejected",protocol:o})}catch(e){return void r.error({message:"createNewTabWithUrl rejected",error:e})}s({main_op:"createNewTabWithUrl",url:e.url},p)},handleFetchUrlBuffer:async e=>{const o=e?.filename,t=e?.url||"",n=r=>{u.sendMessage({fileBuffer:r||null,filename:o,messageId:e?.messageId})};if(t)try{const e=await fetch(t);if(!e.ok)return void n(null);n(await e.arrayBuffer())}catch(e){r.error({message:"handleFetchUrlBuffer failed",error:String(e)}),n(null)}else n(null)},handleOpenLocalFileFromHosted:async e=>{const n=e?.fileBuffer,i=e?.file_name;if(n&&i)try{s({main_op:"analytics",analytics:[[t.LOCAL_FILE_OPENED_FROM_FILE_PICKER,{SOURCE:"ExtensionHome:RecentFiles"}]]},p);const e=URL.createObjectURL(new Blob([n],{type:"application/pdf"})),r=`chrome-extension://${chrome.runtime.id}/${e}`;await o.storeFileByHash(n,r),s({main_op:"openLocalFileThroughFilePicker",file_name:i,fileURL:e,openLocalFileSource:"ExtensionHome:RecentFiles"},p)}catch(e){r.error({message:"handleOpenLocalFileFromHosted failed",error:String(e)})}else r.error({message:"openLocalFilePickedFromHosted: missing fileBuffer or file_name"})}}}})}

@@ -171,9 +171,17 @@ def obtener_cuotas(event_id: int):
         def _market_name_norm(m):
             return normalizar_nombre_equipo(m.get("name", "") or "")
 
-        def _is_boost_market(m):
+        def _is_supercuota_market(m):
+            """
+            NoPA existe solamente cuando el nombre REAL del mercado
+            contiene Supercuota. No se aceptan cuotas mejoradas,
+            apuestas del día ni otros mercados secundarios.
+            """
             n = _market_name_norm(m)
-            return any(w in n for w in ("cuotaza", "dorada", "boost", "supercuota"))
+            return (
+                "supercuota" in n
+                or "super cuota" in n
+            )
 
         def _extract_odd_ids(m):
             odd_ids = []
@@ -243,8 +251,17 @@ def obtener_cuotas(event_id: int):
             return {"Local": "", "Empate": "", "Visita": ""}
 
         # 2) separar boost vs no-boost
-        boost_markets = [m for m in cand_1x2 if _is_boost_market(m)]
-        non_boost_markets = [m for m in cand_1x2 if not _is_boost_market(m)]
+        supercuota_markets = [
+            m
+            for m in cand_1x2
+            if _is_supercuota_market(m)
+        ]
+
+        non_boost_markets = [
+            m
+            for m in cand_1x2
+            if not _is_supercuota_market(m)
+        ]
 
         if not non_boost_markets:
             # si no hay normal, no usamos dorada como base
@@ -268,31 +285,69 @@ def obtener_cuotas(event_id: int):
         base_odds_map = _odds_map_for_ids(base_ids)
         base_prices = _prices_from_odds_map(base_odds_map)
 
-        # 4) dorada (para comparar empate)
-        dorada_draw = ""
-        if boost_markets:
-            dorada_ids = _extract_odd_ids(boost_markets[0])
-            dorada_odds_map = _odds_map_for_ids(dorada_ids)
-            dorada_prices = _prices_from_odds_map(dorada_odds_map)
-            dorada_draw = dorada_prices.get("Empate", "")
+        # 4) NoPA:
+        # Solo se llena si existe un mercado 1X2 cuyo nombre real
+        # contiene "Supercuota". Si no existe, permanece en None/null.
+        super_prices = None
+
+        for super_market in supercuota_markets:
+            super_ids = _extract_odd_ids(super_market)
+            super_odds_map = _odds_map_for_ids(super_ids)
+            candidate_prices = _prices_from_odds_map(
+                super_odds_map
+            )
+
+            if (
+                candidate_prices.get("Local") != ""
+                and candidate_prices.get("Empate") != ""
+                and candidate_prices.get("Visita") != ""
+            ):
+                super_prices = candidate_prices
+                break
 
         # 5) salida final:
-        cuotas = {"Local": "", "Empate": "", "Visita": ""}
-
-        cuotas["Local"] = base_prices.get("Local", "")
-        cuotas["Visita"] = base_prices.get("Visita", "")
-
+        # PA siempre sale del mercado base.
+        # NoPA solo se llena cuando la condición anterior encuentra
+        # la Supercuota real de Liga 1 Perú.
         base_draw = base_prices.get("Empate", "")
-        if base_draw != "" and dorada_draw != "":
+        super_draw = (
+            super_prices.get("Empate", "")
+            if super_prices
+            else ""
+        )
+
+        if base_draw != "" and super_draw != "":
             try:
-                cuotas["Empate"] = max(float(base_draw), float(dorada_draw))
+                empate_final = max(
+                    float(base_draw),
+                    float(super_draw),
+                )
             except:
-                cuotas["Empate"] = base_draw
+                empate_final = base_draw
         else:
-            cuotas["Empate"] = dorada_draw if base_draw == "" else base_draw
+            empate_final = (
+                super_draw
+                if base_draw == ""
+                else base_draw
+            )
 
         time.sleep(random.uniform(0.10, 0.25))
-        return cuotas
+
+        return {
+            "LocalPA": base_prices.get("Local", ""),
+            "Empate": empate_final,
+            "VisitaPA": base_prices.get("Visita", ""),
+            "LocalNoPA": (
+                super_prices.get("Local")
+                if super_prices
+                else None
+            ),
+            "VisitaNoPA": (
+                super_prices.get("Visita")
+                if super_prices
+                else None
+            ),
+        }
 
     except Exception as e:
         log_error(f"Error procesando cuotas evento {event_id}: {e}")
@@ -333,9 +388,11 @@ def procesar_evento(ev):
             "Casa": "Atlantic City",
             "Local": local_fmt,
             "Visita": visita_fmt,
-            "Cuota Local": cuotas["Local"],
+            "Cuota Local": cuotas["LocalPA"],
             "Cuota Empate": cuotas["Empate"],
-            "Cuota Visita": cuotas["Visita"],
+            "Cuota Visita": cuotas["VisitaPA"],
+            "Cuota Local NoPA": cuotas["LocalNoPA"],
+            "Cuota Visita NoPA": cuotas["VisitaNoPA"],
             "EventId": eid
         }
 

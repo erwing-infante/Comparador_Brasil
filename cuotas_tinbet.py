@@ -3,33 +3,62 @@ import re
 import json
 import time
 import unicodedata
-import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 
-# ================= CONFIG =================
+import requests
+
+
+# ==========================================================
+# CONFIG
+# ==========================================================
 BASE = "https://prod20465-178940673.fssb.io"
 
 OUT_DIR = "data"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-OUT_JSON  = os.path.join(OUT_DIR, "cuotas_tinbet.json")
-ERROR_LOG = os.path.join(OUT_DIR, "error_log.txt")
+OUT_JSON = os.path.join(OUT_DIR, "cuotas_tinbet.json")
+ERROR_LOG = os.path.join(OUT_DIR, "error_tinbet_log.txt")
 
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/150.0.0.0 Safari/537.36"
+)
 
-# ========= TOKENS (LOS QUE ME PASASTE) =========
-AUTHORIZATION_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsYW5ndWFnZUNvZGUiOiJlcyIsImN1cnJlbmN5UmF0ZSI6MSwiY3VycmVuY3lSYXRlZXVyIjoxLCJjdXN0b21lckxpbWl0cyI6W10sImN1c3RvbWVyVHlwZSI6ImFub24iLCJjdXJyZW5jeUNvZGUiOiJQRU4iLCJjdXJyZW5jeUNvZGVBbm9uIjoiIiwiY3VzdG9tZXJJZCI6LTEsImJldHRpbmdWaWV3IjoiRXVyb3BlYW4gVmlldyIsInNvcnRpbmdUeXBlSWQiOjAsImJldHRpbmdMYXlvdXQiOjEsImRpc3BsYXlUeXBlSWQiOjEsInRpbWV6b25lSWQiOjgsImF1dG9UaW1lWm9uZSI6MSwibGFzdElucHV0U3Rha2UiOjAsImV1T2Rkc0lkIjoiMSIsImFzaWFuT2Rkc0lkIjoiMyIsImtvcmVhbk9kZHNJZCI6IjEiLCJpbnRUYWJFeHBhbmRlZCI6MSwiZG9tYWluSUQiOjQzODgsImFnZW50SUQiOjE3ODk0MDY3Mywic2l0ZUlkIjoyMDQ2NSwic2VsZWN0ZWRPcHRpb25JZCI6MCwiY3VzdG9tZXJMZXZlbCI6MCwiYmFsYW5jZVByaW9yaXR5IjoxLCJFUE9FbmFibGVkIjp0cnVlLCJpYXQiOjE3NzM0NjAwNjJ9.X67U0heMjtS47AAUDSecIHKYzSdNNnCoVYqTjF8x4Jg"
-SESSION_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjotMSwiZXhwaXJlZERhdGUiOjE3NzM1NDY0NjIzMzcsImlhdCI6MTc3MzQ2MDA2Mn0.6LOVg6Uado7E4XHDlMX9ftojZv4xic2YRBazgD-7LOE"
+# Tokens del último curl enviado.
+AUTHORIZATION_TOKEN = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJsYW5ndWFnZUNvZGUiOiJlcyIsImN1cnJlbmN5UmF0ZSI6MSwiY3VycmVuY3lSYXRlZXVyIjoxLCJjdXN0b21lckxpbWl0cyI6W10sImN1c3RvbWVyVHlwZSI6ImFub24iLCJjdXJyZW5jeUNvZGUiOiJQRU4iLCJjdXJyZW5jeUNvZGVBbm9uIjoiIiwiY3VzdG9tZXJJZCI6LTEsImJldHRpbmdWaWV3IjoiRXVyb3BlYW4gVmlldyIsInNvcnRpbmdUeXBlSWQiOjAsImJldHRpbmdMYXlvdXQiOjEsImRpc3BsYXlUeXBlSWQiOjEsInRpbWV6b25lSWQiOjE1LCJhdXRvVGltZVpvbmUiOjEsImxhc3RJbnB1dFN0YWtlIjowLCJldU9kZHNJZCI6IjEiLCJhc2lhbk9kZHNJZCI6IjMiLCJrb3JlYW5PZGRzSWQiOiIxIiwiaW50VGFiRXhwYW5kZWQiOjEsImRvbWFpbklEIjo0Mzg4LCJhZ2VudElEIjoxNzg5NDA2NzMsInNpdGVJZCI6MjA0NjUsInNlbGVjdGVkT3B0aW9uSWQiOjAsImN1c3RvbWVyTGV2ZWwiOjAsImJhbGFuY2VQcmlvcml0eSI6MSwiRVBPRW5hYmxlZCI6dHJ1ZSwiaGFzUGxhY2VkQmV0cyI6ZmFsc2UsImlhdCI6MTc4NTY5MjA4OX0."
+    "sWBEx9gHDrUz0zpYLG_4bSopjqxwcjK30ozPXVWqRn8"
+)
 
-# ✅ solo 1X2 principal
-MARKET_TYPE_IDS = "ML0"
+SESSION_TOKEN = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJjdXN0b21lcklkIjotMSwiZXhwaXJlZERhdGUiOjE3ODU3Nzg0ODkyNjYsImlhdCI6MTc4NTY5MjA4OX0."
+    "kXmSNKp4kADx_OWA5YX2sT0I_SvX6GOf4TNMycaYdns"
+)
 
-# ✅ límite 72h
+# Listado de liga: suficiente para obtener eventos y ML0 preliminar.
+MARKET_TYPE_IDS = (
+    "ML39,ML169,ML1633,ML1,OU249,OU39,OU6001,"
+    "OU1697,OU1633,OU201,QA158,QA1693,ML167,"
+    "ML0,ML1,OU200,OU201,QA158,ML167"
+)
+
 HORAS_ADELANTE = 72
-NOW_UTC = datetime.now(timezone.utc)
-CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
+TIMEOUT = 30
+MAX_INTENTOS = 3
 
-# ========= LIGAS =========
+# Detalles de partidos consultados simultáneamente.
+MAX_WORKERS_DETALLE = 6
+
+DEBUG = False
+
+
+# ==========================================================
+# LIGAS
+# ==========================================================
 LIGAS_EQUIVALENCIAS = [
     ("Premier League", "Inglaterra", "24", "Premier League"),
     ("Copa FA", "Inglaterra", "89", "FA Cup"),
@@ -44,6 +73,7 @@ LIGAS_EQUIVALENCIAS = [
     ("Ligue 1", "Francia", "25", "Ligue 1"),
     ("Coupe de France", "Francia", "35", "Copa Francia"),
     ("Brasileirao, Serie A", "Brasil", "530", "Brasileirao"),
+    ("Copa de Brasil", "Brasil", "136", "Copa de Brasil"),
     ("Liga MX", "México", "632", "Liga MX"),
     ("MLS", "Estados Unidos", "224", "MLS"),
     ("Liga 1", "Perú", "203110137349808128", "Liga 1 Perú"),
@@ -57,224 +87,692 @@ LIGAS_EQUIVALENCIAS = [
     ("Eliminatorias europeas", "Internacional", "466", "Eliminatorias Europa - WC26"),
 ]
 
-# ================= HELPERS =================
-def log_error(msg):
-    with open(ERROR_LOG, "a", encoding="utf-8") as f:
-        f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
 
-def norm(s):
-    if not s:
+# ==========================================================
+# HELPERS
+# ==========================================================
+def log_error(message):
+    with open(ERROR_LOG, "a", encoding="utf-8") as file:
+        file.write(
+            f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] "
+            f"{message}\n"
+        )
+
+
+def norm(value):
+    if not value:
         return ""
-    s = unicodedata.normalize("NFKD", str(s))
-    s = s.encode("ascii", "ignore").decode("ascii")
-    s = s.lower()
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
 
-def fecha_to_utc(fecha_iso):
+    text = unicodedata.normalize("NFKD", str(value))
+    text = text.encode("ascii", "ignore").decode("ascii")
+    text = text.lower()
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def safe_float(value):
     try:
-        if not fecha_iso:
-            return None
-        if fecha_iso.endswith("Z"):
-            return datetime.fromisoformat(fecha_iso.replace("Z", "+00:00"))
-        return datetime.fromisoformat(fecha_iso).replace(tzinfo=timezone.utc)
-    except:
+        odd = float(value)
+        return odd if odd > 1 else None
+    except (TypeError, ValueError):
         return None
 
-ISO_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
 
-def find_fecha(row):
-    for x in row:
-        if isinstance(x, str):
-            m = ISO_RE.search(x)
-            if m:
-                return m.group(0)
+def fecha_to_utc(fecha_iso):
+    if not fecha_iso:
+        return None
+
+    try:
+        value = str(fecha_iso).strip()
+
+        if value.endswith("Z"):
+            return datetime.fromisoformat(
+                value.replace("Z", "+00:00")
+            ).astimezone(timezone.utc)
+
+        return datetime.fromisoformat(value).replace(
+            tzinfo=timezone.utc
+        )
+
+    except Exception:
+        return None
+
+
+ISO_RE = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+    r"(?:\.\d{1,3})?(?:Z)?"
+)
+
+
+def find_fecha(value):
+    if isinstance(value, str):
+        match = ISO_RE.search(value)
+        return match.group(0) if match else ""
+
+    if isinstance(value, dict):
+        for item in value.values():
+            found = find_fecha(item)
+            if found:
+                return found
+
+    if isinstance(value, list):
+        for item in value:
+            found = find_fecha(item)
+            if found:
+                return found
+
     return ""
 
+
 def find_equipos(row):
-    for x in row:
-        if not isinstance(x, list):
+    if not isinstance(row, list):
+        return "", ""
+
+    for block in row:
+        if not isinstance(block, list):
             continue
 
         home = ""
         away = ""
 
-        for item in x:
+        for item in block:
             if not isinstance(item, list) or len(item) < 3:
                 continue
 
-            nombre_obj = item[1]
+            name_obj = item[1]
             side = str(item[2]).lower()
 
-            nombre = ""
-            if isinstance(nombre_obj, dict):
-                nombre = nombre_obj.get("ES") or nombre_obj.get("ES-PE") or next(iter(nombre_obj.values()), "")
-            elif isinstance(nombre_obj, str):
-                nombre = nombre_obj
+            if isinstance(name_obj, dict) and name_obj:
+                name = (
+                    name_obj.get("ES")
+                    or name_obj.get("ES-PE")
+                    or name_obj.get("es-PE")
+                    or next(iter(name_obj.values()), "")
+                )
+            elif isinstance(name_obj, str):
+                name = name_obj
+            else:
+                name = ""
 
             if "home" in side:
-                home = nombre
+                home = name
             elif "away" in side:
-                away = nombre
+                away = name
 
-        if home or away:
+        if home and away:
             return home, away
 
     return "", ""
 
-def find_markets(row):
-    for x in row:
-        if not isinstance(x, list):
+
+def extract_1x2_from_market_list(markets, wanted_code):
+    """
+    Extrae un 1X2 desde la estructura del endpoint eventpage.
+    market[5][0] contiene ML0 o ML5000.
+    market[13] contiene las selecciones.
+    selection[6] contiene la cuota decimal.
+    selection[9] contiene side:
+      1 = Local
+      2 = Empate
+      3 = Visita
+    """
+    if not isinstance(markets, list):
+        return None
+
+    for market in markets:
+        if not isinstance(market, list) or len(market) < 14:
             continue
 
-        for m in x:
-            if isinstance(m, list) and len(m) > 3 and isinstance(m[3], list):
-                code = str(m[3][0])
-                if code.startswith("ML") or code.startswith("OU") or code.startswith("QA"):
-                    return x
+        market_info = market[5]
 
-    return []
-
-def extract_ml0(markets):
-    L = E = V = ""
-
-    for m in markets:
-        if not isinstance(m, list) or len(m) < 8:
+        if (
+            not isinstance(market_info, list)
+            or not market_info
+            or str(market_info[0]) != wanted_code
+        ):
             continue
 
-        market_info = m[3]
-        if not isinstance(market_info, list):
+        selections = market[13]
+
+        if not isinstance(selections, list):
             continue
 
-        code = str(market_info[0])
+        result = {
+            "Local": None,
+            "Empate": None,
+            "Visita": None,
+        }
 
-        if code != "ML0":
-            continue
-
-        selections = m[7]
-
-        for s in selections:
-            if not isinstance(s, list) or len(s) < 8:
+        for selection in selections:
+            if not isinstance(selection, list) or len(selection) < 10:
                 continue
 
-            cuota = str(s[4])
-            side = s[7]
+            odd = safe_float(selection[6])
+            side = selection[9]
+
+            if odd is None:
+                continue
 
             if side == 1:
-                L = cuota
+                result["Local"] = odd
             elif side == 2:
-                E = cuota
+                result["Empate"] = odd
             elif side == 3:
-                V = cuota
+                result["Visita"] = odd
 
-        break
+        if all(
+            result[key] is not None
+            for key in ("Local", "Empate", "Visita")
+        ):
+            return result
 
-    return L, E, V
+    return None
 
-# ================= SESSION =================
-def make_session():
-    s = requests.Session()
-    s.cookies.set("authorization", AUTHORIZATION_TOKEN)
-    s.cookies.set("session", SESSION_TOKEN)
-    return s
 
-def make_headers(league_name_slug="La-Liga", country_slug="Espa%C3%B1a"):
+def extract_detail_markets(payload):
+    """
+    En eventpage, el primer evento está en data[0].
+    La lista completa de mercados está en data[0][20].
+    """
+    if not isinstance(payload, dict):
+        return None
+
+    data = payload.get("data")
+
+    if not isinstance(data, list) or not data:
+        return None
+
+    event_row = data[0]
+
+    if not isinstance(event_row, list) or len(event_row) <= 20:
+        return None
+
+    markets = event_row[20]
+
+    normal_pa = extract_1x2_from_market_list(
+        markets,
+        "ML0",
+    )
+
+    super_nopa = extract_1x2_from_market_list(
+        markets,
+        "ML5000",
+    )
+
+    if normal_pa is None:
+        return None
+
+    # Empate: se conserva la mayor cuota disponible.
+    empate_candidates = [
+        value
+        for value in (
+            normal_pa["Empate"],
+            (
+                super_nopa["Empate"]
+                if super_nopa
+                else None
+            ),
+        )
+        if value is not None
+    ]
+
+    cuota_empate = max(empate_candidates)
+
     return {
-        "user-agent": UA,
+        "pa": normal_pa,
+        "nopa": super_nopa,
+        "empate": cuota_empate,
+    }
+
+
+# ==========================================================
+# SESSION / HEADERS
+# ==========================================================
+def make_session():
+    session = requests.Session()
+    session.cookies.set(
+        "authorization",
+        AUTHORIZATION_TOKEN,
+    )
+    session.cookies.set(
+        "session",
+        SESSION_TOKEN,
+    )
+    return session
+
+
+def make_headers(referer):
+    return {
         "accept": "application/json",
-        "accept-language": "es-US,es-PE;q=0.9,es-419;q=0.8,es;q=0.7,en;q=0.6",
+        "accept-language": (
+            "es-US,es-PE;q=0.9,es-419;q=0.8,"
+            "es;q=0.7,en;q=0.6"
+        ),
+        "authorization": AUTHORIZATION_TOKEN,
         "cache-control": "no-cache",
         "pragma": "no-cache",
-        "authorization": AUTHORIZATION_TOKEN,
+        "referer": referer,
+        "sec-ch-ua": (
+            '"Not;A=Brand";v="8", '
+            '"Chromium";v="150", '
+            '"Google Chrome";v="150"'
+        ),
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-storage-access": "active",
         "session": SESSION_TOKEN,
-        "referer": f"{BASE}/es/spbk/F%C3%BAtbol/{country_slug}/{league_name_slug}"
+        "user-agent": UA,
     }
 
-# ================= REQUEST =================
-def get_gameodds(s, h, league_id):
-    url = f"{BASE}/api/eventlist/eu/leagues/v2/{league_id}/gameOdds"
+
+# ==========================================================
+# REQUESTS
+# ==========================================================
+def get_gameodds(session, headers, league_id):
+    url = (
+        f"{BASE}/api/eventlist/eu/leagues/v2/"
+        f"{league_id}/gameOdds"
+    )
+
     params = {
         "marketTypeIds": MARKET_TYPE_IDS,
-        "IsLive": "false"
+        "IsLive": "false",
     }
 
+    for attempt in range(1, MAX_INTENTOS + 1):
+        try:
+            response = session.get(
+                url,
+                headers=headers,
+                params=params,
+                timeout=TIMEOUT,
+            )
+
+            if response.status_code == 200:
+                return response.json()
+
+            error = (
+                f"HTTP {response.status_code}: "
+                f"{response.text[:300]}"
+            )
+
+            if response.status_code == 401:
+                log_error(
+                    f"TINBET league={league_id}: {error}"
+                )
+                return {}
+
+        except (requests.RequestException, ValueError) as exc:
+            error = str(exc)
+
+        if attempt < MAX_INTENTOS:
+            time.sleep(attempt)
+
+    log_error(
+        f"TINBET league={league_id}: {error}"
+    )
+
+    return {}
+
+
+def get_event_detail(candidate):
+    event_id = candidate["EventId"]
+
+    local_slug = requests.utils.quote(
+        candidate["Local"].replace(" ", "-"),
+        safe="",
+    )
+    visita_slug = requests.utils.quote(
+        candidate["Visita"].replace(" ", "-"),
+        safe="",
+    )
+    pais_slug = requests.utils.quote(
+        candidate["Pais"],
+        safe="",
+    )
+    liga_slug = requests.utils.quote(
+        candidate["Liga"].replace(" ", "-"),
+        safe="",
+    )
+
+    referer = (
+        f"{BASE}/es/spbk/F%C3%BAtbol/"
+        f"{pais_slug}/{liga_slug}/"
+        f"{local_slug}-vs-{visita_slug}/"
+        f"{event_id}?operatorToken=logout"
+    )
+
+    headers = make_headers(referer)
+    url = (
+        f"{BASE}/api/eventpage/events/{event_id}"
+    )
+    params = {
+        "hideX25X75Selections": "false",
+    }
+
+    session = make_session()
+    last_error = ""
+
     try:
-        r = s.get(url, headers=h, params=params, timeout=20)
-        print(f"STATUS league={league_id}: {r.status_code}")
+        for attempt in range(1, MAX_INTENTOS + 1):
+            try:
+                response = session.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=TIMEOUT,
+                )
 
-        if r.status_code != 200:
-            log_error(f"TINBET HTTP {r.status_code} league={league_id} body={r.text[:400]}")
-            return {}
+                if response.status_code == 200:
+                    return {
+                        "ok": True,
+                        "candidate": candidate,
+                        "payload": response.json(),
+                        "error": None,
+                    }
 
-        return r.json()
-    except Exception as e:
-        log_error(f"TINBET EXC league={league_id}: {e}")
-        return {}
+                last_error = (
+                    f"HTTP {response.status_code}: "
+                    f"{response.text[:300]}"
+                )
 
-# ================= MAIN =================
-def main():
-    s = make_session()
-    salida = []
+                if response.status_code == 401:
+                    break
 
-    for _, pais, league_id, liga in LIGAS_EQUIVALENCIAS:
-        country_slug = requests.utils.quote(pais, safe="")
-        league_slug = requests.utils.quote(liga.replace(" ", "-"), safe="")
-        h = make_headers(league_slug, country_slug)
+            except (
+                requests.RequestException,
+                ValueError,
+            ) as exc:
+                last_error = str(exc)
 
-        data = get_gameodds(s, h, league_id)
+            if attempt < MAX_INTENTOS:
+                time.sleep(attempt)
 
-        if not data:
-            print(f"❌ {liga}")
+    finally:
+        session.close()
+
+    return {
+        "ok": False,
+        "candidate": candidate,
+        "payload": None,
+        "error": last_error,
+    }
+
+
+# ==========================================================
+# LISTADO DE EVENTOS
+# ==========================================================
+def extract_candidates_from_league(
+    payload,
+    pais,
+    liga,
+    now_utc,
+    cutoff_utc,
+):
+    candidates = []
+
+    rows = payload.get("data", [])
+
+    if not isinstance(rows, list):
+        return candidates
+
+    for row in rows:
+        if not isinstance(row, list) or not row:
             continue
 
-        payload = data.get("data", [])
-        print(f"EVENTOS {liga}: {len(payload)}")
+        event_id = str(row[0])
+        fecha = find_fecha(row)
+        dt = fecha_to_utc(fecha)
 
-        count_liga = 0
+        if (
+            dt is None
+            or dt <= now_utc
+            or dt > cutoff_utc
+        ):
+            continue
 
-        for row in payload:
-            if not isinstance(row, list):
+        local, visita = find_equipos(row)
+
+        if not local or not visita:
+            continue
+
+        candidates.append({
+            "Liga": liga,
+            "Pais": pais,
+            "Partido": f"{local} vs {visita}",
+            "Fecha": fecha,
+            "Casa": "Tinbet",
+            "Local": local,
+            "Visita": visita,
+            "EventId": event_id,
+        })
+
+    return candidates
+
+
+# ==========================================================
+# MAIN
+# ==========================================================
+def main():
+    now_utc = datetime.now(timezone.utc)
+    cutoff_utc = now_utc + timedelta(
+        hours=HORAS_ADELANTE
+    )
+
+    print(
+        f"📆 Tinbet: "
+        f"{now_utc:%Y-%m-%d %H:%M} -> "
+        f"{cutoff_utc:%Y-%m-%d %H:%M} UTC"
+    )
+
+    session = make_session()
+    candidates = []
+
+    try:
+        for _, pais, league_id, liga in LIGAS_EQUIVALENCIAS:
+            country_slug = requests.utils.quote(
+                pais,
+                safe="",
+            )
+            league_slug = requests.utils.quote(
+                liga.replace(" ", "-"),
+                safe="",
+            )
+
+            referer = (
+                f"{BASE}/es/spbk/F%C3%BAtbol/"
+                f"{country_slug}/{league_slug}"
+                "?operatorToken=logout"
+            )
+
+            headers = make_headers(referer)
+            payload = get_gameodds(
+                session,
+                headers,
+                league_id,
+            )
+
+            if not payload:
                 continue
+
+            league_candidates = (
+                extract_candidates_from_league(
+                    payload=payload,
+                    pais=pais,
+                    liga=liga,
+                    now_utc=now_utc,
+                    cutoff_utc=cutoff_utc,
+                )
+            )
+
+            candidates.extend(
+                league_candidates
+            )
+
+            if DEBUG:
+                print(
+                    f"🔎 {liga}: "
+                    f"{len(league_candidates)} candidatos"
+                )
+
+    finally:
+        session.close()
+
+    # Dedupe por EventId.
+    unique = {}
+
+    for candidate in candidates:
+        unique[candidate["EventId"]] = candidate
+
+    candidates = list(unique.values())
+
+    if not candidates:
+        with open(
+            OUT_JSON,
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(
+                [],
+                file,
+                ensure_ascii=False,
+                indent=2,
+            )
+
+        print("💾 0 partidos")
+        return
+
+    rows = []
+    with_pa = 0
+    without_pa = 0
+    errors = 0
+
+    workers = min(
+        MAX_WORKERS_DETALLE,
+        len(candidates),
+    )
+
+    with ThreadPoolExecutor(
+        max_workers=workers
+    ) as executor:
+        future_map = {
+            executor.submit(
+                get_event_detail,
+                candidate,
+            ): candidate
+            for candidate in candidates
+        }
+
+        for future in as_completed(future_map):
+            candidate = future_map[future]
 
             try:
-                event_id = str(row[0])
-            except:
+                result = future.result()
+            except Exception as exc:
+                result = {
+                    "ok": False,
+                    "candidate": candidate,
+                    "payload": None,
+                    "error": str(exc),
+                }
+
+            if not result["ok"]:
+                errors += 1
+                log_error(
+                    f"DETAIL event={candidate['EventId']}: "
+                    f"{result['error']}"
+                )
                 continue
 
-            fecha = find_fecha(row)
-            dt = fecha_to_utc(fecha)
+            markets = extract_detail_markets(
+                result["payload"]
+            )
 
-            if dt is None or dt > CUTOFF_UTC:
+            if markets is None:
+                errors += 1
+                log_error(
+                    f"DETAIL event={candidate['EventId']}: "
+                    "sin ML0"
+                )
                 continue
 
-            local, visita = find_equipos(row)
-            markets = find_markets(row)
-            L, E, V = extract_ml0(markets)
+            pa = markets["pa"]
+            nopa = markets["nopa"]
 
-            if not (L and E and V):
-                continue
+            if nopa is None:
+                # Si no hay Supercuota, se conserva el partido,
+                # PA queda con ML0 y NoPA queda null.
+                without_pa += 1
+                local_nopa = None
+                visita_nopa = None
+            else:
+                with_pa += 1
+                local_nopa = nopa["Local"]
+                visita_nopa = nopa["Visita"]
 
-            salida.append({
-                "Liga": liga,
-                "Partido": f"{local} vs {visita}",
-                "Fecha": fecha,
+            row = {
+                "Liga": candidate["Liga"],
+                "Partido": candidate["Partido"],
+                "Fecha": candidate["Fecha"],
                 "Casa": "Tinbet",
-                "Local": local,
-                "Visita": visita,
-                "Cuota Local": L,
-                "Cuota Empate": E,
-                "Cuota Visita": V,
-                "EventId": event_id
-            })
-            count_liga += 1
+                "Local": candidate["Local"],
+                "Visita": candidate["Visita"],
 
-        print(f"✅ {liga}: {count_liga} partidos")
-        time.sleep(0.15)
+                # Resultado del Partido ML0 = PA.
+                "Cuota Local": pa["Local"],
+                "Cuota Empate": markets["empate"],
+                "Cuota Visita": pa["Visita"],
 
-    with open(OUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(salida, f, ensure_ascii=False, indent=2)
+                # Resultado - Supercuotas ML5000 = NoPA.
+                "Cuota Local NoPA": local_nopa,
+                "Cuota Visita NoPA": visita_nopa,
 
-    print(f"✅ PARTIDOS GUARDADOS: {len(salida)} -> {OUT_JSON}")
+                "EventId": (
+                    int(candidate["EventId"])
+                    if candidate["EventId"].isdigit()
+                    else candidate["EventId"]
+                ),
+            }
+
+            rows.append(row)
+
+            if DEBUG:
+                print(
+                    f"✅ {candidate['Partido']} | "
+                    f"PA={pa['Local']}/{pa['Empate']}/{pa['Visita']} | "
+                    f"NoPA={local_nopa}/{visita_nopa}"
+                )
+
+    rows.sort(
+        key=lambda item: (
+            item["Fecha"],
+            item["Liga"],
+            item["Partido"],
+        )
+    )
+
+    with open(
+        OUT_JSON,
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            rows,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+    print(
+        f"✅ Partidos: {len(rows)} | "
+        f"Con Supercuota: {with_pa} | "
+        f"Sin Supercuota: {without_pa} | "
+        f"Errores: {errors}"
+    )
+    print(f"💾 Archivo: {OUT_JSON}")
+
 
 if __name__ == "__main__":
     main()

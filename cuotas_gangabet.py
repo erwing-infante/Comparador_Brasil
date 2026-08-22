@@ -138,167 +138,251 @@ def obtener_cuotas(event_id: int):
         "numFormat": "en-GB",
         "countryCode": "PE",
         "eventId": str(event_id),
-        # Mantener en false para que también aparezcan boosts (cuota dorada) y poder comparar el empate
+        # False permite recibir también mercados mejorados.
         "showNonBoosts": "false"
     }
 
+    vacio = {
+        "LocalPA": None,
+        "Empate": None,
+        "VisitaPA": None,
+        "LocalNoPA": None,
+        "VisitaNoPA": None,
+    }
+
     data = None
+
     for intento in range(3):
         try:
-            r = requests.get(API_DETAILS, params=params, headers=HEADERS, timeout=20)
+            r = requests.get(
+                API_DETAILS,
+                params=params,
+                headers=HEADERS,
+                timeout=20
+            )
+
             if r.status_code == 200:
                 data = r.json()
-                mk = data.get("markets", []) or data.get("Markets", [])
-                od = data.get("odds", []) or data.get("Odds", [])
-                if mk and od:
+
+                markets = data.get("markets", []) or data.get("Markets", [])
+                odds = data.get("odds", []) or data.get("Odds", [])
+
+                if markets and odds:
                     break
-                time.sleep(0.7 * (intento + 1))
+
+            time.sleep(0.7 * (intento + 1))
+
         except Exception as e:
-            log_error(f"Error conexión detalle evento {event_id}: {e}")
+            log_error(
+                f"Error conexión detalle evento {event_id}: {e}"
+            )
             time.sleep(2 * (intento + 1))
 
     if not data:
-        return {"Local": "", "Empate": "", "Visita": ""}
+        return vacio
 
     try:
         markets = data.get("markets", []) or data.get("Markets", [])
         odds_all = data.get("odds", []) or data.get("Odds", [])
 
-        # ==========================
-        # CAMBIO: Selección de mercado
-        # Base = PA si existe, sino 1x2 normal (no boost)
-        # Empate = max( empate base, empate dorada si existe )
-        # ==========================
+        def _market_name_norm(market):
+            return normalizar_nombre_equipo(
+                market.get("name", "") or ""
+            )
 
-        def _market_name_norm(m):
-            return normalizar_nombre_equipo(m.get("name", "") or "")
-
-        def _is_boost_market(m):
-            n = _market_name_norm(m)
-            return any(w in n for w in ("cuotaza", "dorada", "boost", "supercuota"))
-
-        def _extract_odd_ids(m):
+        def _extract_odd_ids(market):
             odd_ids = []
+
             for key in ("desktopOddIds", "oddIds"):
-                for item in m.get(key, []) or []:
+                for item in market.get(key, []) or []:
                     if isinstance(item, list) and item:
-                        try:
-                            odd_ids.append(int(item[0]))
-                        except:
-                            pass
-                    elif isinstance(item, (int, str)):
-                        try:
-                            odd_ids.append(int(item))
-                        except:
-                            pass
+                        item = item[0]
+
+                    try:
+                        odd_ids.append(int(item))
+                    except (TypeError, ValueError):
+                        pass
+
             return odd_ids
 
-        def _odds_map_for_ids(ids):
-            ids_set = set(ids)
-            return {o.get("id"): o for o in odds_all if o.get("id") in ids_set}
+        def _odds_map_for_market(market):
+            ids = set(_extract_odd_ids(market))
 
-        def _has_pa_signal(odds_map):
-            # Señales: offers.parameter == 2 y/o IsDBB == true
-            for o in odds_map.values():
-                if o.get("IsDBB") is True or o.get("isDBB") is True:
-                    return True
-                offers = o.get("offers") or []
-                if isinstance(offers, list):
-                    for off in offers:
-                        try:
-                            if int(off.get("parameter", -1)) == 2:
-                                return True
-                        except:
-                            continue
-            return False
+            return {
+                odd.get("id"): odd
+                for odd in odds_all
+                if odd.get("id") in ids
+            }
 
-        def _prices_from_odds_map(odds_map):
-            out = {"Local": "", "Empate": "", "Visita": ""}
+        def _prices_for_market(market):
+            odds_map = _odds_map_for_market(market)
 
-            for o in odds_map.values():
-                tipo = o.get("typeId")
-                price = o.get("price", "")
-                if price == "" or price is None:
-                    continue
+            result = {
+                "Local": None,
+                "Empate": None,
+                "Visita": None,
+            }
+
+            for odd in odds_map.values():
                 try:
-                    price_val = float(price)
-                except:
+                    price = float(odd.get("price"))
+                except (TypeError, ValueError):
                     continue
+
+                if price <= 1:
+                    continue
+
+                tipo = odd.get("typeId")
 
                 if tipo == 1:
-                    out["Local"] = price_val
+                    result["Local"] = price
                 elif tipo == 2:
-                    out["Empate"] = price_val
+                    result["Empate"] = price
                 elif tipo == 3:
-                    out["Visita"] = price_val
+                    result["Visita"] = price
 
-            return out
+            if all(
+                result[key] is not None
+                for key in ("Local", "Empate", "Visita")
+            ):
+                return result
 
-        # 1) candidatos 1x2
-        cand_1x2 = []
-        for m in markets:
-            nm = _market_name_norm(m)
-            if any(k in nm for k in NOMBRES_1X2):
-                cand_1x2.append(m)
+            return None
 
-        if not cand_1x2:
-            return {"Local": "", "Empate": "", "Visita": ""}
+        def _has_pa_signal(market):
+            odds_map = _odds_map_for_market(market)
 
-        # 2) separar boost vs no-boost
-        boost_markets = [m for m in cand_1x2 if _is_boost_market(m)]
-        non_boost_markets = [m for m in cand_1x2 if not _is_boost_market(m)]
+            for odd in odds_map.values():
+                if (
+                    odd.get("IsDBB") is True
+                    or odd.get("isDBB") is True
+                ):
+                    return True
 
-        if not non_boost_markets:
-            # si no hay normal, no usamos dorada como base
-            return {"Local": "", "Empate": "", "Visita": ""}
+                offers = odd.get("offers") or []
 
-        # 3) elegir base: PA si existe, sino primer non-boost
-        base_market = None
-        for m in non_boost_markets:
-            ids = _extract_odd_ids(m)
-            if not ids:
-                continue
-            om = _odds_map_for_ids(ids)
-            if _has_pa_signal(om):
-                base_market = m
+                if isinstance(offers, list):
+                    for offer in offers:
+                        try:
+                            if int(offer.get("parameter", -1)) == 2:
+                                return True
+                        except (TypeError, ValueError):
+                            continue
+
+            return False
+
+        # ==================================================
+        # 1X2 principal con PA
+        # ==================================================
+        exact_main_names = {
+            "1x2",
+            "resultado final",
+            "resultado del partido",
+            "match result",
+            "ft result",
+        }
+
+        pa_market = None
+
+        # Primero, mercado 1X2 exacto con señal PA.
+        for market in markets:
+            name = _market_name_norm(market)
+
+            if (
+                name in exact_main_names
+                and _has_pa_signal(market)
+            ):
+                pa_market = market
                 break
 
-        if base_market is None:
-            base_market = non_boost_markets[0]
+        # Si no expone señal PA, usar el 1X2 principal exacto.
+        if pa_market is None:
+            for market in markets:
+                name = _market_name_norm(market)
 
-        base_ids = _extract_odd_ids(base_market)
-        base_odds_map = _odds_map_for_ids(base_ids)
-        base_prices = _prices_from_odds_map(base_odds_map)
+                if name in exact_main_names:
+                    pa_market = market
+                    break
 
-        # 4) dorada (para comparar empate)
-        dorada_draw = ""
-        if boost_markets:
-            dorada_ids = _extract_odd_ids(boost_markets[0])
-            dorada_odds_map = _odds_map_for_ids(dorada_ids)
-            dorada_prices = _prices_from_odds_map(dorada_odds_map)
-            dorada_draw = dorada_prices.get("Empate", "")
+        pa_prices = (
+            _prices_for_market(pa_market)
+            if pa_market is not None
+            else None
+        )
 
-        # 5) salida final:
-        cuotas = {"Local": "", "Empate": "", "Visita": ""}
+        # ==================================================
+        # NoPA
+        # Solo se llena si existe un mercado 1X2 cuyo nombre
+        # real contiene "supercuota".
+        # Si no existe, queda null.
+        # ==================================================
+        super_market = None
 
-        cuotas["Local"] = base_prices.get("Local", "")
-        cuotas["Visita"] = base_prices.get("Visita", "")
+        for market in markets:
+            name = _market_name_norm(market)
 
-        base_draw = base_prices.get("Empate", "")
-        if base_draw != "" and dorada_draw != "":
-            try:
-                cuotas["Empate"] = max(float(base_draw), float(dorada_draw))
-            except:
-                cuotas["Empate"] = base_draw
-        else:
-            cuotas["Empate"] = dorada_draw if base_draw == "" else base_draw
+            if (
+                "supercuota" in name
+                or "super cuota" in name
+            ):
+                super_market = market
+                break
+
+        nopa_prices = (
+            _prices_for_market(super_market)
+            if super_market is not None
+            else None
+        )
+
+        empate_candidates = []
+
+        if pa_prices and pa_prices["Empate"] is not None:
+            empate_candidates.append(
+                pa_prices["Empate"]
+            )
+
+        if nopa_prices and nopa_prices["Empate"] is not None:
+            empate_candidates.append(
+                nopa_prices["Empate"]
+            )
+
+        cuota_empate = (
+            max(empate_candidates)
+            if empate_candidates
+            else None
+        )
 
         time.sleep(random.uniform(0.10, 0.25))
-        return cuotas
+
+        return {
+            "LocalPA": (
+                pa_prices["Local"]
+                if pa_prices
+                else None
+            ),
+            "Empate": cuota_empate,
+            "VisitaPA": (
+                pa_prices["Visita"]
+                if pa_prices
+                else None
+            ),
+            "LocalNoPA": (
+                nopa_prices["Local"]
+                if nopa_prices
+                else None
+            ),
+            "VisitaNoPA": (
+                nopa_prices["Visita"]
+                if nopa_prices
+                else None
+            ),
+        }
 
     except Exception as e:
-        log_error(f"Error procesando cuotas evento {event_id}: {e}")
-        return {"Local": "", "Empate": "", "Visita": ""}
+        log_error(
+            f"Error procesando cuotas evento {event_id}: {e}"
+        )
+        return vacio
 
 
 def procesar_evento(ev):
@@ -336,9 +420,16 @@ def procesar_evento(ev):
             "Casa": "GangaBet",
             "Local": local_fmt,
             "Visita": visita_fmt,
-            "Cuota Local": cuotas["Local"],
+
+            # Pago Anticipado.
+            "Cuota Local": cuotas["LocalNoPA"],
             "Cuota Empate": cuotas["Empate"],
-            "Cuota Visita": cuotas["Visita"],
+            "Cuota Visita": cuotas["VisitaNoPA"],
+
+            # Sin PA. Si no existe Supercuota, queda null.
+            "Cuota Local NoPA": cuotas["LocalPA"],
+            "Cuota Visita NoPA": cuotas["VisitaPA"],
+
             "EventId": eid
         }
 
