@@ -76,7 +76,7 @@ LIGAS_1XBET = {
         "nombre": "Premier League",
         "slug": "england-premier-league",
     },
-    127603: {
+    108319: {
         "nombre": "FA Cup",
         "slug": "england-fa-cup",
     },
