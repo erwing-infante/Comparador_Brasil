@@ -13,7 +13,7 @@ import requests
 # ==========================================================
 # CONFIG
 # ==========================================================
-BASE_URL = "https://www.betsson.co"
+BASE_URL = "https://www.betsson.pe"
 
 TZ_FECHA_BETSSON = ZoneInfo("UTC")
 DIAS_A_FUTURO = 3
