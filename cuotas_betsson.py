@@ -26,6 +26,22 @@ COOKIE = """OPTIMIZELY_USER_ID=19eb912c-912c-4000-8b912c9df0.-.8db; token=https%
 
 SESSION_TOKEN = ""
 
+
+# ==========================================================
+# PROXY-SELLER
+# ==========================================================
+PROXY = (
+    "http://ad9063918cd09688:"
+    "0qAPgBHzQ1rdvs2O@"
+    "res.proxy-seller.com:10000"
+)
+
+PROXIES = {
+    "http": PROXY,
+    "https": PROXY,
+}
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DEBUG_DIR = os.path.join(DATA_DIR, "debug_betsson")
@@ -99,6 +115,9 @@ def get_session():
     if session is None:
         session = requests.Session()
 
+        # Todas las solicitudes salen por Proxy-Seller.
+        session.proxies.update(PROXIES)
+
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=20,
             pool_maxsize=20,
@@ -118,7 +137,12 @@ def get_session():
 # ==========================================================
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False, indent=2)
+        json.dump(
+            data,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
 
 
 def clean_cookie():
@@ -134,6 +158,7 @@ def parse_iso_utc(value):
             str(value).replace("Z", "+00:00")
         )
         return dt.astimezone(TZ_FECHA_BETSSON)
+
     except Exception:
         return None
 
@@ -146,28 +171,48 @@ def parse_teams(label):
     if not label:
         return None, None
 
-    for separator in (" - ", " vs. ", " vs ", " v "):
+    for separator in (
+        " - ",
+        " vs. ",
+        " vs ",
+        " v ",
+    ):
         if separator in label:
-            local, visita = label.split(separator, 1)
-            return local.strip(), visita.strip()
+            local, visita = label.split(
+                separator,
+                1,
+            )
+
+            return (
+                local.strip(),
+                visita.strip(),
+            )
 
     return None, None
 
 
 def is_live_or_started(event, now):
     dt = parse_iso_utc(
-        event.get("startDate") or event.get("startTime")
+        event.get("startDate")
+        or event.get("startTime")
     )
 
     if dt is None or dt <= now:
         return True
 
-    event_type = str(event.get("eventType") or "").lower()
+    event_type = str(
+        event.get("eventType") or ""
+    ).lower()
 
-    if event_type and event_type not in ("fixture", "prematch"):
+    if event_type and event_type not in (
+        "fixture",
+        "prematch",
+    ):
         return True
 
-    status = str(event.get("status") or "").lower()
+    status = str(
+        event.get("status") or ""
+    ).lower()
 
     return status in {
         "live",
@@ -195,33 +240,62 @@ def base_headers(referer, identifier):
         "content-type": "application/json",
         "cookie": clean_cookie(),
         "correlationid": str(uuid.uuid4()),
+
+        # Estos son los valores que ya tenía tu código.
+        # No los cambio todavía para no modificar tu lógica.
         "marketcode": "co",
+
         "pragma": "no-cache",
         "referer": referer,
+
         "user-agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/149.0.0.0 Safari/537.36"
         ),
+
         "x-obg-channel": "Web",
         "x-obg-device": "Desktop",
-        "x-sb-app-version": "7.37.31.3608-rd8be260",
+
+        "x-sb-app-version": (
+            "7.37.31.3608-rd8be260"
+        ),
+
         "x-sb-channel": "Web",
-        "x-sb-content-id": "2d543995-acff-41c1-bc73-9ec46bd70602",
+
+        "x-sb-content-id": (
+            "2d543995-acff-41c1-bc73-9ec46bd70602"
+        ),
+
         "x-sb-country-code": "CO",
         "x-sb-currency-code": "COP",
+
         "x-sb-device-type": "Desktop",
+
         "x-sb-identifier": identifier,
+
         "x-sb-jurisdiction": "Coljuegos",
         "x-sb-language-code": "co",
-        "x-sb-segment-id": "1a68008c-4da6-4f77-acbc-0614cb030d7d",
-        "x-sb-static-context-id": "stc--55774027",
+
+        "x-sb-segment-id": (
+            "1a68008c-4da6-4f77-acbc-0614cb030d7d"
+        ),
+
+        "x-sb-static-context-id": (
+            "stc--55774027"
+        ),
+
         "x-sb-type": "b2b",
-        "x-sb-user-context-id": "stc--55774027",
+
+        "x-sb-user-context-id": (
+            "stc--55774027"
+        ),
     }
 
     if SESSION_TOKEN.strip():
-        headers["sessiontoken"] = SESSION_TOKEN.strip()
+        headers["sessiontoken"] = (
+            SESSION_TOKEN.strip()
+        )
 
     return headers
 
@@ -237,37 +311,63 @@ def fetch_events_table(
 ):
     session = get_session()
 
-    url = f"{BASE_URL}/api/sb/v1/widgets/events-table/v2"
-    referer = f"{BASE_URL}/apuestas-deportivas"
+    url = (
+        f"{BASE_URL}/api/sb/v1/"
+        "widgets/events-table/v2"
+    )
+
+    referer = (
+        f"{BASE_URL}/apuestas-deportivas"
+    )
 
     params = {
         "categoryIds": "1",
-        "competitionIds": str(competition_id),
+        "competitionIds": str(
+            competition_id
+        ),
         "eventPhase": "Prematch",
         "eventSortBy": "StartDate",
         "includeSkeleton": "false",
         "maxMarketCount": "1",
         "pageNumber": "1",
+
         "startsOnOrAfter": (
-            window_start.astimezone(timezone.utc)
-            .strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            window_start
+            .astimezone(timezone.utc)
+            .strftime(
+                "%Y-%m-%dT%H:%M:%S.000Z"
+            )
         ),
+
         "startsBefore": (
-            window_end.astimezone(timezone.utc)
-            .strftime("%Y-%m-%dT%H:%M:%S.999Z")
+            window_end
+            .astimezone(timezone.utc)
+            .strftime(
+                "%Y-%m-%dT%H:%M:%S.999Z"
+            )
         ),
+
         "priceFormats": "1",
     }
 
     last_error = ""
     status_code = None
 
-    for attempt in range(1, MAX_INTENTOS_TABLE + 1):
+    for attempt in range(
+        1,
+        MAX_INTENTOS_TABLE + 1,
+    ):
         try:
             response = session.get(
                 url,
-                headers=base_headers(referer, "EVENT_TABLE_REQUEST"),
+
+                headers=base_headers(
+                    referer,
+                    "EVENT_TABLE_REQUEST",
+                ),
+
                 params=params,
+
                 timeout=TIMEOUT_TABLE,
             )
 
@@ -275,32 +375,59 @@ def fetch_events_table(
 
             if response.status_code == 200:
                 content_type = str(
-                    response.headers.get("content-type", "")
+                    response.headers.get(
+                        "content-type",
+                        "",
+                    )
                 ).lower()
 
-                if "application/json" not in content_type:
-                    last_error = "Respuesta no JSON"
+                if (
+                    "application/json"
+                    not in content_type
+                ):
+                    last_error = (
+                        "Respuesta no JSON"
+                    )
+
                 else:
                     payload = response.json()
+
                     events = (
-                        payload.get("data", {}).get("events", [])
+                        payload
+                        .get("data", {})
+                        .get("events", [])
                         or []
                     )
 
                     return {
-                        "competition_id": competition_id,
-                        "liga": league_name,
-                        "events": events,
-                        "status": status_code,
-                        "error": "",
+                        "competition_id":
+                            competition_id,
+
+                        "liga":
+                            league_name,
+
+                        "events":
+                            events,
+
+                        "status":
+                            status_code,
+
+                        "error":
+                            "",
                     }
+
             else:
                 last_error = (
-                    f"HTTP {response.status_code}: "
+                    f"HTTP "
+                    f"{response.status_code}: "
                     f"{response.text[:200]}"
                 )
 
-        except (requests.RequestException, ValueError) as error:
+        except (
+            requests.RequestException,
+            ValueError,
+        ) as error:
+
             last_error = str(error)
 
         if attempt < MAX_INTENTOS_TABLE:
@@ -318,27 +445,48 @@ def fetch_events_table(
 # ==========================================================
 # MERCADOS
 # ==========================================================
-def fetch_groupable(event_id, groupable_id):
+def fetch_groupable(
+    event_id,
+    groupable_id,
+):
     session = get_session()
 
-    url = f"{BASE_URL}/api/sb/v1/widgets/accordion/v1"
-    referer = f"{BASE_URL}/apuestas-deportivas?eventId={event_id}"
+    url = (
+        f"{BASE_URL}/api/sb/v1/"
+        "widgets/accordion/v1"
+    )
+
+    referer = (
+        f"{BASE_URL}/apuestas-deportivas"
+        f"?eventId={event_id}"
+    )
 
     params = {
         "eventId": event_id,
         "groupableId": groupable_id,
-        "_": str(int(time.time() * 1000)),
+        "_": str(
+            int(time.time() * 1000)
+        ),
     }
 
     last_error = ""
     status_code = None
 
-    for attempt in range(1, MAX_INTENTOS_ACCORDION + 1):
+    for attempt in range(
+        1,
+        MAX_INTENTOS_ACCORDION + 1,
+    ):
         try:
             response = session.get(
                 url,
-                headers=base_headers(referer, "ACCORDION_REQUEST"),
+
+                headers=base_headers(
+                    referer,
+                    "ACCORDION_REQUEST",
+                ),
+
                 params=params,
+
                 timeout=TIMEOUT_ACCORDION,
             )
 
@@ -346,29 +494,56 @@ def fetch_groupable(event_id, groupable_id):
 
             if response.status_code == 200:
                 content_type = str(
-                    response.headers.get("content-type", "")
+                    response.headers.get(
+                        "content-type",
+                        "",
+                    )
                 ).lower()
 
-                if "application/json" not in content_type:
-                    last_error = "Respuesta no JSON"
+                if (
+                    "application/json"
+                    not in content_type
+                ):
+                    last_error = (
+                        "Respuesta no JSON"
+                    )
+
                 else:
                     return {
-                        "event_id": event_id,
-                        "groupable_id": groupable_id,
-                        "payload": response.json(),
-                        "status": status_code,
-                        "error": "",
+                        "event_id":
+                            event_id,
+
+                        "groupable_id":
+                            groupable_id,
+
+                        "payload":
+                            response.json(),
+
+                        "status":
+                            status_code,
+
+                        "error":
+                            "",
                     }
+
             else:
                 last_error = (
-                    f"HTTP {response.status_code}: "
+                    f"HTTP "
+                    f"{response.status_code}: "
                     f"{response.text[:200]}"
                 )
 
-        except (requests.RequestException, ValueError) as error:
+        except (
+            requests.RequestException,
+            ValueError,
+        ) as error:
+
             last_error = str(error)
 
-        if attempt < MAX_INTENTOS_ACCORDION:
+        if (
+            attempt
+            < MAX_INTENTOS_ACCORDION
+        ):
             time.sleep(0.3)
 
     return {
@@ -380,34 +555,62 @@ def fetch_groupable(event_id, groupable_id):
     }
 
 
-def parse_groupable(payload, groupable_id):
+def parse_groupable(
+    payload,
+    groupable_id,
+):
     cuotas = {
         "Local": None,
         "Empate": None,
         "Visita": None,
     }
 
-    if not isinstance(payload, dict):
+    if not isinstance(
+        payload,
+        dict,
+    ):
         return cuotas
 
     accordion = (
-        payload.get("data", {})
+        payload
+        .get("data", {})
         .get("accordions", {})
-        .get(groupable_id, {})
+        .get(
+            groupable_id,
+            {},
+        )
         or {}
     )
 
-    for selection in accordion.get("selections", []) or []:
-        if str(selection.get("status") or "").lower() != "open":
+    for selection in (
+        accordion.get(
+            "selections",
+            [],
+        )
+        or []
+    ):
+        if str(
+            selection.get("status")
+            or ""
+        ).lower() != "open":
             continue
 
         template = str(
-            selection.get("selectionTemplateId") or ""
+            selection.get(
+                "selectionTemplateId"
+            )
+            or ""
         ).upper()
 
         try:
-            odds = float(selection.get("odds"))
-        except (TypeError, ValueError):
+            odds = float(
+                selection.get("odds")
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
             continue
 
         if odds <= 1:
@@ -415,8 +618,10 @@ def parse_groupable(payload, groupable_id):
 
         if template == "HOME":
             cuotas["Local"] = odds
+
         elif template == "DRAW":
             cuotas["Empate"] = odds
+
         elif template == "AWAY":
             cuotas["Visita"] = odds
 
@@ -433,47 +638,87 @@ def prepare_event(
     now,
     window_end,
 ):
-    if is_live_or_started(event, now):
+    if is_live_or_started(
+        event,
+        now,
+    ):
         return None
 
     dt = parse_iso_utc(
-        event.get("startDate") or event.get("startTime")
+        event.get("startDate")
+        or event.get("startTime")
     )
 
-    if dt is None or not (now < dt <= window_end):
+    if (
+        dt is None
+        or not (
+            now < dt <= window_end
+        )
+    ):
         return None
 
     event_id = event.get("id")
-    local, visita = parse_teams(event.get("label") or "")
 
-    if not event_id or not local or not visita:
+    local, visita = parse_teams(
+        event.get("label")
+        or ""
+    )
+
+    if (
+        not event_id
+        or not local
+        or not visita
+    ):
         return None
 
     return {
-        "event_id": event_id,
-        "competition_id": competition_id,
-        "liga": league_name,
-        "local": local,
-        "visita": visita,
-        "fecha_dt": dt,
+        "event_id":
+            event_id,
+
+        "competition_id":
+            competition_id,
+
+        "liga":
+            league_name,
+
+        "local":
+            local,
+
+        "visita":
+            visita,
+
+        "fecha_dt":
+            dt,
     }
 
 
 # ==========================================================
 # CONSTRUIR RESULTADO
 # ==========================================================
-def build_row(event, normal, pago):
-    # Cuotas con Pago Anticipado.
-    # Si el mercado PA no existe, permanecen en null.
-    cuota_local = pago.get("Local")
-    cuota_visita = pago.get("Visita")
+def build_row(
+    event,
+    normal,
+    pago,
+):
+    # Pago Anticipado
+    cuota_local = pago.get(
+        "Local"
+    )
 
-    # Cuotas normales, sin Pago Anticipado.
-    cuota_local_nopa = normal.get("Local")
-    cuota_visita_nopa = normal.get("Visita")
+    cuota_visita = pago.get(
+        "Visita"
+    )
 
-    # Se conserva la lógica actual para el empate:
-    # elegir la mayor cuota disponible entre normal y PA.
+    # Mercado normal
+    cuota_local_nopa = normal.get(
+        "Local"
+    )
+
+    cuota_visita_nopa = normal.get(
+        "Visita"
+    )
+
+    # Empate: mayor entre normal y PA.
     empates = [
         value
         for value in (
@@ -483,27 +728,60 @@ def build_row(event, normal, pago):
         if value is not None
     ]
 
-    cuota_empate = max(empates) if empates else None
+    cuota_empate = (
+        max(empates)
+        if empates
+        else None
+    )
 
-    # Solo se descarta si no existe empate.
     if cuota_empate is None:
         return None
 
     return {
-        "Liga": event["liga"],
-        "Partido": f"{event['local']} vs {event['visita']}",
-        "Fecha": format_fecha(
-            event["fecha_dt"].replace(tzinfo=None)
-        ),
-        "Casa": CASA,
-        "Local": event["local"],
-        "Visita": event["visita"],
-        "Cuota Local": cuota_local,
-        "Cuota Empate": cuota_empate,
-        "Cuota Visita": cuota_visita,
-        "Cuota Local NoPA": cuota_local_nopa,
-        "Cuota Visita NoPA": cuota_visita_nopa,
-        "EventId": event["event_id"],
+        "Liga":
+            event["liga"],
+
+        "Partido":
+            (
+                f"{event['local']} vs "
+                f"{event['visita']}"
+            ),
+
+        "Fecha":
+            format_fecha(
+                event[
+                    "fecha_dt"
+                ].replace(
+                    tzinfo=None
+                )
+            ),
+
+        "Casa":
+            CASA,
+
+        "Local":
+            event["local"],
+
+        "Visita":
+            event["visita"],
+
+        "Cuota Local":
+            cuota_local,
+
+        "Cuota Empate":
+            cuota_empate,
+
+        "Cuota Visita":
+            cuota_visita,
+
+        "Cuota Local NoPA":
+            cuota_local_nopa,
+
+        "Cuota Visita NoPA":
+            cuota_visita_nopa,
+
+        "EventId":
+            event["event_id"],
     }
 
 
@@ -512,13 +790,24 @@ def build_row(event, normal, pago):
 # ==========================================================
 def main():
     if "PEGA_AQUI" in COOKIE:
-        print("❌ Falta pegar COOKIE completa.")
+        print(
+            "❌ Falta pegar "
+            "COOKIE completa."
+        )
         return
 
     started = time.perf_counter()
 
-    now = datetime.now(TZ_FECHA_BETSSON)
-    window_end = now + timedelta(days=DIAS_A_FUTURO)
+    now = datetime.now(
+        TZ_FECHA_BETSSON
+    )
+
+    window_end = (
+        now
+        + timedelta(
+            days=DIAS_A_FUTURO
+        )
+    )
 
     print(
         f"📆 Betsson: "
@@ -526,27 +815,60 @@ def main():
         f"{window_end:%Y-%m-%d %H:%M}"
     )
 
+    print(
+        "🌐 Proxy-Seller: ACTIVADO"
+    )
+
     status = {
-        str(competition_id): {
-            "liga": league_name,
-            "eventos": 0,
-            "guardados": 0,
-            "con_pago": 0,
-            "sin_pago": 0,
-            "sin_empate": 0,
-            "table_status": None,
-            "error": "",
+        str(
+            competition_id
+        ): {
+            "liga":
+                league_name,
+
+            "eventos":
+                0,
+
+            "guardados":
+                0,
+
+            "con_pago":
+                0,
+
+            "sin_pago":
+                0,
+
+            "sin_empate":
+                0,
+
+            "table_status":
+                None,
+
+            "error":
+                "",
         }
-        for competition_id, league_name
+
+        for (
+            competition_id,
+            league_name
+        )
         in LIGAS_BETSSON.items()
     }
 
-    # 1. Descargar ligas en paralelo.
+    # ======================================================
+    # 1. DESCARGAR LIGAS
+    # ======================================================
     league_results = []
 
     with ThreadPoolExecutor(
-        max_workers=min(MAX_WORKERS_LIGAS, len(LIGAS_BETSSON))
+        max_workers=min(
+            MAX_WORKERS_LIGAS,
+            len(
+                LIGAS_BETSSON
+            ),
+        )
     ) as executor:
+
         futures = [
             executor.submit(
                 fetch_events_table,
@@ -555,27 +877,54 @@ def main():
                 now,
                 window_end,
             )
-            for competition_id, league_name
+
+            for (
+                competition_id,
+                league_name
+            )
             in LIGAS_BETSSON.items()
         ]
 
-        for future in as_completed(futures):
-            league_results.append(future.result())
+        for future in as_completed(
+            futures
+        ):
+            league_results.append(
+                future.result()
+            )
 
     events = []
     seen_events = set()
 
     for result in league_results:
-        competition_id = result["competition_id"]
-        league_name = result["liga"]
-        status_key = str(competition_id)
+        competition_id = result[
+            "competition_id"
+        ]
 
-        status[status_key]["table_status"] = result["status"]
-        status[status_key]["error"] = result["error"]
+        league_name = result[
+            "liga"
+        ]
+
+        status_key = str(
+            competition_id
+        )
+
+        status[
+            status_key
+        ][
+            "table_status"
+        ] = result["status"]
+
+        status[
+            status_key
+        ][
+            "error"
+        ] = result["error"]
 
         valid_count = 0
 
-        for raw_event in result["events"]:
+        for raw_event in result[
+            "events"
+        ]:
             event = prepare_event(
                 raw_event,
                 competition_id,
@@ -587,97 +936,200 @@ def main():
             if event is None:
                 continue
 
-            event_key = str(event["event_id"])
+            event_key = str(
+                event["event_id"]
+            )
 
-            if event_key in seen_events:
+            if (
+                event_key
+                in seen_events
+            ):
                 continue
 
-            seen_events.add(event_key)
-            events.append(event)
+            seen_events.add(
+                event_key
+            )
+
+            events.append(
+                event
+            )
+
             valid_count += 1
 
-        status[status_key]["eventos"] = valid_count
+        status[
+            status_key
+        ][
+            "eventos"
+        ] = valid_count
 
-    # 2. Descargar ambos mercados en paralelo.
+    # ======================================================
+    # 2. DESCARGAR MERCADOS
+    # ======================================================
     market_results = {
-        str(event["event_id"]): {}
+        str(
+            event["event_id"]
+        ): {}
+
         for event in events
     }
 
     tasks = []
 
     for event in events:
-        tasks.append((event["event_id"], GROUPABLE_NORMAL))
-        tasks.append((event["event_id"], GROUPABLE_PAGO))
+        tasks.append(
+            (
+                event["event_id"],
+                GROUPABLE_NORMAL,
+            )
+        )
+
+        tasks.append(
+            (
+                event["event_id"],
+                GROUPABLE_PAGO,
+            )
+        )
 
     if tasks:
         with ThreadPoolExecutor(
-            max_workers=min(MAX_WORKERS_MERCADOS, len(tasks))
+            max_workers=min(
+                MAX_WORKERS_MERCADOS,
+                len(tasks),
+            )
         ) as executor:
+
             futures = [
                 executor.submit(
                     fetch_groupable,
                     event_id,
                     groupable_id,
                 )
-                for event_id, groupable_id in tasks
+
+                for (
+                    event_id,
+                    groupable_id
+                )
+                in tasks
             ]
 
-            for future in as_completed(futures):
-                result = future.result()
-                event_key = str(result["event_id"])
+            for future in as_completed(
+                futures
+            ):
+                result = (
+                    future.result()
+                )
 
-                market_results[event_key][
-                    result["groupable_id"]
+                event_key = str(
+                    result[
+                        "event_id"
+                    ]
+                )
+
+                market_results[
+                    event_key
+                ][
+                    result[
+                        "groupable_id"
+                    ]
                 ] = result
 
-    # 3. Construir filas.
+    # ======================================================
+    # 3. CONSTRUIR FILAS
+    # ======================================================
     rows = []
 
     for event in events:
-        event_key = str(event["event_id"])
-        competition_key = str(event["competition_id"])
-
-        event_markets = market_results.get(event_key, {})
-
-        normal_result = event_markets.get(
-            GROUPABLE_NORMAL,
-            {},
+        event_key = str(
+            event["event_id"]
         )
 
-        pago_result = event_markets.get(
-            GROUPABLE_PAGO,
-            {},
+        competition_key = str(
+            event[
+                "competition_id"
+            ]
+        )
+
+        event_markets = (
+            market_results.get(
+                event_key,
+                {},
+            )
+        )
+
+        normal_result = (
+            event_markets.get(
+                GROUPABLE_NORMAL,
+                {},
+            )
+        )
+
+        pago_result = (
+            event_markets.get(
+                GROUPABLE_PAGO,
+                {},
+            )
         )
 
         normal = parse_groupable(
-            normal_result.get("payload"),
+            normal_result.get(
+                "payload"
+            ),
             GROUPABLE_NORMAL,
         )
 
         pago = parse_groupable(
-            pago_result.get("payload"),
+            pago_result.get(
+                "payload"
+            ),
             GROUPABLE_PAGO,
         )
 
-        row = build_row(event, normal, pago)
+        row = build_row(
+            event,
+            normal,
+            pago,
+        )
 
         if row is None:
-            status[competition_key]["sin_empate"] += 1
+            status[
+                competition_key
+            ][
+                "sin_empate"
+            ] += 1
+
             continue
 
         rows.append(row)
 
-        info = status[competition_key]
-        info["guardados"] += 1
+        info = status[
+            competition_key
+        ]
+
+        info[
+            "guardados"
+        ] += 1
 
         if (
-            row["Cuota Local"] is not None
-            and row["Cuota Visita"] is not None
+            row[
+                "Cuota Local"
+            ]
+            is not None
+
+            and
+
+            row[
+                "Cuota Visita"
+            ]
+            is not None
         ):
-            info["con_pago"] += 1
+            info[
+                "con_pago"
+            ] += 1
+
         else:
-            info["sin_pago"] += 1
+            info[
+                "sin_pago"
+            ] += 1
 
     rows.sort(
         key=lambda item: (
@@ -687,15 +1139,26 @@ def main():
         )
     )
 
-    save_json(OUT_PATH, rows)
-    save_json(STATUS_PATH, status)
+    save_json(
+        OUT_PATH,
+        rows,
+    )
 
-    # Resumen compacto.
+    save_json(
+        STATUS_PATH,
+        status,
+    )
+
+    # ======================================================
+    # RESUMEN
+    # ======================================================
     print("\nRESUMEN")
 
     for info in sorted(
         status.values(),
-        key=lambda value: value["liga"],
+        key=lambda value: (
+            value["liga"]
+        ),
     ):
         if (
             info["eventos"] == 0
@@ -705,18 +1168,33 @@ def main():
             continue
 
         if info["error"]:
-            print(f"❌ {info['liga']}: {info['error']}")
-        elif info["eventos"] == 0:
-            print(f"— {info['liga']}: 0 eventos")
+            print(
+                f"❌ {info['liga']}: "
+                f"{info['error']}"
+            )
+
+        elif (
+            info["eventos"] == 0
+        ):
+            print(
+                f"— {info['liga']}: "
+                "0 eventos"
+            )
+
         else:
             print(
                 f"✅ {info['liga']}: "
-                f"{info['guardados']}/{info['eventos']} | "
+                f"{info['guardados']}/"
+                f"{info['eventos']} | "
                 f"PA={info['con_pago']} | "
-                f"sin PA={info['sin_pago']}"
+                f"sin PA="
+                f"{info['sin_pago']}"
             )
 
-    elapsed = time.perf_counter() - started
+    elapsed = (
+        time.perf_counter()
+        - started
+    )
 
     con_pago = sum(
         info["con_pago"]

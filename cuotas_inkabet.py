@@ -33,6 +33,22 @@ SESSION_TOKEN = (
     "yuBO_qNKJHtbCWK3z04cEqU59EKU8pZb2kXHhZ7IeuI"
 )
 
+
+# ==========================================================
+# PROXY-SELLER
+# ==========================================================
+PROXY = (
+    "http://ad9063918cd09688:"
+    "0qAPgBHzQ1rdvs2O@"
+    "res.proxy-seller.com:10000"
+)
+
+PROXIES = {
+    "http": PROXY,
+    "https": PROXY,
+}
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DEBUG_DIR = os.path.join(DATA_DIR, "debug_inkabet")
@@ -47,8 +63,6 @@ STATUS_PATH = os.path.join(DEBUG_DIR, "status_inkabet.json")
 # ==========================================================
 # LIGAS
 # ==========================================================
-# No agregues IDs provisionales repetidos como 9999999.
-# Cada competencia debe tener su ID real.
 LIGAS_INKABET = {
     3: "Premier League",
     148: "EFL Cup",
@@ -84,11 +98,10 @@ GROUPABLE_PAGO = "MW3W2UPEP"
 # ==========================================================
 # VELOCIDAD
 # ==========================================================
-# Ligas consultadas simultáneamente.
 MAX_WORKERS_LIGAS = 12
 
-# Solicitudes de mercados simultáneas.
-# Cada partido produce 2 solicitudes.
+# Cada partido produce dos solicitudes:
+# MW3W + MW3W2UPEP
 MAX_WORKERS_MERCADOS = 32
 
 TIMEOUT_TABLE = (8, 20)
@@ -97,7 +110,6 @@ TIMEOUT_ACCORDION = (8, 20)
 MAX_INTENTOS_TABLE = 2
 MAX_INTENTOS_ACCORDION = 2
 
-# False: no imprime las ligas sin partidos.
 MOSTRAR_LIGAS_VACIAS = False
 
 
@@ -112,6 +124,10 @@ def get_session():
 
     if session is None:
         session = requests.Session()
+
+        # Todas las peticiones realizadas por esta sesión
+        # pasan por Proxy-Seller.
+        session.proxies.update(PROXIES)
 
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=20,
@@ -326,9 +342,13 @@ def fetch_events_table(
 
             if response.status_code == 200:
                 if "application/json" not in str(
-                    response.headers.get("content-type", "")
+                    response.headers.get(
+                        "content-type",
+                        "",
+                    )
                 ).lower():
                     last_error = "Respuesta no JSON"
+
                 else:
                     payload = response.json()
 
@@ -416,9 +436,13 @@ def fetch_groupable(event_id, groupable_id):
 
             if response.status_code == 200:
                 if "application/json" not in str(
-                    response.headers.get("content-type", "")
+                    response.headers.get(
+                        "content-type",
+                        "",
+                    )
                 ).lower():
                     last_error = "Respuesta no JSON"
+
                 else:
                     return {
                         "event_id": event_id,
@@ -485,6 +509,7 @@ def parse_groupable(payload, groupable_id):
 
         try:
             odds = float(selection.get("odds"))
+
         except (TypeError, ValueError):
             continue
 
@@ -493,8 +518,10 @@ def parse_groupable(payload, groupable_id):
 
         if template == "HOME":
             cuotas["Local"] = odds
+
         elif template == "DRAW":
             cuotas["Empate"] = odds
+
         elif template == "AWAY":
             cuotas["Visita"] = odds
 
@@ -523,6 +550,7 @@ def prepare_event(
         return None
 
     event_id = event.get("id")
+
     local, visita = parse_teams(
         event.get("label") or ""
     )
@@ -544,15 +572,15 @@ def prepare_event(
 # CONSTRUIR RESULTADO
 # ==========================================================
 def build_row(event, normal, pago):
-    # Cuotas con Pago Anticipado. Si el mercado PA no existe,
-    # se mantienen en None/null para no confundirlas con las normales.
+    # Pago Anticipado
     cuota_local = pago.get("Local")
     cuota_visita = pago.get("Visita")
 
-    # Cuotas normales 1X2, destinadas al detector exclusivo de surebets.
+    # Mercado normal 1X2
     cuota_local_nopa = normal.get("Local")
     cuota_visita_nopa = normal.get("Visita")
 
+    # Empate: mayor disponible entre normal y PA
     empates = [
         value
         for value in (
@@ -574,7 +602,9 @@ def build_row(event, normal, pago):
             f"{event['visita']}"
         ),
         "Fecha": format_fecha(
-            event["fecha_dt"].replace(tzinfo=None)
+            event["fecha_dt"].replace(
+                tzinfo=None
+            )
         ),
         "Casa": CASA,
         "Local": event["local"],
@@ -595,6 +625,7 @@ def main():
     started = time.perf_counter()
 
     now = datetime.now(TZ_FECHA_INKABET)
+
     window_end = now + timedelta(
         days=DIAS_A_FUTURO
     )
@@ -604,6 +635,8 @@ def main():
         f"{now:%Y-%m-%d %H:%M} -> "
         f"{window_end:%Y-%m-%d %H:%M}"
     )
+
+    print("🌐 Proxy-Seller: ACTIVADO")
 
     status = {
         str(competition_id): {
@@ -621,7 +654,7 @@ def main():
     }
 
     # ======================================================
-    # 1. DESCARGAR TODAS LAS LIGAS EN PARALELO
+    # 1. DESCARGAR TODAS LAS LIGAS
     # ======================================================
     league_results = []
 
@@ -631,6 +664,7 @@ def main():
             len(LIGAS_INKABET),
         )
     ) as executor:
+
         futures = [
             executor.submit(
                 fetch_events_table,
@@ -652,16 +686,23 @@ def main():
     seen_events = set()
 
     for result in league_results:
-        competition_id = result["competition_id"]
-        league_name = result["liga"]
-        status_key = str(competition_id)
+        competition_id = result[
+            "competition_id"
+        ]
 
-        status[status_key]["table_status"] = (
-            result["status"]
+        league_name = result["liga"]
+
+        status_key = str(
+            competition_id
         )
-        status[status_key]["error"] = (
-            result["error"]
-        )
+
+        status[status_key][
+            "table_status"
+        ] = result["status"]
+
+        status[status_key][
+            "error"
+        ] = result["error"]
 
         valid_count = 0
 
@@ -677,19 +718,25 @@ def main():
             if event is None:
                 continue
 
-            event_id = str(event["event_id"])
+            event_id = str(
+                event["event_id"]
+            )
 
             if event_id in seen_events:
                 continue
 
             seen_events.add(event_id)
+
             events.append(event)
+
             valid_count += 1
 
-        status[status_key]["eventos"] = valid_count
+        status[status_key][
+            "eventos"
+        ] = valid_count
 
     # ======================================================
-    # 2. DESCARGAR LOS DOS MERCADOS EN PARALELO
+    # 2. DESCARGAR MERCADOS
     # ======================================================
     market_results = {
         str(event["event_id"]): {}
@@ -705,6 +752,7 @@ def main():
                 GROUPABLE_NORMAL,
             )
         )
+
         tasks.append(
             (
                 event["event_id"],
@@ -719,6 +767,7 @@ def main():
                 len(tasks),
             )
         ) as executor:
+
             futures = [
                 executor.submit(
                     fetch_groupable,
@@ -736,7 +785,9 @@ def main():
                     result["event_id"]
                 )
 
-                market_results[event_key][
+                market_results[
+                    event_key
+                ][
                     result["groupable_id"]
                 ] = result
 
@@ -746,7 +797,10 @@ def main():
     rows = []
 
     for event in events:
-        event_key = str(event["event_id"])
+        event_key = str(
+            event["event_id"]
+        )
+
         competition_key = str(
             event["competition_id"]
         )
@@ -786,11 +840,15 @@ def main():
             status[
                 competition_key
             ]["sin_empate"] += 1
+
             continue
 
         rows.append(row)
 
-        info = status[competition_key]
+        info = status[
+            competition_key
+        ]
+
         info["guardados"] += 1
 
         if (
@@ -798,6 +856,7 @@ def main():
             and row["Cuota Visita"] is not None
         ):
             info["con_pago"] += 1
+
         else:
             info["sin_pago"] += 1
 
@@ -809,11 +868,18 @@ def main():
         )
     )
 
-    save_json(OUT_PATH, rows)
-    save_json(STATUS_PATH, status)
+    save_json(
+        OUT_PATH,
+        rows,
+    )
+
+    save_json(
+        STATUS_PATH,
+        status,
+    )
 
     # ======================================================
-    # RESUMEN COMPACTO
+    # RESUMEN
     # ======================================================
     print("\nRESUMEN")
 
@@ -836,7 +902,8 @@ def main():
 
         elif info["eventos"] == 0:
             print(
-                f"— {info['liga']}: 0 eventos"
+                f"— {info['liga']}: "
+                "0 eventos"
             )
 
         else:
@@ -848,7 +915,10 @@ def main():
                 f"sin PA={info['sin_pago']}"
             )
 
-    elapsed = time.perf_counter() - started
+    elapsed = (
+        time.perf_counter()
+        - started
+    )
 
     con_pago = sum(
         info["con_pago"]
