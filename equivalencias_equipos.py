@@ -740,5 +740,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "atlas guadalajara": "atlas",
     "nice": "niza",
     "olympique lyonnais": "lyon",
-    "paris Sg": "paris saint germain",
+    "paris sg": "paris saint germain",
 }
