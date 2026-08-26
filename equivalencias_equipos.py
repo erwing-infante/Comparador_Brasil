@@ -741,4 +741,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "nice": "niza",
     "olympique lyonnais": "lyon",
     "paris sg": "paris saint germain",
+    "deportivo los chankas": "los chankas",
 }

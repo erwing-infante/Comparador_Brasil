@@ -278,4 +278,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "juan pablo ii college": "juan pablo ii",
     "asociacion deportiva tarma": "ad tarma",
     "estac troyes": "troyes",
+    "atlanta utd": "atlanta united",
 }

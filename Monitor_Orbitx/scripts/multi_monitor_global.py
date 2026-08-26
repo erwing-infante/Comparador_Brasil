@@ -1,8 +1,8 @@
 # scripts/multi_monitor_global.py
-# ✅ Corregido: añade soporte de proxy SOCKS5 (Proxy-Seller) para el WebSocket (websocket-client)
+# ✅ Corregido: soporte automático de proxy HTTP / SOCKS5 para el WebSocket (websocket-client)
 # - Mantiene TODO tu comportamiento
 # - Solo agrega:
-#   - ORBITX_PROXY_SOCKS5 desde .env
+#   - ORBITX_PROXY_SOCKS5 desde .env (acepta http://, https://, socks5:// y socks5h://)
 #   - urlparse + kwargs en run_forever()
 #
 # ✅ EXTRA (LO ÚNICO QUE CAMBIÉ, como pediste):
@@ -470,22 +470,49 @@ class GlobalMonitor:
             "User-Agent: Mozilla/5.0",
         ]
 
-        # ✅ NUEVO: si hay proxy SOCKS5, lo aplicamos al WebSocket
+        # ✅ Proxy HTTP / SOCKS5 para OrbitX
+        # Detecta automáticamente el tipo según el esquema de ORBITX_PROXY_SOCKS5:
+        #   http://...    -> proxy HTTP
+        #   https://...   -> proxy HTTP (CONNECT)
+        #   socks5://...  -> SOCKS5
+        #   socks5h://... -> SOCKS5 con resolución DNS vía proxy
         proxy_kwargs = {}
+
         if ORBITX_PROXY:
             try:
                 u = urlparse(ORBITX_PROXY)
-                if u.hostname and u.port:
-                    proxy_kwargs = {
-                        "http_proxy_host": u.hostname,
-                        "http_proxy_port": int(u.port),
-                        "proxy_type": "socks5",
-                    }
-                    if u.username and u.password:
-                        proxy_kwargs["http_proxy_auth"] = (u.username, u.password)
 
-                    # log sin exponer credenciales
-                    print(f"🛰️ Usando SOCKS5 proxy: {u.hostname}:{u.port}")
+                if not u.hostname or not u.port:
+                    raise ValueError("La URL del proxy no contiene host/puerto válidos")
+
+                scheme = (u.scheme or "http").lower()
+
+                if scheme == "socks5h":
+                    proxy_type = "socks5h"
+                elif scheme == "socks5":
+                    proxy_type = "socks5"
+                elif scheme in ("http", "https"):
+                    proxy_type = "http"
+                else:
+                    raise ValueError(f"Esquema de proxy no soportado: {scheme}")
+
+                proxy_kwargs = {
+                    "http_proxy_host": u.hostname,
+                    "http_proxy_port": int(u.port),
+                    "proxy_type": proxy_type,
+                }
+
+                if u.username and u.password:
+                    proxy_kwargs["http_proxy_auth"] = (
+                        u.username,
+                        u.password
+                    )
+
+                print(
+                    f"🛰️ Usando proxy {proxy_type.upper()}: "
+                    f"{u.hostname}:{u.port}"
+                )
+
             except Exception as e:
                 print("⚠️ Proxy inválido, continuando sin proxy. Error:", e)
                 proxy_kwargs = {}

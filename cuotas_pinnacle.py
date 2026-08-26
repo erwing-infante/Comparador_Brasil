@@ -29,7 +29,7 @@ OUT_PATH = os.path.join(DATA_DIR, "cuotas_pinnacle.json")
 STATUS_PATH = os.path.join(DEBUG_DIR, "status_pinnacle.json")
 
 
-PROXY = "http://ad9063918cd09688:0qAPgBHzQ1rdvs2O@res.proxy-seller.com:10000"
+PROXY = "http://ap-t4ubmz5dahmi_area-PE_session-orbitx01_life-120:C7WeSFR2NWTXjUmN@gw-rotate.aproxy.com:6641"
 
 PROXIES = {
     "http": PROXY,

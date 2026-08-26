@@ -38,9 +38,9 @@ SESSION_TOKEN = (
 # PROXY-SELLER
 # ==========================================================
 PROXY = (
-    "http://ad9063918cd09688:"
-    "0qAPgBHzQ1rdvs2O@"
-    "res.proxy-seller.com:10000"
+    "http://ap-t4ubmz5dahmi_area-PE_session-orbitx01_life-120:"
+    "C7WeSFR2NWTXjUmN@"
+    "gw-rotate.aproxy.com:6641"
 )
 
 PROXIES = {
