@@ -51,6 +51,7 @@ TELEGRAM_CHAT_ID = (
 # VENTANA DE PARTIDOS
 # ============================================================
 
+# Solo partidos PREMATCH hasta 18 horas.
 MAX_HOURS_AHEAD = 18
 
 
@@ -60,34 +61,42 @@ MAX_HOURS_AHEAD = 18
 
 CHECK_EVERY_SEC = 5
 
+# Historial en memoria para predictor.
 HISTORY_SECONDS = 600
 
 WINDOW_30 = 30
 WINDOW_60 = 60
 WINDOW_120 = 120
-WINDOW_180 = 180
 
+# Predicción válida 3 minutos.
 PREDICTION_HORIZON_SEC = 180
+
+# No repetir predicción misma selección durante 5 min.
 PREDICTION_COOLDOWN_SEC = 300
+
+
+# ============================================================
+# ALERTA 90 MIN
+# ============================================================
 
 ALERT_90_MIN = 90
 ALERT_90_WINDOW = 3
 
 
 # ============================================================
-# MOVIMIENTOS
+# CAÍDA REAL
 # ============================================================
 
-# IMPORTANTE:
-# esta caída se calcula ahora entre:
+# Solo alerta cuando:
 #
-# PENÚLTIMA CUOTA DISTINTA
-# VS
-# ÚLTIMA CUOTA
+# CUOTA ANTERIOR DISTINTA
+#          ↓
+# CUOTA NUEVA
 #
+# cae >= 2%.
 DROP_ALERT_PCT = 2.0
 
-# Rebote desde el mínimo para alertar reversión
+# Rebote desde mínimo para considerar reversión.
 REVERSAL_FROM_LOW_PCT = 1.5
 
 
@@ -125,6 +134,7 @@ def cargar_json(path, default=None):
         default = {}
 
     try:
+
         with open(
             path,
             "r",
@@ -134,6 +144,7 @@ def cargar_json(path, default=None):
             return json.load(f)
 
     except FileNotFoundError:
+
         return default
 
     except Exception as e:
@@ -222,6 +233,12 @@ def cargar_estado():
         {}
     )
 
+    if not isinstance(
+        estado,
+        dict
+    ):
+        estado = {}
+
     estado.setdefault(
         "alerta_90",
         {}
@@ -233,17 +250,30 @@ def cargar_estado():
     )
 
     estado.setdefault(
-        "movimientos",
-        {}
-    )
-
-    estado.setdefault(
         "ultimo_predict",
         {}
     )
 
     estado.setdefault(
-        "ultimas_caidas",
+        "movimientos",
+        {}
+    )
+
+    # ========================================================
+    # MUY IMPORTANTE
+    #
+    # Aquí queda guardada la última cuota realmente procesada.
+    #
+    # Ejemplo:
+    #
+    # "1.123456:AWAY": 3.80
+    #
+    # Aunque reiniciemos el servicio, recuerda que ya procesó
+    # esa cuota y no vuelve a lanzar la misma alerta.
+    # ========================================================
+
+    estado.setdefault(
+        "ultimo_back_procesado",
         {}
     )
 
@@ -291,7 +321,6 @@ def enviar_telegram(mensaje):
     )
 
     payload = {
-
         "chat_id":
             TELEGRAM_CHAT_ID,
 
@@ -322,41 +351,43 @@ def enviar_telegram(mensaje):
             f"{r.text[:300]}"
         )
 
+        return False
+
     except Exception as e:
 
         print(
             f"[TELEGRAM ERROR] {e}"
         )
 
-    return False
+        return False
 
 
 # ============================================================
 # FORMATOS
 # ============================================================
 
-def fmt_odds(x):
+def fmt_odds(valor):
 
-    if x is None:
+    if valor is None:
         return "-"
 
     try:
-        return f"{float(x):.2f}"
+        return f"{float(valor):.2f}"
 
     except Exception:
-        return str(x)
+        return str(valor)
 
 
-def fmt_money(x):
+def fmt_money(valor):
 
-    if x is None:
+    if valor is None:
         return "-"
 
     try:
-        return f"{float(x):,.2f}"
+        return f"{float(valor):,.2f}"
 
     except Exception:
-        return str(x)
+        return str(valor)
 
 
 def selection_nombre(selection):
@@ -438,16 +469,14 @@ def partido_prematch_valido(partido):
         start - ahora
     ).total_seconds()
 
-    # LIVE / YA EMPEZÓ
+    # Ya empezó / LIVE
     if segundos <= 0:
         return False
 
-    # MÁS DE 18 HORAS
-    if (
-        segundos
-        > MAX_HOURS_AHEAD * 3600
+    # Más de 18 horas
+    if segundos > (
+        MAX_HOURS_AHEAD * 3600
     ):
-
         return False
 
     return True
@@ -475,7 +504,6 @@ def obtener_runner(
         ):
 
             return {
-
                 "runner_id":
                     str(runner_id),
 
@@ -541,10 +569,7 @@ def obtener_runner(
 # MATEMÁTICAS
 # ============================================================
 
-def pct_change(
-    old,
-    new
-):
+def pct_change(old, new):
 
     try:
 
@@ -564,10 +589,7 @@ def pct_change(
         return 0.0
 
 
-def drop_pct(
-    reference,
-    current
-):
+def drop_pct(reference, current):
 
     try:
 
@@ -637,7 +659,6 @@ def agregar_historia(
     ahora = now_ts()
 
     punto = {
-
         "ts":
             ahora,
 
@@ -696,6 +717,8 @@ def agregar_historia(
         market_id
     ][selection]
 
+    # Evitamos duplicados extremadamente rápidos
+    # completamente iguales.
     if q:
 
         last = q[-1]
@@ -754,11 +777,9 @@ def punto_hace(
     for p in q:
 
         if p["ts"] <= objetivo:
-
             mejor = p
 
         else:
-
             break
 
     return mejor
@@ -824,144 +845,12 @@ def historia_suficiente(
     )
 
     if not primero or not ultimo:
-
         return False
 
     return (
         ultimo["ts"]
         - primero["ts"]
     ) >= MIN_HISTORY_SEC
-
-
-# ============================================================
-# PENÚLTIMA Y ÚLTIMA CUOTA DISTINTA
-# ============================================================
-
-def ultimas_dos_cuotas_distintas(
-    market_id,
-    selection
-):
-
-    """
-    Devuelve:
-
-    cuota_anterior_distinta
-    cuota_actual
-
-    Ejemplo:
-
-    historial:
-    3.40
-    3.40
-    3.40
-    3.30
-    3.30
-
-    devuelve:
-
-    anterior = 3.40
-    actual   = 3.30
-
-    No importa cuántas veces se repita
-    el mismo snapshot.
-    """
-
-    q = (
-        history
-        .get(
-            market_id,
-            {}
-        )
-        .get(
-            selection
-        )
-    )
-
-    if not q or len(q) < 2:
-        return None, None
-
-    actual = q[-1]
-
-    cuota_actual = actual.get(
-        "back"
-    )
-
-    if cuota_actual is None:
-        return None, None
-
-    cuota_actual = float(
-        cuota_actual
-    )
-
-    for i in range(
-        len(q) - 2,
-        -1,
-        -1
-    ):
-
-        p = q[i]
-
-        cuota_anterior = p.get(
-            "back"
-        )
-
-        if cuota_anterior is None:
-            continue
-
-        cuota_anterior = float(
-            cuota_anterior
-        )
-
-        if (
-            cuota_anterior
-            != cuota_actual
-        ):
-
-            return (
-                {
-                    "cuota":
-                        cuota_anterior,
-
-                    "ts":
-                        p.get("ts")
-                },
-
-                {
-                    "cuota":
-                        cuota_actual,
-
-                    "ts":
-                        actual.get("ts")
-                }
-            )
-
-    return None, None
-
-
-# ============================================================
-# ¿YA HUBO CAÍDA INSTANTÁNEA?
-# ============================================================
-
-def caida_instantanea_actual(
-    market_id,
-    selection
-):
-
-    anterior, actual = (
-        ultimas_dos_cuotas_distintas(
-            market_id,
-            selection
-        )
-    )
-
-    if not anterior or not actual:
-
-        return 0.0
-
-    return drop_pct(
-        anterior["cuota"],
-        actual["cuota"]
-    )
 
 
 # ============================================================
@@ -986,7 +875,6 @@ def calcular_score(
         market_id,
         target
     ):
-
         return 0.0, []
 
     actual_back = actual.get(
@@ -1007,7 +895,6 @@ def calcular_score(
         tv_market
         < MIN_MARKET_VOLUME
     ):
-
         return 0.0, []
 
     p30 = punto_hace(
@@ -1029,7 +916,6 @@ def calcular_score(
     )
 
     if not p60 or not p120:
-
         return 0.0, []
 
     score = 0.0
@@ -1068,7 +954,7 @@ def calcular_score(
 
     elif d60 < -1.20:
 
-        # El movimiento ya está avanzado.
+        # Movimiento ya avanzado.
         score -= 1.5
 
     if (
@@ -1144,7 +1030,7 @@ def calcular_score(
 
 
     # ========================================================
-    # 3. EMPATE
+    # 3. EMPATE COMO CONTEXTO
     # ========================================================
 
     draw_now = ultimo_punto(
@@ -1338,7 +1224,7 @@ def calcular_score(
 
 
     # ========================================================
-    # 8. TOP 3
+    # 8. TOP 3 BACK
     # ========================================================
 
     top_back_now = actual.get(
@@ -1444,8 +1330,7 @@ def calcular_score(
 
 def mensaje_prediccion(
     partido,
-    selection,
-    score
+    selection
 ):
 
     home = obtener_runner(
@@ -1504,8 +1389,8 @@ def revisar_prediccion(
     if not partido_prematch_valido(
         partido
     ):
-
         return
+
 
     runner = obtener_runner(
         partido,
@@ -1513,20 +1398,21 @@ def revisar_prediccion(
     )
 
     if not runner:
-
         return
+
 
     cuota = runner.get(
         "back"
     )
 
     if cuota is None:
-
         return
+
 
     cuota = float(
         cuota
     )
+
 
     key = (
         f"{market_id}:"
@@ -1535,30 +1421,11 @@ def revisar_prediccion(
 
 
     # ========================================================
-    # NO PREDECIR SI JUSTO ACABA DE HABER
-    # UNA CAÍDA INSTANTÁNEA >=2%
+    # SI HAY MOVIMIENTO FUERTE ACTIVO,
+    # NO GENERAR OTRA PREDICCIÓN ENCIMA
     # ========================================================
 
-    caida_actual = (
-        caida_instantanea_actual(
-            market_id,
-            selection
-        )
-    )
-
-    if (
-        caida_actual
-        >= DROP_ALERT_PCT
-    ):
-
-        return
-
-
-    # ========================================================
-    # NO PREDECIR SI YA EXISTE MOVIMIENTO ACTIVO
-    # ========================================================
-
-    movimiento_actual = (
+    movimiento = (
         estado[
             "movimientos"
         ].get(
@@ -1567,13 +1434,12 @@ def revisar_prediccion(
     )
 
     if (
-        movimiento_actual
-        and movimiento_actual.get(
+        movimiento
+        and movimiento.get(
             "activo",
             False
         )
     ):
-
         return
 
 
@@ -1591,7 +1457,6 @@ def revisar_prediccion(
         score
         < PREDICTION_SCORE_MIN
     ):
-
         return
 
 
@@ -1615,12 +1480,10 @@ def revisar_prediccion(
         try:
 
             if (
-                agora := (
-                    ahora
-                    - float(ultima)
-                )
-            ) < PREDICTION_COOLDOWN_SEC:
-
+                ahora
+                - float(ultima)
+                < PREDICTION_COOLDOWN_SEC
+            ):
                 return
 
         except Exception:
@@ -1628,26 +1491,25 @@ def revisar_prediccion(
             pass
 
 
+    # Ya existe una pendiente.
     if (
         key
         in estado[
             "predicciones"
         ]
     ):
-
         return
 
 
     mensaje = mensaje_prediccion(
         partido,
-        selection,
-        score
+        selection
     )
+
 
     if not enviar_telegram(
         mensaje
     ):
-
         return
 
 
@@ -1695,9 +1557,11 @@ def revisar_prediccion(
             )
     }
 
+
     estado[
         "predicciones"
     ][key] = pred
+
 
     estado[
         "ultimo_predict"
@@ -1738,6 +1602,7 @@ def revisar_predicciones_pendientes(
 
     eliminar = []
 
+
     for (
         key,
         pred
@@ -1753,6 +1618,7 @@ def revisar_predicciones_pendientes(
             )
         )
 
+
         partido = (
             mercados_por_id
             .get(
@@ -1760,13 +1626,12 @@ def revisar_predicciones_pendientes(
             )
         )
 
-        if not partido:
 
+        if not partido:
             continue
 
 
-        # Si comenzó el partido,
-        # eliminar silenciosamente.
+        # Partido LIVE = borrar silenciosamente.
         if not partido_prematch_valido(
             partido
         ):
@@ -1782,22 +1647,25 @@ def revisar_predicciones_pendientes(
             "selection"
         )
 
+
         runner = obtener_runner(
             partido,
             selection
         )
 
-        if not runner:
 
+        if not runner:
             continue
+
 
         actual = runner.get(
             "back"
         )
 
-        if actual is None:
 
+        if actual is None:
             continue
+
 
         inicial = float(
             pred[
@@ -1805,27 +1673,24 @@ def revisar_predicciones_pendientes(
             ]
         )
 
+
         actual = float(
             actual
         )
 
 
-        # ====================================================
-        # CONFIRMACIÓN:
-        #
-        # SIEMPRE DESDE CUOTA DE PREDICCIÓN
-        # ====================================================
-
-        caida_desde_prediccion = (
-            drop_pct(
-                inicial,
-                actual
-            )
+        caida = drop_pct(
+            inicial,
+            actual
         )
 
 
+        # ====================================================
+        # PREDICCIÓN CONFIRMADA
+        # ====================================================
+
         if (
-            caida_desde_prediccion
+            caida
             >= DROP_ALERT_PCT
         ):
 
@@ -1833,6 +1698,7 @@ def revisar_predicciones_pendientes(
                 ahora
                 - pred["ts"]
             )
+
 
             mensaje = (
                 "✅ <b>PREDICCIÓN CONFIRMADA</b>\n\n"
@@ -1852,11 +1718,12 @@ def revisar_predicciones_pendientes(
                 f"<b>{fmt_odds(actual)}</b>\n"
 
                 f"Caída: "
-                f"<b>-{caida_desde_prediccion:.2f}%</b>\n\n"
+                f"<b>-{caida:.2f}%</b>\n\n"
 
                 f"⏱ Desde predicción: "
                 f"{segundos} s"
             )
+
 
             enviar_telegram(
                 mensaje
@@ -1884,7 +1751,7 @@ def revisar_predicciones_pendientes(
                     actual,
 
                 "caida_pct":
-                    caida_desde_prediccion,
+                    caida,
 
                 "segundos":
                     segundos
@@ -1899,7 +1766,7 @@ def revisar_predicciones_pendientes(
 
 
         # ====================================================
-        # EXPIRÓ
+        # PREDICCIÓN NO CONFIRMADA
         # ====================================================
 
         if (
@@ -1911,6 +1778,7 @@ def revisar_predicciones_pendientes(
                 inicial,
                 actual
             )
+
 
             mensaje = (
                 "❌ <b>PREDICCIÓN NO CONFIRMADA</b>\n\n"
@@ -1932,6 +1800,7 @@ def revisar_predicciones_pendientes(
 
                 f"⏱ Pasaron 3 min"
             )
+
 
             enviar_telegram(
                 mensaje
@@ -1979,7 +1848,9 @@ def revisar_predicciones_pendientes(
 
 
 # ============================================================
-# CAÍDA ORBITX INSTANTÁNEA
+# CAÍDA ORBITX
+#
+# ESTA ES LA CORRECCIÓN PRINCIPAL.
 # ============================================================
 
 def revisar_movimiento_real(
@@ -1992,35 +1863,32 @@ def revisar_movimiento_real(
     if not partido_prematch_valido(
         partido
     ):
-
         return
 
 
-    # ========================================================
-    # PENÚLTIMA CUOTA DISTINTA
-    # VS
-    # ÚLTIMA CUOTA
-    # ========================================================
-
-    anterior, actual = (
-        ultimas_dos_cuotas_distintas(
-            market_id,
-            selection
-        )
+    runner = obtener_runner(
+        partido,
+        selection
     )
 
-    if not anterior or not actual:
 
+    if not runner:
         return
 
 
-    cuota_anterior = float(
-        anterior["cuota"]
+    cuota_actual = runner.get(
+        "back"
     )
+
+
+    if cuota_actual is None:
+        return
+
 
     cuota_actual = float(
-        actual["cuota"]
+        cuota_actual
     )
+
 
     key = (
         f"{market_id}:"
@@ -2029,21 +1897,12 @@ def revisar_movimiento_real(
 
 
     # ========================================================
-    # IDENTIFICADOR DE TRANSICIÓN
-    #
-    # Evita mandar 100 veces:
-    # 3.40 -> 3.30
+    # ÚLTIMA CUOTA PROCESADA
     # ========================================================
 
-    transicion_id = (
-        f"{cuota_anterior:.8f}"
-        f"->{cuota_actual:.8f}"
-        f":{actual['ts']:.3f}"
-    )
-
-    ultima_transicion = (
+    ultimo_back = (
         estado[
-            "ultimas_caidas"
+            "ultimo_back_procesado"
         ].get(
             key
         )
@@ -2051,220 +1910,115 @@ def revisar_movimiento_real(
 
 
     # ========================================================
-    # CAÍDA ENTRE LAS DOS CUOTAS
+    # PRIMERA VEZ QUE VEMOS ESTE MERCADO
+    #
+    # Solo inicializamos.
+    # NO mandamos alerta.
     # ========================================================
 
-    caida = drop_pct(
-        cuota_anterior,
-        cuota_actual
+    if ultimo_back is None:
+
+        estado[
+            "ultimo_back_procesado"
+        ][key] = cuota_actual
+
+        return
+
+
+    ultimo_back = float(
+        ultimo_back
     )
 
 
     # ========================================================
-    # NUEVA CAÍDA >=2%
+    # SI NO CAMBIÓ LA CUOTA:
+    #
+    # NO HACER ABSOLUTAMENTE NADA.
+    #
+    # Aunque cambie:
+    # volumen
+    # back_amt
+    # lay_amt
+    # BLPR
+    # etc.
     # ========================================================
 
-    if (
-        caida >= DROP_ALERT_PCT
-        and ultima_transicion
-        != transicion_id
-    ):
+    if cuota_actual == ultimo_back:
 
-        estado[
-            "ultimas_caidas"
-        ][key] = transicion_id
-
-
-        # ----------------------------------------------------
-        # ¿HABÍA UNA PREDICCIÓN?
-        # ----------------------------------------------------
-
-        pred = (
+        # Sí podemos actualizar mínimo de un movimiento
+        # activo, aunque normalmente será igual.
+        movimiento = (
             estado[
-                "predicciones"
+                "movimientos"
             ].get(
                 key
             )
         )
 
-        confirmar_prediccion = False
-
-        titulo = (
-            "📉 "
-            "<b>CAÍDA ORBITX</b>"
-        )
-
-        extra = ""
-
-        cuota_inicio_mensaje = (
-            cuota_anterior
-        )
-
-        caida_mensaje = (
-            caida
-        )
-
-
-        # ----------------------------------------------------
-        # SOLO CONFIRMAR PREDICCIÓN SI DESDE LA
-        # CUOTA DE PREDICCIÓN YA CAYÓ >=2%.
-        # ----------------------------------------------------
-
-        if pred:
-
-            cuota_prediccion = float(
-                pred[
-                    "cuota_inicial"
-                ]
+        if (
+            movimiento
+            and movimiento.get(
+                "activo",
+                False
             )
+        ):
 
-            caida_desde_prediccion = (
-                drop_pct(
-                    cuota_prediccion,
+            minimo = float(
+                movimiento.get(
+                    "minimo",
                     cuota_actual
                 )
             )
 
-            if (
-                caida_desde_prediccion
-                >= DROP_ALERT_PCT
-            ):
+            if cuota_actual < minimo:
 
-                confirmar_prediccion = True
+                movimiento[
+                    "minimo"
+                ] = cuota_actual
 
-                segundos = int(
-                    now_ts()
-                    - pred["ts"]
-                )
-
-                titulo = (
-                    "✅ "
-                    "<b>PREDICCIÓN CONFIRMADA</b>"
-                )
-
-                cuota_inicio_mensaje = (
-                    cuota_prediccion
-                )
-
-                caida_mensaje = (
-                    caida_desde_prediccion
-                )
-
-                extra = (
-                    f"\n⏱ Desde predicción: "
-                    f"{segundos} s"
-                )
-
-
-        # ----------------------------------------------------
-        # MENSAJE
-        # ----------------------------------------------------
-
-        mensaje = (
-            f"{titulo}\n\n"
-
-            f"🏆 "
-            f"{partido.get('liga', '-')}\n"
-
-            f"⚽ <b>"
-            f"{partido.get('eventName', '-')}"
-            f"</b>\n\n"
-
-            f"📉 <b>"
-            f"{selection_nombre(selection)}"
-            f"</b>\n\n"
-
-            f"{fmt_odds(cuota_inicio_mensaje)} "
-            f"→ "
-            f"<b>{fmt_odds(cuota_actual)}</b>\n"
-
-            f"Caída: "
-            f"<b>-{caida_mensaje:.2f}%</b>"
-            f"{extra}"
-        )
-
-        enviar_telegram(
-            mensaje
-        )
-
-
-        # ----------------------------------------------------
-        # GUARDAR MOVIMIENTO PARA VIGILAR REVERSIÓN
-        # ----------------------------------------------------
-
-        estado[
-            "movimientos"
-        ][key] = {
-
-            "activo":
-                True,
-
-            "cuota_anterior":
-                cuota_anterior,
-
-            "cuota_caida":
-                cuota_actual,
-
-            "minimo":
-                cuota_actual,
-
-            "ts_inicio":
-                now_ts(),
-
-            "transicion":
-                transicion_id
-        }
-
-
-        log_json({
-
-            "tipo":
-                (
-                    "PREDICCION_CONFIRMADA"
-                    if confirmar_prediccion
-                    else "CAIDA_ORBITX"
-                ),
-
-            "timestamp":
-                now_iso(),
-
-            "market_id":
-                market_id,
-
-            "event_name":
-                partido.get(
-                    "eventName"
-                ),
-
-            "selection":
-                selection,
-
-            "anterior":
-                cuota_anterior,
-
-            "actual":
-                cuota_actual,
-
-            "caida_instantanea_pct":
-                caida,
-
-            "desde_prediccion":
-                confirmar_prediccion
-        })
-
-
-        if confirmar_prediccion:
-
-            estado[
-                "predicciones"
-            ].pop(
-                key,
-                None
-            )
+        return
 
 
     # ========================================================
-    # REVERSIÓN DEL ÚLTIMO MOVIMIENTO FUERTE
+    # LA CUOTA SÍ CAMBIÓ
+    #
+    # MUY IMPORTANTE:
+    # actualizamos inmediatamente el estado.
+    #
+    # De esta forma esta transición solamente
+    # puede procesarse UNA VEZ.
+    # ========================================================
+
+    cuota_anterior = ultimo_back
+
+
+    estado[
+        "ultimo_back_procesado"
+    ][key] = cuota_actual
+
+
+    # ========================================================
+    # CAMBIO REAL ENTRE LAS DOS ÚLTIMAS CUOTAS
+    # ========================================================
+
+    caida_instantanea = drop_pct(
+        cuota_anterior,
+        cuota_actual
+    )
+
+
+    print(
+        f"[CAMBIO CUOTA] "
+        f"{partido.get('eventName')} "
+        f"{selection}: "
+        f"{cuota_anterior} -> "
+        f"{cuota_actual} "
+        f"({caida_instantanea:+.2f}% caída)"
+    )
+
+
+    # ========================================================
+    # REVISAR MOVIMIENTO ACTIVO / REVERSIÓN
     # ========================================================
 
     movimiento = (
@@ -2275,133 +2029,324 @@ def revisar_movimiento_real(
         )
     )
 
-    if not movimiento:
-
-        return
-
-    if not movimiento.get(
-        "activo",
-        False
-    ):
-
-        return
-
-
-    # La cuota vigente real
-    ultimo = ultimo_punto(
-        market_id,
-        selection
-    )
-
-    if not ultimo:
-
-        return
-
-    cuota_vigente = ultimo.get(
-        "back"
-    )
-
-    if cuota_vigente is None:
-
-        return
-
-    cuota_vigente = float(
-        cuota_vigente
-    )
-
-
-    # Actualizar mínimo
-    minimo = float(
-        movimiento.get(
-            "minimo",
-            cuota_vigente
-        )
-    )
-
-    if cuota_vigente < minimo:
-
-        minimo = cuota_vigente
-
-        movimiento[
-            "minimo"
-        ] = minimo
-
-
-    # ========================================================
-    # REBOTE DESDE EL MÍNIMO
-    # ========================================================
-
-    rebote = pct_change(
-        minimo,
-        cuota_vigente
-    )
 
     if (
-        rebote
-        >= REVERSAL_FROM_LOW_PCT
+        movimiento
+        and movimiento.get(
+            "activo",
+            False
+        )
     ):
 
-        mensaje = (
-            "🔄 <b>MOVIMIENTO REVERTIDO</b>\n\n"
-
-            f"🏆 "
-            f"{partido.get('liga', '-')}\n"
-
-            f"⚽ <b>"
-            f"{partido.get('eventName', '-')}"
-            f"</b>\n\n"
-
-            f"📈 <b>"
-            f"{selection_nombre(selection)}"
-            f"</b>\n\n"
-
-            f"Mínimo: "
-            f"{fmt_odds(minimo)}\n"
-
-            f"Ahora: "
-            f"<b>{fmt_odds(cuota_vigente)}</b>\n\n"
-
-            f"Rebote: "
-            f"<b>+{rebote:.2f}%</b>"
-        )
-
-        enviar_telegram(
-            mensaje
+        minimo = float(
+            movimiento.get(
+                "minimo",
+                cuota_actual
+            )
         )
 
 
-        log_json({
+        if cuota_actual < minimo:
 
-            "tipo":
-                "REVERSIÓN",
+            minimo = cuota_actual
 
-            "timestamp":
-                now_iso(),
-
-            "market_id":
-                market_id,
-
-            "selection":
-                selection,
-
-            "minimo":
-                minimo,
-
-            "actual":
-                cuota_vigente,
-
-            "rebote_pct":
-                rebote
-        })
+            movimiento[
+                "minimo"
+            ] = minimo
 
 
-        movimiento[
-            "activo"
-        ] = False
+        rebote = pct_change(
+            minimo,
+            cuota_actual
+        )
+
+
+        if (
+            rebote
+            >= REVERSAL_FROM_LOW_PCT
+        ):
+
+            mensaje = (
+                "🔄 <b>MOVIMIENTO REVERTIDO</b>\n\n"
+
+                f"🏆 "
+                f"{partido.get('liga', '-')}\n"
+
+                f"⚽ <b>"
+                f"{partido.get('eventName', '-')}"
+                f"</b>\n\n"
+
+                f"📈 <b>"
+                f"{selection_nombre(selection)}"
+                f"</b>\n\n"
+
+                f"Mínimo: "
+                f"{fmt_odds(minimo)}\n"
+
+                f"Ahora: "
+                f"<b>{fmt_odds(cuota_actual)}</b>\n\n"
+
+                f"Rebote: "
+                f"<b>+{rebote:.2f}%</b>"
+            )
+
+
+            enviar_telegram(
+                mensaje
+            )
+
+
+            log_json({
+
+                "tipo":
+                    "REVERSIÓN",
+
+                "timestamp":
+                    now_iso(),
+
+                "market_id":
+                    market_id,
+
+                "selection":
+                    selection,
+
+                "minimo":
+                    minimo,
+
+                "actual":
+                    cuota_actual,
+
+                "rebote_pct":
+                    rebote
+            })
+
+
+            movimiento[
+                "activo"
+            ] = False
+
+
+    # ========================================================
+    # SOLO SI LA NUEVA TRANSICIÓN CAYÓ >=2%
+    # ========================================================
+
+    if (
+        caida_instantanea
+        < DROP_ALERT_PCT
+    ):
+
+        return
+
+
+    # ========================================================
+    # ¿HABÍA PREDICCIÓN?
+    # ========================================================
+
+    pred = (
+        estado[
+            "predicciones"
+        ].get(
+            key
+        )
+    )
+
+
+    confirmar_prediccion = False
+
+
+    titulo = (
+        "📉 "
+        "<b>CAÍDA ORBITX</b>"
+    )
+
+
+    cuota_inicio_mensaje = (
+        cuota_anterior
+    )
+
+
+    caida_mensaje = (
+        caida_instantanea
+    )
+
+
+    extra = ""
+
+
+    # ========================================================
+    # UNA PREDICCIÓN SOLO SE CONFIRMA
+    # DESDE SU PROPIA CUOTA INICIAL
+    # ========================================================
+
+    if pred:
+
+        cuota_prediccion = float(
+            pred[
+                "cuota_inicial"
+            ]
+        )
+
+
+        caida_desde_prediccion = (
+            drop_pct(
+                cuota_prediccion,
+                cuota_actual
+            )
+        )
+
+
+        if (
+            caida_desde_prediccion
+            >= DROP_ALERT_PCT
+        ):
+
+            confirmar_prediccion = True
+
+
+            segundos = int(
+                now_ts()
+                - pred["ts"]
+            )
+
+
+            titulo = (
+                "✅ "
+                "<b>PREDICCIÓN CONFIRMADA</b>"
+            )
+
+
+            cuota_inicio_mensaje = (
+                cuota_prediccion
+            )
+
+
+            caida_mensaje = (
+                caida_desde_prediccion
+            )
+
+
+            extra = (
+                f"\n⏱ Desde predicción: "
+                f"{segundos} s"
+            )
+
+
+    # ========================================================
+    # MENSAJE
+    # ========================================================
+
+    mensaje = (
+        f"{titulo}\n\n"
+
+        f"🏆 "
+        f"{partido.get('liga', '-')}\n"
+
+        f"⚽ <b>"
+        f"{partido.get('eventName', '-')}"
+        f"</b>\n\n"
+
+        f"📉 <b>"
+        f"{selection_nombre(selection)}"
+        f"</b>\n\n"
+
+        f"{fmt_odds(cuota_inicio_mensaje)} "
+        f"→ "
+        f"<b>{fmt_odds(cuota_actual)}</b>\n"
+
+        f"Caída: "
+        f"<b>-{caida_mensaje:.2f}%</b>"
+        f"{extra}"
+    )
+
+
+    enviar_telegram(
+        mensaje
+    )
+
+
+    # ========================================================
+    # GUARDAR MOVIMIENTO
+    # ========================================================
+
+    estado[
+        "movimientos"
+    ][key] = {
+
+        "activo":
+            True,
+
+        "cuota_anterior":
+            cuota_anterior,
+
+        "cuota_caida":
+            cuota_actual,
+
+        "minimo":
+            cuota_actual,
+
+        "ts_inicio":
+            now_ts()
+    }
+
+
+    # ========================================================
+    # LOG
+    # ========================================================
+
+    log_json({
+
+        "tipo":
+            (
+                "PREDICCION_CONFIRMADA"
+                if confirmar_prediccion
+                else "CAIDA_ORBITX"
+            ),
+
+        "timestamp":
+            now_iso(),
+
+        "market_id":
+            market_id,
+
+        "event_name":
+            partido.get(
+                "eventName"
+            ),
+
+        "selection":
+            selection,
+
+        "anterior":
+            cuota_anterior,
+
+        "actual":
+            cuota_actual,
+
+        "caida_instantanea_pct":
+            caida_instantanea,
+
+        "desde_prediccion":
+            confirmar_prediccion
+    })
+
+
+    # ========================================================
+    # SI CONFIRMÓ PREDICCIÓN,
+    # ELIMINARLA PARA QUE NO SE CONFIRME OTRA VEZ
+    # ========================================================
+
+    if confirmar_prediccion:
+
+        estado[
+            "predicciones"
+        ].pop(
+            key,
+            None
+        )
 
 
 # ============================================================
-# ALERTA 90 MINUTOS
+# ALERTA 90 MIN
 # ============================================================
 
 def revisar_alerta_90(
@@ -2412,8 +2357,8 @@ def revisar_alerta_90(
     if not partido_prematch_valido(
         partido
     ):
-
         return
+
 
     event_id = str(
         partido.get(
@@ -2422,9 +2367,10 @@ def revisar_alerta_90(
         )
     )
 
-    if not event_id:
 
+    if not event_id:
         return
+
 
     if (
         estado[
@@ -2433,8 +2379,8 @@ def revisar_alerta_90(
             event_id
         )
     ):
-
         return
+
 
     start = parse_start_pe(
         partido.get(
@@ -2442,13 +2388,15 @@ def revisar_alerta_90(
         )
     )
 
-    if not start:
 
+    if not start:
         return
+
 
     ahora = datetime.now(
         start.tzinfo
     )
+
 
     minutos = (
         start - ahora
@@ -2459,7 +2407,6 @@ def revisar_alerta_90(
         minutos
         > ALERT_90_MIN
     ):
-
         return
 
 
@@ -2469,7 +2416,6 @@ def revisar_alerta_90(
         ALERT_90_MIN
         - ALERT_90_WINDOW
     ):
-
         return
 
 
@@ -2478,10 +2424,12 @@ def revisar_alerta_90(
         "HOME"
     )
 
+
     draw = obtener_runner(
         partido,
         "DRAW"
     )
+
 
     away = obtener_runner(
         partido,
@@ -2538,7 +2486,7 @@ def revisar_alerta_90(
 
 
 # ============================================================
-# LIMPIAR ESTADO DE PARTIDOS NO VÁLIDOS
+# LIMPIAR ESTADO
 # ============================================================
 
 def limpiar_estado_no_validos(
@@ -2546,12 +2494,12 @@ def limpiar_estado_no_validos(
     mercados_por_id
 ):
 
-    borrar = []
-
-
     # ========================================================
     # PREDICCIONES
     # ========================================================
+
+    borrar = []
+
 
     for (
         key,
@@ -2567,12 +2515,14 @@ def limpiar_estado_no_validos(
             )
         )
 
+
         partido = (
             mercados_por_id
             .get(
                 market_id
             )
         )
+
 
         if (
             partido is None
@@ -2602,22 +2552,18 @@ def limpiar_estado_no_validos(
 
     borrar = []
 
+
     for key in list(
         estado[
             "movimientos"
         ].keys()
     ):
 
-        try:
+        market_id = key.split(
+            ":",
+            1
+        )[0]
 
-            market_id = key.split(
-                ":",
-                1
-            )[0]
-
-        except Exception:
-
-            continue
 
         partido = (
             mercados_por_id
@@ -2625,6 +2571,7 @@ def limpiar_estado_no_validos(
                 market_id
             )
         )
+
 
         if (
             partido is None
@@ -2648,6 +2595,55 @@ def limpiar_estado_no_validos(
         )
 
 
+    # ========================================================
+    # ÚLTIMAS CUOTAS PROCESADAS
+    # ========================================================
+
+    borrar = []
+
+
+    for key in list(
+        estado[
+            "ultimo_back_procesado"
+        ].keys()
+    ):
+
+        market_id = key.split(
+            ":",
+            1
+        )[0]
+
+
+        partido = (
+            mercados_por_id
+            .get(
+                market_id
+            )
+        )
+
+
+        if (
+            partido is None
+            or not partido_prematch_valido(
+                partido
+            )
+        ):
+
+            borrar.append(
+                key
+            )
+
+
+    for key in borrar:
+
+        estado[
+            "ultimo_back_procesado"
+        ].pop(
+            key,
+            None
+        )
+
+
 # ============================================================
 # PROCESAR SNAPSHOT
 # ============================================================
@@ -2659,23 +2655,25 @@ def procesar():
         {}
     )
 
+
     mercados = snapshot.get(
         "markets",
         []
     )
 
-    if not mercados:
 
+    if not mercados:
         return
 
 
     estado = cargar_estado()
 
+
     mercados_por_id = {}
 
 
     # ========================================================
-    # MAPEAR
+    # MAPEAR MERCADOS
     # ========================================================
 
     for partido in mercados:
@@ -2687,9 +2685,10 @@ def procesar():
             )
         )
 
-        if not market_id:
 
+        if not market_id:
             continue
+
 
         mercados_por_id[
             market_id
@@ -2697,7 +2696,7 @@ def procesar():
 
 
     # ========================================================
-    # LIMPIEZA
+    # LIMPIAR LIVE / ANTIGUOS
     # ========================================================
 
     limpiar_estado_no_validos(
@@ -2707,8 +2706,9 @@ def procesar():
 
 
     # ========================================================
-    # PRIMERA PASADA:
-    # HISTORIAL SOLO PREMATCH <=18H
+    # PRIMERA PASADA
+    #
+    # HISTORIA SOLO PREMATCH <=18H
     # ========================================================
 
     for partido in mercados:
@@ -2716,7 +2716,6 @@ def procesar():
         if not partido_prematch_valido(
             partido
         ):
-
             continue
 
 
@@ -2727,8 +2726,8 @@ def procesar():
             )
         )
 
-        if not market_id:
 
+        if not market_id:
             continue
 
 
@@ -2742,6 +2741,7 @@ def procesar():
                 partido,
                 selection
             )
+
 
             agregar_historia(
                 market_id,
@@ -2760,7 +2760,6 @@ def procesar():
         if not partido_prematch_valido(
             partido
         ):
-
             continue
 
 
@@ -2771,13 +2770,13 @@ def procesar():
             )
         )
 
-        if not market_id:
 
+        if not market_id:
             continue
 
 
         # ----------------------------------------------------
-        # 90 MIN
+        # ALERTA 90 MIN
         # ----------------------------------------------------
 
         revisar_alerta_90(
@@ -2787,14 +2786,14 @@ def procesar():
 
 
         # ----------------------------------------------------
-        # HOME / AWAY
+        # LOCAL / VISITA
         # ----------------------------------------------------
 
         for selection in (
             TARGET_SELECTIONS
         ):
 
-            # PRIMERO detectar caída real.
+            # Primero detectar cambios reales.
             revisar_movimiento_real(
                 estado,
                 partido,
@@ -2802,7 +2801,8 @@ def procesar():
                 selection
             )
 
-            # DESPUÉS intentar predecir.
+
+            # Después intentar predicción.
             revisar_prediccion(
                 estado,
                 partido,
@@ -2822,7 +2822,7 @@ def procesar():
 
 
     # ========================================================
-    # GUARDAR
+    # GUARDAR ESTADO
     # ========================================================
 
     guardar_json(
@@ -2851,24 +2851,29 @@ def main():
         "=============================================="
     )
 
+
     print(
         f"Snapshot: "
         f"{SNAPSHOT_FILE}"
     )
+
 
     print(
         f"Ventana partidos: "
         f"0-{MAX_HOURS_AHEAD} horas"
     )
 
+
     print(
         "LIVE: IGNORADO"
     )
+
 
     print(
         f"Revisión: "
         f"cada {CHECK_EVERY_SEC}s"
     )
+
 
     print(
         f"Predicción L/V: "
@@ -2876,31 +2881,36 @@ def main():
         f"{PREDICTION_SCORE_MIN}"
     )
 
+
     print(
         f"Caída instantánea: "
         f">= {DROP_ALERT_PCT}%"
     )
 
+
     print(
         "Referencia caída: "
-        "PENÚLTIMA CUOTA → ÚLTIMA CUOTA"
+        "ÚLTIMA CUOTA PROCESADA → NUEVA CUOTA"
     )
+
 
     print(
         f"Reversión: "
-        f">= {REVERSAL_FROM_LOW_PCT}% "
-        f"desde mínimo"
+        f">= {REVERSAL_FROM_LOW_PCT}%"
     )
+
 
     print(
         f"Alerta alineaciones: "
         f"{ALERT_90_MIN} min"
     )
 
+
     print(
         f"Telegram: "
         f"{'OK' if telegram_configurado() else 'NO CONFIGURADO'}"
     )
+
 
     print(
         "=============================================="
