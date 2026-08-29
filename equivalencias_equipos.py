@@ -742,4 +742,8 @@ EQUIVALENCIAS_EQUIPOS = {
     "olympique lyonnais": "lyon",
     "paris sg": "paris saint germain",
     "deportivo los chankas": "los chankas",
+    "cologne": "koln",
+    "borussia mgladbach": "borussia monchengladbach",
+    "borussia m'gladbach": "borussia monchengladbach",
+    "deportivo los chankas": "los chankas",
 }
