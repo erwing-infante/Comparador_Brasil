@@ -737,6 +737,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "psv eindhoven": "psv",
     "cambuur leeuwaarden": "cambuur",
     "universidad tecnica cajamarca": "utc cajamarca",
+    "utc": "utc cajamarca",
     "atlas guadalajara": "atlas",
     "nice": "niza",
     "olympique lyonnais": "lyon",
@@ -745,5 +746,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "cologne": "koln",
     "borussia mgladbach": "borussia monchengladbach",
     "borussia m'gladbach": "borussia monchengladbach",
-    "deportivo los chankas": "los chankas",
+    "deportivo moquegua": "cd moquegua",
+    "alianza atletico sullana": "alianza atletico",
+    "internacional": "inter de milan",
 }
