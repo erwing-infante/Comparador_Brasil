@@ -36,7 +36,7 @@ ARCHIVOS = {
     "1xbet": os.path.join(DATA_DIR, "cuotas_1xbet.json"),
     "pinnacle": os.path.join(DATA_DIR, "cuotas_pinnacle.json"),
     "betsson": os.path.join(DATA_DIR, "cuotas_betsson.json"),
-    "tinbet": os.path.join(DATA_DIR, "cuotas_tinbet.json"),
+    #"tinbet": os.path.join(DATA_DIR, "cuotas_tinbet.json"),
     "inkabet": os.path.join(DATA_DIR, "cuotas_inkabet.json"),
     "teapuesto": os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 }
