@@ -79,13 +79,13 @@ async function loadDetail() {
     meta.textContent = `${qs.league || ""} · ${qs.date || ""}`;
 
     try {
-        const res = await fetch("/api/cuotas", {
+        const res = await fetch("/api/cuotas-nopa", {
             credentials: "include",
             cache: "no-store"
         });
 
         if (!res.ok) {
-            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No se pudo cargar /api/cuotas</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No se pudo cargar /api/cuotas-nopa</td></tr>`;
             return;
         }
 

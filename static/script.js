@@ -1,4 +1,6 @@
 let allData = {};
+let allDataNoPA = {};
+let noPaByEventId = {};
 let currentLeague = null;
 let dateFilter = "all";
 
@@ -77,6 +79,42 @@ function getSnapshotBackOdd(match, side) {
 // ================================
 // CARGAR JSON
 // ================================
+// ================================
+// CUOTAS NoPA - índice independiente por EventId
+// ================================
+function getEventId(match) {
+    return String(match?.eventId ?? match?.EventId ?? match?.event_id ?? "").trim();
+}
+
+function buildNoPaIndex(data) {
+    noPaByEventId = {};
+    if (!data || typeof data !== "object") return;
+
+    for (const [league, matches] of Object.entries(data)) {
+        if (league === "metadata" || !Array.isArray(matches)) continue;
+        for (const match of matches) {
+            const id = getEventId(match);
+            if (id) noPaByEventId[id] = match;
+        }
+    }
+}
+
+async function fetchCuotasNoPA() {
+    try {
+        const res = await fetch('/api/cuotas-nopa', {
+            credentials: "include",
+            cache: "no-store"
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.error) return;
+        allDataNoPA = data;
+        buildNoPaIndex(data);
+    } catch (e) {
+        console.error("Error NoPA:", e);
+    }
+}
+
 async function fetchCuotas() {
     try {
         const res = await fetch('/api/cuotas', { credentials: "include" });
@@ -84,6 +122,9 @@ async function fetchCuotas() {
 
         allData = await res.json();
         if (allData.error) return;
+
+        // NoPA se carga aparte. Nunca modifica cuotas.json ni la fila PA.
+        await fetchCuotasNoPA();
 
         renderMetadata();
         renderLeagues();
@@ -213,7 +254,78 @@ function renderMatches(leagueName) {
         tr.appendChild(lossCell);
 
         tbody.appendChild(tr);
+
+        // Segunda fila: SOLO cuotas NoPA del MISMO EventId.
+        const eventId = getEventId(match);
+        const noPaMatch = eventId ? noPaByEventId[eventId] : null;
+        if (noPaMatch) {
+            tbody.appendChild(createNoPaRow(match, noPaMatch));
+        }
     });
+}
+
+function createNoPaRow(paMatch, noPaMatch) {
+    const h = parseFloat(noPaMatch.best_home?.odd || 0);
+    const d = parseFloat(noPaMatch.best_draw?.odd || 0);
+    const a = parseFloat(noPaMatch.best_away?.odd || 0);
+
+    let marginSure = null;
+    if (h && d && a) {
+        marginSure = 100 - ((1 / h + 1 / d + 1 / a) * 100);
+    }
+
+    const tr = document.createElement("tr");
+    tr.classList.add("nopa-row");
+    if (marginSure > 0) tr.classList.add("surebet-row");
+
+    // Fecha y partido se dejan vacíos para que visualmente quede debajo del PA.
+    tr.appendChild(createCell(""));
+    tr.appendChild(createCell(""));
+    tr.appendChild(createSimpleOddCell(noPaMatch.best_home));
+    tr.appendChild(createSimpleOddCell(noPaMatch.best_draw));
+    tr.appendChild(createSimpleOddCell(noPaMatch.best_away));
+
+    const lossCell = document.createElement("td");
+    if (marginSure !== null) {
+        const span = document.createElement("span");
+        span.style.color = marginSure > 0 ? "green" : "red";
+        span.style.fontWeight = "bold";
+        span.textContent = marginSure.toFixed(3) + "%";
+        lossCell.appendChild(span);
+    } else {
+        lossCell.appendChild(document.createTextNode("-"));
+    }
+
+    const btn = document.createElement("button");
+    btn.className = "calc-btn";
+    btn.innerHTML = CALC_ICON_SVG;
+    btn.title = "Abrir calculadora";
+    btn.addEventListener("click", () => openCalculatorNoPA(paMatch, noPaMatch, marginSure));
+    lossCell.appendChild(btn);
+
+    const btnALL = document.createElement("button");
+    btnALL.className = "all-btn";
+    btnALL.textContent = "ALL";
+    btnALL.title = "Ver todas las cuotas NoPA";
+    btnALL.addEventListener("click", () => openAllOddsNoPA(paMatch, noPaMatch));
+    lossCell.appendChild(btnALL);
+
+    tr.appendChild(lossCell);
+    return tr;
+}
+
+function createSimpleOddCell(best) {
+    const td = document.createElement("td");
+    if (!best?.odd) {
+        td.textContent = "-";
+        return td;
+    }
+    const logo = BOOKMAKER_LOGOS[best.bookmaker] || null;
+    td.innerHTML = `
+        <span class="best-odd">${best.odd}</span><br>
+        ${logo ? `<img class="bm-logo" src="${logo}" alt="${best.bookmaker}" title="${best.bookmaker}">` : best.bookmaker}
+    `;
+    return td;
 }
 
 function createCell(text) {
@@ -276,10 +388,39 @@ function openAllOdds(match) {
         name: match.name || "",
         date: match.date || "",
         home: match.home || "",
-        away: match.away || ""
+        away: match.away || "",
+        eventId: getEventId(match)
     });
 
     window.open("/detalle-cuotas?" + params.toString(), "_blank");
+}
+
+function openCalculatorNoPA(paMatch, noPaMatch, marginSure) {
+    const params = new URLSearchParams({
+        name: paMatch.name || noPaMatch.name || "",
+        date: paMatch.date || noPaMatch.date || "",
+        league: paMatch.Liga || noPaMatch.Liga || "",
+        homeOdd: noPaMatch.best_home?.odd || "",
+        homeBook: noPaMatch.best_home?.bookmaker || "",
+        drawOdd: noPaMatch.best_draw?.odd || "",
+        drawBook: noPaMatch.best_draw?.bookmaker || "",
+        awayOdd: noPaMatch.best_away?.odd || "",
+        awayBook: noPaMatch.best_away?.bookmaker || "",
+        margin: marginSure !== null ? marginSure.toFixed(3) : ""
+    });
+    window.open("/calculadora?" + params.toString(), "_blank");
+}
+
+function openAllOddsNoPA(paMatch, noPaMatch) {
+    const params = new URLSearchParams({
+        eventId: getEventId(paMatch) || getEventId(noPaMatch),
+        league: paMatch.Liga || noPaMatch.Liga || "",
+        name: paMatch.name || noPaMatch.name || "",
+        date: paMatch.date || noPaMatch.date || "",
+        home: paMatch.home || noPaMatch.home || "",
+        away: paMatch.away || noPaMatch.away || ""
+    });
+    window.open("/detalle-cuotas-nopa?" + params.toString(), "_blank");
 }
 
 // ================================

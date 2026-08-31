@@ -11,6 +11,7 @@ app.permanent_session_lifetime = timedelta(days=1)
 
 BASE_DIR = os.path.dirname(__file__)
 DATA_PATH = os.path.join(BASE_DIR, "data", "cuotas.json")
+DATA_PATH_NOPA = os.path.join(BASE_DIR, "data", "cuotas_NoPA.json")
 DB_PATH = os.path.join(BASE_DIR, "data", "bets.db")
 
 # ================================================================
@@ -278,6 +279,13 @@ def detalle_cuotas():
     if not require_login():
         return redirect(url_for("login"))
     return render_template("detalle_cuotas.html")
+
+
+@app.route("/detalle-cuotas-nopa")
+def detalle_cuotas_nopa():
+    if not require_login():
+        return redirect(url_for("login"))
+    return render_template("detalle_cuotas_nopa.html")
 
 
 # ================================================================
@@ -984,6 +992,17 @@ def admin_delete_bet():
 def api_cuotas():
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
+            try:
+                return jsonify(json.load(f))
+            except Exception:
+                return jsonify({"error": "formato inválido"})
+    return jsonify({})
+
+
+@app.route("/api/cuotas-nopa")
+def api_cuotas_nopa():
+    if os.path.exists(DATA_PATH_NOPA):
+        with open(DATA_PATH_NOPA, "r", encoding="utf-8") as f:
             try:
                 return jsonify(json.load(f))
             except Exception:
