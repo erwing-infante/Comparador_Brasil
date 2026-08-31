@@ -31,6 +31,7 @@ SCRIPT_FUSION_NOPA = "fusionar_cuotas_NoPA.py"
 # ======================================
 
 EJECUTAR_SMART_ALERTS = True
+EJECUTAR_SMART_ALERTS_NOPA = True
 EJECUTAR_HISTORICO_BET365 = False
 EJECUTAR_MOVIMIENTOS_BET365 = False
 
@@ -179,29 +180,57 @@ def main():
         stderr,
     )
 
-    # 4. Smart Alerts
+    # 4. Smart Alerts PA
     if EJECUTAR_SMART_ALERTS:
         print("\n[INFO] Lanzando: smart_alerts.py")
         returncode, stdout, stderr = ejecutar_script(
             os.path.join(BASE_DIR, "smart_alerts.py")
         )
-        imprimir_resultado("smart_alerts.py", returncode, stdout, stderr)
+        imprimir_resultado(
+            "smart_alerts.py",
+            returncode,
+            stdout,
+            stderr,
+        )
 
-    # 5. Histórico Bet365
+    # 5. Smart Alerts NoPA
+    if EJECUTAR_SMART_ALERTS_NOPA:
+        print("\n[INFO] Lanzando: smart_alerts_nopa.py")
+        returncode, stdout, stderr = ejecutar_script(
+            os.path.join(BASE_DIR, "smart_alerts_nopa.py")
+        )
+        imprimir_resultado(
+            "smart_alerts_nopa.py",
+            returncode,
+            stdout,
+            stderr,
+        )
+
+    # 6. Histórico Bet365
     if EJECUTAR_HISTORICO_BET365:
         print("\n[INFO] Histórico Bet365")
         returncode, stdout, stderr = ejecutar_script(
             os.path.join(BASE_DIR, "historico_bet365.py")
         )
-        imprimir_resultado("historico_bet365.py", returncode, stdout, stderr)
+        imprimir_resultado(
+            "historico_bet365.py",
+            returncode,
+            stdout,
+            stderr,
+        )
 
-    # 6. Movimientos Bet365
+    # 7. Movimientos Bet365
     if EJECUTAR_MOVIMIENTOS_BET365:
         print("\n[INFO] Movimientos bruscos Bet365")
         returncode, stdout, stderr = ejecutar_script(
             os.path.join(BASE_DIR, "movimientos_bet365.py")
         )
-        imprimir_resultado("movimientos_bet365.py", returncode, stdout, stderr)
+        imprimir_resultado(
+            "movimientos_bet365.py",
+            returncode,
+            stdout,
+            stderr,
+        )
 
     print("\n==============================")
     print(

@@ -749,4 +749,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "deportivo moquegua": "cd moquegua",
     "alianza atletico sullana": "alianza atletico",
     "internacional": "inter de milan",
+    "benfica lisboa": "benfica",
 }
