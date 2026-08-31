@@ -33,22 +33,6 @@ SESSION_TOKEN = (
     "yuBO_qNKJHtbCWK3z04cEqU59EKU8pZb2kXHhZ7IeuI"
 )
 
-
-# ==========================================================
-# PROXY-SELLER
-# ==========================================================
-PROXY = (
-    "http://ap-t4ubmz5dahmi_area-PE_session-orbitx01_life-120:"
-    "C7WeSFR2NWTXjUmN@"
-    "gw-rotate.aproxy.com:6641"
-)
-
-PROXIES = {
-    "http": PROXY,
-    "https": PROXY,
-}
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DEBUG_DIR = os.path.join(DATA_DIR, "debug_inkabet")
@@ -99,9 +83,6 @@ GROUPABLE_PAGO = "MW3W2UPEP"
 # VELOCIDAD
 # ==========================================================
 MAX_WORKERS_LIGAS = 12
-
-# Cada partido produce dos solicitudes:
-# MW3W + MW3W2UPEP
 MAX_WORKERS_MERCADOS = 32
 
 TIMEOUT_TABLE = (8, 20)
@@ -124,10 +105,6 @@ def get_session():
 
     if session is None:
         session = requests.Session()
-
-        # Todas las peticiones realizadas por esta sesión
-        # pasan por Proxy-Seller.
-        session.proxies.update(PROXIES)
 
         adapter = requests.adapters.HTTPAdapter(
             pool_connections=20,
@@ -576,7 +553,7 @@ def build_row(event, normal, pago):
     cuota_local = pago.get("Local")
     cuota_visita = pago.get("Visita")
 
-    # Mercado normal 1X2
+    # Mercado normal
     cuota_local_nopa = normal.get("Local")
     cuota_visita_nopa = normal.get("Visita")
 
@@ -636,7 +613,7 @@ def main():
         f"{window_end:%Y-%m-%d %H:%M}"
     )
 
-    print("🌐 Proxy-Seller: ACTIVADO")
+    print("🌐 Proxy: DESACTIVADO")
 
     status = {
         str(competition_id): {
@@ -726,9 +703,7 @@ def main():
                 continue
 
             seen_events.add(event_id)
-
             events.append(event)
-
             valid_count += 1
 
         status[status_key][
@@ -840,7 +815,6 @@ def main():
             status[
                 competition_key
             ]["sin_empate"] += 1
-
             continue
 
         rows.append(row)
