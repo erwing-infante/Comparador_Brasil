@@ -750,4 +750,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "alianza atletico sullana": "alianza atletico",
     "internacional": "inter de milan",
     "benfica lisboa": "benfica",
+    "cajamarca": "fc cajamarca",
+    "fc cajamarca": "fc cajamarca",
 }

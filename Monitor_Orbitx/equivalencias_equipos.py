@@ -279,4 +279,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "asociacion deportiva tarma": "ad tarma",
     "estac troyes": "troyes",
     "atlanta utd": "atlanta united",
+    "stoke": "stoke city",
 }
