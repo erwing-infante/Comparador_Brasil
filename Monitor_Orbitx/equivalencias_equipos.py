@@ -280,4 +280,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "estac troyes": "troyes",
     "atlanta utd": "atlanta united",
     "stoke": "stoke city",
+    "ipswich town": "ipswich",
+    "charlton athletic": "charlton",
 }
