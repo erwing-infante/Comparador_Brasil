@@ -11,7 +11,7 @@ import requests
 
 BASE_URL = "https://www.betsson.pe"
 TZ_FECHA_BETSSON = ZoneInfo("UTC")
-DIAS_A_FUTURO = 2
+DIAS_A_FUTURO = 1.5
 CASA = "Betsson"
 BRAND_ID = "6a6d80b9-16ac-4387-a413-244d93a74deb"
 
@@ -28,7 +28,7 @@ os.makedirs(DEBUG_DIR, exist_ok=True)
 OUT_PATH = os.path.join(DATA_DIR, "cuotas_betsson.json")
 STATUS_PATH = os.path.join(DEBUG_DIR, "status_betsson.json")
 EVENT_CACHE_PATH = os.path.join(DEBUG_DIR, "eventos_betsson_cache.json")
-EVENT_CACHE_TTL_SEC = 15 * 60
+EVENT_CACHE_TTL_SEC = 6 * 60 * 60
 
 LIGAS_BETSSON = {
     3: "Premier League", 148: "EFL Cup", 4: "Championship", 12: "La Liga",
