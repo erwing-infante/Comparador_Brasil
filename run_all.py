@@ -23,16 +23,12 @@ SCRIPTS_EXTRACTORES = [
     "cuotas_olimpobet.py",
     # "cuotas_gangabet.py",
     "cuotas_teapuesto.py",
-
     # "cuotas_stake2.py",
-
     "cuotas_1xbet.py",
     "cuotas_pinnacle.py",
-    "cuotas_betsson.py",
-
+    #"cuotas_betsson.py",
     # "cuotas_tinbet.py",
     # "cuotas_inkabet.py",
-
     "cuotas_betano.py",
 ]
 
