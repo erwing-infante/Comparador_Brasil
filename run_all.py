@@ -1,42 +1,82 @@
 import subprocess
 import datetime
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 PYTHON = "/root/proyectos/Mancorabet/venv/bin/python3"
 BASE_DIR = "/root/proyectos/Mancorabet"
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
+
+# ============================================================
+# CASAS DE APUESTAS
+# ============================================================
+
 SCRIPTS_EXTRACTORES = [
     # "cuotas_oddsapi.py",
+
     "cuotas_apuestatotal.py",
-    #"cuotas_doradobet.py",
+    # "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
     "cuotas_olimpobet.py",
-    #"cuotas_gangabet.py",
+    # "cuotas_gangabet.py",
     "cuotas_teapuesto.py",
+
     # "cuotas_stake2.py",
+
     "cuotas_1xbet.py",
     "cuotas_pinnacle.py",
     "cuotas_betsson.py",
-    #"cuotas_tinbet.py",
-    #"cuotas_inkabet.py",
+
+    # "cuotas_tinbet.py",
+    # "cuotas_inkabet.py",
+
     "cuotas_betano.py",
 ]
+
 
 SCRIPT_FUSION_PA = "fusionar_cuotas.py"
 SCRIPT_FUSION_NOPA = "fusionar_cuotas_NoPA.py"
 
-# ======================================
+
+# ============================================================
 # ACTIVAR / DESACTIVAR MÓDULOS
-# ======================================
+# ============================================================
 
 EJECUTAR_SMART_ALERTS = True
 EJECUTAR_SMART_ALERTS_NOPA = True
+
 EJECUTAR_HISTORICO_BET365 = False
 EJECUTAR_MOVIMIENTOS_BET365 = False
 
 
+# ============================================================
+# UTILIDADES
+# ============================================================
+
+def formato_tiempo(segundos):
+    """
+    Convierte segundos a formato legible.
+    """
+
+    if segundos < 60:
+        return f"{segundos:.2f} s"
+
+    minutos = int(segundos // 60)
+    segundos_restantes = segundos % 60
+
+    return f"{minutos} min {segundos_restantes:.2f} s"
+
+
 def ejecutar_script(script):
+    """
+    Ejecuta un script secuencialmente y mide su duración.
+    """
+
+    inicio = time.perf_counter()
+
     try:
         resultado = subprocess.run(
             [PYTHON, script],
@@ -46,17 +86,68 @@ def ejecutar_script(script):
             errors="replace",
             cwd=BASE_DIR,
         )
+
+        duracion = time.perf_counter() - inicio
+
         return (
             resultado.returncode,
             resultado.stdout or "",
             resultado.stderr or "",
+            duracion,
         )
+
     except Exception as e:
-        return 1, "", str(e)
+
+        duracion = time.perf_counter() - inicio
+
+        return (
+            1,
+            "",
+            str(e),
+            duracion,
+        )
+
+
+def esperar_proceso(script, proceso, inicio):
+    """
+    Espera un extractor lanzado en paralelo.
+
+    Esta función se ejecuta también en paralelo para que podamos
+    medir correctamente el tiempo REAL que tarda cada scraper.
+    """
+
+    try:
+
+        stdout, stderr = proceso.communicate()
+
+        returncode = proceso.returncode
+
+        duracion = time.perf_counter() - inicio
+
+        return (
+            script,
+            returncode,
+            stdout or "",
+            stderr or "",
+            duracion,
+        )
+
+    except Exception as e:
+
+        duracion = time.perf_counter() - inicio
+
+        return (
+            script,
+            1,
+            "",
+            str(e),
+            duracion,
+        )
 
 
 def oddsapi_fallo(output):
     texto = output.lower()
+
     return (
         "error" in texto
         or "no se encontraron cuotas" in texto
@@ -67,7 +158,13 @@ def oddsapi_fallo(output):
     )
 
 
-def imprimir_resultado(script, returncode, stdout, stderr):
+def imprimir_resultado(
+    script,
+    returncode,
+    stdout,
+    stderr,
+    duracion=None,
+):
     print(f"\n----- Resultado {script} -----")
 
     if stdout.strip():
@@ -78,39 +175,111 @@ def imprimir_resultado(script, returncode, stdout, stderr):
         print(stderr)
 
     if returncode != 0:
-        print(f"[ERROR] {script} terminó con código {returncode}")
+        print(
+            f"[ERROR] {script} terminó con código "
+            f"{returncode}"
+        )
     else:
-        print(f"[OK] {script} finalizó correctamente.")
+        print(
+            f"[OK] {script} finalizó correctamente."
+        )
 
+    if duracion is not None:
+        print(
+            f"[TIEMPO] {script}: "
+            f"{formato_tiempo(duracion)}"
+        )
+
+
+# ============================================================
+# PROGRAMA PRINCIPAL
+# ============================================================
 
 def main():
-    print("\n==============================")
-    print(f"Iniciando ciclo {datetime.datetime.now()}")
-    print("==============================\n")
 
-    # Asegurar Xvfb para Betano (DISPLAY :99)
+    inicio_ciclo = time.perf_counter()
+
+    hora_inicio = datetime.datetime.now()
+
+    print("\n")
+    print("=" * 70)
+    print(
+        f"INICIANDO CICLO: "
+        f"{hora_inicio.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+    print("=" * 70)
+    print()
+
+
+    # ========================================================
+    # VARIABLES PARA RESUMEN
+    # ========================================================
+
+    tiempos_casas = {}
+
+    tiempos_modulos = {}
+
+
+    # ========================================================
+    # XVFB BETANO
+    # ========================================================
+
+    print("[INFO] Verificando Xvfb para Betano...")
+
     os.system(
         "pgrep Xvfb >/dev/null || "
-        "(Xvfb :99 -screen 0 1280x800x24 >/tmp/xvfb.log 2>&1 &)"
+        "(Xvfb :99 -screen 0 1280x800x24 "
+        ">/tmp/xvfb.log 2>&1 &)"
     )
+
     os.environ["DISPLAY"] = ":99"
+
+
+    # ========================================================
+    # 1. EXTRACTORES EN PARALELO
+    # ========================================================
+
+    print()
+    print("=" * 70)
+    print("EJECUTANDO CASAS DE APUESTAS EN PARALELO")
+    print("=" * 70)
+    print()
+
+    inicio_extractores = time.perf_counter()
 
     procesos = []
 
-    # 1. Ejecutar extractores en paralelo
-    print("[INFO] Ejecutando extractores de cuotas en paralelo...\n")
+
+    # --------------------------------------------------------
+    # LANZAR TODOS LOS SCRAPERS
+    # --------------------------------------------------------
 
     for script in SCRIPTS_EXTRACTORES:
-        full_path = os.path.join(BASE_DIR, script)
-        print(f"[INFO] Lanzando: {script}")
+
+        full_path = os.path.join(
+            BASE_DIR,
+            script,
+        )
+
+        print(
+            f"[{datetime.datetime.now().strftime('%H:%M:%S')}] "
+            f"[INICIO] {script}"
+        )
 
         env = os.environ.copy()
 
+
+        # Betano necesita DISPLAY
         if script == "cuotas_betano.py":
+
             env["DISPLAY"] = ":99"
             env["BETANO_HEADFUL"] = "1"
 
+
         try:
+
+            inicio_individual = time.perf_counter()
+
             proceso = subprocess.Popen(
                 [PYTHON, full_path],
                 stdout=subprocess.PIPE,
@@ -121,123 +290,457 @@ def main():
                 env=env,
                 cwd=BASE_DIR,
             )
-            procesos.append((script, proceso))
-        except Exception as e:
-            print(f"[ERROR] No se pudo lanzar {script}: {e}")
 
-    for script, proceso in procesos:
-        stdout, stderr = proceso.communicate()
-        returncode = proceso.returncode
-        output = (stdout or "") + "\n" + (stderr or "")
-
-        imprimir_resultado(
-            script,
-            returncode,
-            stdout or "",
-            stderr or "",
-        )
-
-        if script == "cuotas_oddsapi.py" and oddsapi_fallo(output):
-            ruta_odds = os.path.join(DATA_DIR, "cuotas_oddsapi.json")
-
-            print(
-                "[WARN] OddsAPI falló — eliminando archivo "
-                "cuotas_oddsapi.json..."
+            procesos.append(
+                (
+                    script,
+                    proceso,
+                    inicio_individual,
+                )
             )
 
-            try:
-                if os.path.exists(ruta_odds):
-                    os.remove(ruta_odds)
-                    print("[OK] Archivo cuotas_oddsapi.json eliminado.")
-                else:
-                    print("[INFO] No existía archivo antiguo.")
-            except Exception as e:
-                print(f"[ERROR] No se pudo eliminar archivo OddsAPI: {e}")
+        except Exception as e:
 
-    # 2. Fusión PA
-    print("\n[INFO] Ejecutando fusión PA → cuotas.json...\n")
+            print(
+                f"[ERROR] No se pudo lanzar "
+                f"{script}: {e}"
+            )
 
-    fusion_pa_path = os.path.join(BASE_DIR, SCRIPT_FUSION_PA)
-    returncode, stdout, stderr = ejecutar_script(fusion_pa_path)
+            tiempos_casas[script] = 0
+
+
+    # --------------------------------------------------------
+    # ESPERAR TODOS EN PARALELO
+    # --------------------------------------------------------
+
+    max_workers = max(
+        1,
+        len(procesos),
+    )
+
+    with ThreadPoolExecutor(
+        max_workers=max_workers
+    ) as executor:
+
+        futuros = []
+
+        for (
+            script,
+            proceso,
+            inicio_individual,
+        ) in procesos:
+
+            futuro = executor.submit(
+                esperar_proceso,
+                script,
+                proceso,
+                inicio_individual,
+            )
+
+            futuros.append(futuro)
+
+
+        # ----------------------------------------------------
+        # RECIBIR RESULTADOS SEGÚN VAN TERMINANDO
+        # ----------------------------------------------------
+
+        for futuro in as_completed(futuros):
+
+            (
+                script,
+                returncode,
+                stdout,
+                stderr,
+                duracion,
+            ) = futuro.result()
+
+            tiempos_casas[script] = duracion
+
+            print()
+            print(
+                f"[{datetime.datetime.now().strftime('%H:%M:%S')}] "
+                f"[FIN] {script}"
+            )
+
+            imprimir_resultado(
+                script,
+                returncode,
+                stdout,
+                stderr,
+                duracion,
+            )
+
+
+            # ------------------------------------------------
+            # ODDSAPI
+            # ------------------------------------------------
+
+            output = (
+                (stdout or "")
+                + "\n"
+                + (stderr or "")
+            )
+
+            if (
+                script == "cuotas_oddsapi.py"
+                and oddsapi_fallo(output)
+            ):
+
+                ruta_odds = os.path.join(
+                    DATA_DIR,
+                    "cuotas_oddsapi.json",
+                )
+
+                print(
+                    "[WARN] OddsAPI falló — "
+                    "eliminando archivo antiguo..."
+                )
+
+                try:
+
+                    if os.path.exists(ruta_odds):
+
+                        os.remove(ruta_odds)
+
+                        print(
+                            "[OK] cuotas_oddsapi.json "
+                            "eliminado."
+                        )
+
+                    else:
+
+                        print(
+                            "[INFO] No existía "
+                            "archivo antiguo."
+                        )
+
+                except Exception as e:
+
+                    print(
+                        "[ERROR] No se pudo "
+                        "eliminar OddsAPI: "
+                        f"{e}"
+                    )
+
+
+    tiempo_extractores = (
+        time.perf_counter()
+        - inicio_extractores
+    )
+
+
+    # ========================================================
+    # 2. FUSIÓN PA
+    # ========================================================
+
+    print()
+    print("=" * 70)
+    print("FUSIÓN PA")
+    print("=" * 70)
+
+    fusion_pa_path = os.path.join(
+        BASE_DIR,
+        SCRIPT_FUSION_PA,
+    )
+
+    (
+        returncode,
+        stdout,
+        stderr,
+        duracion,
+    ) = ejecutar_script(fusion_pa_path)
+
+    tiempos_modulos[
+        "Fusion PA"
+    ] = duracion
 
     imprimir_resultado(
         SCRIPT_FUSION_PA,
         returncode,
         stdout,
         stderr,
+        duracion,
     )
 
-    # 3. Fusión NoPA
-    print("\n[INFO] Ejecutando fusión NoPA → cuotas_NoPA.json...\n")
 
-    fusion_nopa_path = os.path.join(BASE_DIR, SCRIPT_FUSION_NOPA)
-    returncode, stdout, stderr = ejecutar_script(fusion_nopa_path)
+    # ========================================================
+    # 3. FUSIÓN NoPA
+    # ========================================================
+
+    print()
+    print("=" * 70)
+    print("FUSIÓN NoPA")
+    print("=" * 70)
+
+    fusion_nopa_path = os.path.join(
+        BASE_DIR,
+        SCRIPT_FUSION_NOPA,
+    )
+
+    (
+        returncode,
+        stdout,
+        stderr,
+        duracion,
+    ) = ejecutar_script(fusion_nopa_path)
+
+    tiempos_modulos[
+        "Fusion NoPA"
+    ] = duracion
 
     imprimir_resultado(
         SCRIPT_FUSION_NOPA,
         returncode,
         stdout,
         stderr,
+        duracion,
     )
 
-    # 4. Smart Alerts PA
+
+    # ========================================================
+    # 4. SMART ALERTS PA
+    # ========================================================
+
     if EJECUTAR_SMART_ALERTS:
-        print("\n[INFO] Lanzando: smart_alerts.py")
-        returncode, stdout, stderr = ejecutar_script(
-            os.path.join(BASE_DIR, "smart_alerts.py")
+
+        print()
+        print("=" * 70)
+        print("BOT SMART ALERTS PA")
+        print("=" * 70)
+
+        script = os.path.join(
+            BASE_DIR,
+            "smart_alerts.py",
         )
+
+        (
+            returncode,
+            stdout,
+            stderr,
+            duracion,
+        ) = ejecutar_script(script)
+
+        tiempos_modulos[
+            "Bot Smart Alerts PA"
+        ] = duracion
+
         imprimir_resultado(
             "smart_alerts.py",
             returncode,
             stdout,
             stderr,
+            duracion,
         )
 
-    # 5. Smart Alerts NoPA
+
+    # ========================================================
+    # 5. SMART ALERTS NoPA
+    # ========================================================
+
     if EJECUTAR_SMART_ALERTS_NOPA:
-        print("\n[INFO] Lanzando: smart_alerts_nopa.py")
-        returncode, stdout, stderr = ejecutar_script(
-            os.path.join(BASE_DIR, "smart_alerts_nopa.py")
+
+        print()
+        print("=" * 70)
+        print("BOT SMART ALERTS NoPA")
+        print("=" * 70)
+
+        script = os.path.join(
+            BASE_DIR,
+            "smart_alerts_nopa.py",
         )
+
+        (
+            returncode,
+            stdout,
+            stderr,
+            duracion,
+        ) = ejecutar_script(script)
+
+        tiempos_modulos[
+            "Bot Smart Alerts NoPA"
+        ] = duracion
+
         imprimir_resultado(
             "smart_alerts_nopa.py",
             returncode,
             stdout,
             stderr,
+            duracion,
         )
 
-    # 6. Histórico Bet365
+
+    # ========================================================
+    # 6. HISTÓRICO BET365
+    # ========================================================
+
     if EJECUTAR_HISTORICO_BET365:
-        print("\n[INFO] Histórico Bet365")
-        returncode, stdout, stderr = ejecutar_script(
-            os.path.join(BASE_DIR, "historico_bet365.py")
+
+        print()
+        print("=" * 70)
+        print("HISTÓRICO BET365")
+        print("=" * 70)
+
+        script = os.path.join(
+            BASE_DIR,
+            "historico_bet365.py",
         )
+
+        (
+            returncode,
+            stdout,
+            stderr,
+            duracion,
+        ) = ejecutar_script(script)
+
+        tiempos_modulos[
+            "Historico Bet365"
+        ] = duracion
+
         imprimir_resultado(
             "historico_bet365.py",
             returncode,
             stdout,
             stderr,
+            duracion,
         )
 
-    # 7. Movimientos Bet365
+
+    # ========================================================
+    # 7. MOVIMIENTOS BET365
+    # ========================================================
+
     if EJECUTAR_MOVIMIENTOS_BET365:
-        print("\n[INFO] Movimientos bruscos Bet365")
-        returncode, stdout, stderr = ejecutar_script(
-            os.path.join(BASE_DIR, "movimientos_bet365.py")
+
+        print()
+        print("=" * 70)
+        print("MOVIMIENTOS BET365")
+        print("=" * 70)
+
+        script = os.path.join(
+            BASE_DIR,
+            "movimientos_bet365.py",
         )
+
+        (
+            returncode,
+            stdout,
+            stderr,
+            duracion,
+        ) = ejecutar_script(script)
+
+        tiempos_modulos[
+            "Movimientos Bet365"
+        ] = duracion
+
         imprimir_resultado(
             "movimientos_bet365.py",
             returncode,
             stdout,
             stderr,
+            duracion,
         )
 
-    print("\n==============================")
-    print(
-        "Ciclo completado a las "
-        f"{datetime.datetime.now().strftime('%H:%M:%S')}"
+
+    # ========================================================
+    # FIN CICLO
+    # ========================================================
+
+    tiempo_total = (
+        time.perf_counter()
+        - inicio_ciclo
     )
-    print("==============================\n")
+
+    hora_fin = datetime.datetime.now()
+
+
+    # ========================================================
+    # RESUMEN FINAL
+    # ========================================================
+
+    print()
+    print()
+    print("=" * 70)
+    print("RESUMEN DE TIEMPOS - CASAS DE APUESTAS")
+    print("=" * 70)
+    print()
+
+
+    # Ordenar de mayor a menor
+    casas_ordenadas = sorted(
+        tiempos_casas.items(),
+        key=lambda x: x[1],
+        reverse=True,
+    )
+
+
+    for script, segundos in casas_ordenadas:
+
+        marca = ""
+
+        if segundos >= 60:
+            marca = "  <-- LENTO"
+
+        print(
+            f"{script:<32} "
+            f"{formato_tiempo(segundos):>18}"
+            f"{marca}"
+        )
+
+
+    print()
+    print("-" * 70)
+
+    print(
+        f"{'FASE EXTRACTORES':<32} "
+        f"{formato_tiempo(tiempo_extractores):>18}"
+    )
+
+
+    # ========================================================
+    # RESUMEN MÓDULOS
+    # ========================================================
+
+    print()
+    print("=" * 70)
+    print("RESUMEN DE TIEMPOS - FUSIONES Y BOTS")
+    print("=" * 70)
+    print()
+
+
+    for modulo, segundos in tiempos_modulos.items():
+
+        print(
+            f"{modulo:<32} "
+            f"{formato_tiempo(segundos):>18}"
+        )
+
+
+    print()
+    print("=" * 70)
+    print("RESUMEN GENERAL")
+    print("=" * 70)
+    print()
+
+    print(
+        f"Inicio ciclo:  "
+        f"{hora_inicio.strftime('%H:%M:%S')}"
+    )
+
+    print(
+        f"Fin ciclo:     "
+        f"{hora_fin.strftime('%H:%M:%S')}"
+    )
+
+    print()
+
+    print(
+        f"TIEMPO TOTAL DEL CICLO: "
+        f"{formato_tiempo(tiempo_total)}"
+    )
+
+    print()
+    print("=" * 70)
+    print()
 
 
 if __name__ == "__main__":
