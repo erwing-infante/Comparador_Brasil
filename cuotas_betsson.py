@@ -16,7 +16,7 @@ import requests
 BASE_URL = "https://www.betsson.pe"
 
 TZ_FECHA_BETSSON = ZoneInfo("UTC")
-DIAS_A_FUTURO = 2
+DIAS_A_FUTURO = 3
 CASA = "Betsson"
 
 BRAND_ID = "6a6d80b9-16ac-4387-a413-244d93a74deb"
@@ -58,10 +58,10 @@ STATUS_PATH = os.path.join(DEBUG_DIR, "status_betsson.json")
 # ==========================================================
 LIGAS_BETSSON = {
     3: "Premier League",
-    #148: "EFL Cup",
+    148: "EFL Cup",
     4: "Championship",
     12: "La Liga",
-    #121: "Copa del Rey",
+    121: "Copa del Rey",
     9: "Serie A",
     15: "Bundesliga",
     122: "Copa Alemana",
