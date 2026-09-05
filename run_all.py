@@ -57,10 +57,6 @@ EJECUTAR_MOVIMIENTOS_BET365 = False
 # ============================================================
 
 def formato_tiempo(segundos):
-    """
-    Convierte segundos a formato legible.
-    """
-
     if segundos < 60:
         return f"{segundos:.2f} s"
 
@@ -71,10 +67,6 @@ def formato_tiempo(segundos):
 
 
 def ejecutar_script(script):
-    """
-    Ejecuta un script secuencialmente y mide su duración.
-    """
-
     inicio = time.perf_counter()
 
     try:
@@ -97,7 +89,6 @@ def ejecutar_script(script):
         )
 
     except Exception as e:
-
         duracion = time.perf_counter() - inicio
 
         return (
@@ -109,19 +100,10 @@ def ejecutar_script(script):
 
 
 def esperar_proceso(script, proceso, inicio):
-    """
-    Espera un extractor lanzado en paralelo.
-
-    Esta función se ejecuta también en paralelo para que podamos
-    medir correctamente el tiempo REAL que tarda cada scraper.
-    """
-
     try:
-
         stdout, stderr = proceso.communicate()
 
         returncode = proceso.returncode
-
         duracion = time.perf_counter() - inicio
 
         return (
@@ -133,7 +115,6 @@ def esperar_proceso(script, proceso, inicio):
         )
 
     except Exception as e:
-
         duracion = time.perf_counter() - inicio
 
         return (
@@ -198,7 +179,6 @@ def imprimir_resultado(
 def main():
 
     inicio_ciclo = time.perf_counter()
-
     hora_inicio = datetime.datetime.now()
 
     print("\n")
@@ -210,13 +190,7 @@ def main():
     print("=" * 70)
     print()
 
-
-    # ========================================================
-    # VARIABLES PARA RESUMEN
-    # ========================================================
-
     tiempos_casas = {}
-
     tiempos_modulos = {}
 
 
@@ -268,13 +242,9 @@ def main():
 
         env = os.environ.copy()
 
-
-        # Betano necesita DISPLAY
         if script == "cuotas_betano.py":
-
             env["DISPLAY"] = ":99"
             env["BETANO_HEADFUL"] = "1"
-
 
         try:
 
@@ -340,10 +310,6 @@ def main():
             futuros.append(futuro)
 
 
-        # ----------------------------------------------------
-        # RECIBIR RESULTADOS SEGÚN VAN TERMINANDO
-        # ----------------------------------------------------
-
         for futuro in as_completed(futuros):
 
             (
@@ -370,10 +336,6 @@ def main():
                 duracion,
             )
 
-
-            # ------------------------------------------------
-            # ODDSAPI
-            # ------------------------------------------------
 
             output = (
                 (stdout or "")
@@ -430,75 +392,89 @@ def main():
 
 
     # ========================================================
-    # 2. FUSIÓN PA
+    # 2. FUSIONES PA + NoPA EN PARALELO
     # ========================================================
 
     print()
     print("=" * 70)
-    print("FUSIÓN PA")
+    print("FUSIONES PA + NoPA EN PARALELO")
     print("=" * 70)
-
-    fusion_pa_path = os.path.join(
-        BASE_DIR,
-        SCRIPT_FUSION_PA,
-    )
-
-    (
-        returncode,
-        stdout,
-        stderr,
-        duracion,
-    ) = ejecutar_script(fusion_pa_path)
-
-    tiempos_modulos[
-        "Fusion PA"
-    ] = duracion
-
-    imprimir_resultado(
-        SCRIPT_FUSION_PA,
-        returncode,
-        stdout,
-        stderr,
-        duracion,
-    )
-
-
-    # ========================================================
-    # 3. FUSIÓN NoPA
-    # ========================================================
-
     print()
-    print("=" * 70)
-    print("FUSIÓN NoPA")
-    print("=" * 70)
 
-    fusion_nopa_path = os.path.join(
-        BASE_DIR,
-        SCRIPT_FUSION_NOPA,
+    inicio_fusiones = time.perf_counter()
+
+    fusiones = {
+        "Fusion PA": os.path.join(
+            BASE_DIR,
+            SCRIPT_FUSION_PA,
+        ),
+        "Fusion NoPA": os.path.join(
+            BASE_DIR,
+            SCRIPT_FUSION_NOPA,
+        ),
+    }
+
+
+    with ThreadPoolExecutor(
+        max_workers=2
+    ) as executor:
+
+        futuros_fusiones = {
+            executor.submit(
+                ejecutar_script,
+                script_path,
+            ): (
+                nombre,
+                script_path,
+            )
+            for nombre, script_path in fusiones.items()
+        }
+
+
+        for futuro in as_completed(
+            futuros_fusiones
+        ):
+
+            nombre, script_path = (
+                futuros_fusiones[futuro]
+            )
+
+            (
+                returncode,
+                stdout,
+                stderr,
+                duracion,
+            ) = futuro.result()
+
+            tiempos_modulos[nombre] = duracion
+
+            print()
+            print(
+                f"[{datetime.datetime.now().strftime('%H:%M:%S')}] "
+                f"[FIN] {nombre}"
+            )
+
+            imprimir_resultado(
+                os.path.basename(script_path),
+                returncode,
+                stdout,
+                stderr,
+                duracion,
+            )
+
+
+    tiempo_fusiones = (
+        time.perf_counter()
+        - inicio_fusiones
     )
-
-    (
-        returncode,
-        stdout,
-        stderr,
-        duracion,
-    ) = ejecutar_script(fusion_nopa_path)
 
     tiempos_modulos[
-        "Fusion NoPA"
-    ] = duracion
-
-    imprimir_resultado(
-        SCRIPT_FUSION_NOPA,
-        returncode,
-        stdout,
-        stderr,
-        duracion,
-    )
+        "Fusiones paralelo TOTAL"
+    ] = tiempo_fusiones
 
 
     # ========================================================
-    # 4. SMART ALERTS PA
+    # 3. SMART ALERTS PA
     # ========================================================
 
     if EJECUTAR_SMART_ALERTS:
@@ -534,7 +510,7 @@ def main():
 
 
     # ========================================================
-    # 5. SMART ALERTS NoPA
+    # 4. SMART ALERTS NoPA
     # ========================================================
 
     if EJECUTAR_SMART_ALERTS_NOPA:
@@ -570,7 +546,7 @@ def main():
 
 
     # ========================================================
-    # 6. HISTÓRICO BET365
+    # 5. HISTÓRICO BET365
     # ========================================================
 
     if EJECUTAR_HISTORICO_BET365:
@@ -606,7 +582,7 @@ def main():
 
 
     # ========================================================
-    # 7. MOVIMIENTOS BET365
+    # 6. MOVIMIENTOS BET365
     # ========================================================
 
     if EJECUTAR_MOVIMIENTOS_BET365:
@@ -654,7 +630,7 @@ def main():
 
 
     # ========================================================
-    # RESUMEN FINAL
+    # RESUMEN CASAS
     # ========================================================
 
     print()
@@ -665,7 +641,6 @@ def main():
     print()
 
 
-    # Ordenar de mayor a menor
     casas_ordenadas = sorted(
         tiempos_casas.items(),
         key=lambda x: x[1],
@@ -697,7 +672,7 @@ def main():
 
 
     # ========================================================
-    # RESUMEN MÓDULOS
+    # RESUMEN FUSIONES + BOTS
     # ========================================================
 
     print()
@@ -714,6 +689,10 @@ def main():
             f"{formato_tiempo(segundos):>18}"
         )
 
+
+    # ========================================================
+    # RESUMEN GENERAL
+    # ========================================================
 
     print()
     print("=" * 70)

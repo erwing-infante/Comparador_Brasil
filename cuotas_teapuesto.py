@@ -19,7 +19,7 @@ LANG_EVENTS = "es"
 TIME_RANGE = "all"
 
 TZ_LOCAL = ZoneInfo("America/Lima")
-DIAS_A_FUTURO = 3
+DIAS_A_FUTURO = 2
 
 MAX_WORKERS_MUNDIAL = 8
 
@@ -45,7 +45,7 @@ OUT_PATH = os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 
 LIGAS_EQUIVALENCIAS = {
     "1105": "Premier League",
-    "1745": "EFL Cup",
+    #"1745": "EFL Cup",
     "1141": "La Liga",
     "1109": "Serie A",
     "1139": "Bundesliga",
@@ -61,7 +61,6 @@ LIGAS_EQUIVALENCIAS = {
 
 MUNDIAL_ID = 1197
 MUNDIAL_NAME = "Copa Mundial 2026"
-
 
 # ==========================================================
 # UTILS

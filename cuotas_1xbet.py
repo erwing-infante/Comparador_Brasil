@@ -25,7 +25,7 @@ URL_PARTIDO = (
 
 TZ_FECHA_1XBET = ZoneInfo("UTC")
 
-DIAS_A_FUTURO = 3
+DIAS_A_FUTURO = 2
 CASA = "1xbet"
 
 # False = salida compacta. True = muestra requests y cada partido.
@@ -76,10 +76,10 @@ LIGAS_1XBET = {
         "nombre": "Premier League",
         "slug": "england-premier-league",
     },
-    108319: {
-        "nombre": "FA Cup",
-        "slug": "england-fa-cup",
-    },
+    #108319: {
+    #    "nombre": "FA Cup",
+    #    "slug": "england-fa-cup",
+    #},
     119237: {
         "nombre": "EFL Cup",
         "slug": "england-league-cup",
@@ -104,10 +104,10 @@ LIGAS_1XBET = {
         "nombre": "Bundesliga",
         "slug": "germany-bundesliga",
     },
-    119235: {
-        "nombre": "Copa Alemana",
-        "slug": "germany-dfb-pokal",
-    },
+    #119235: {
+    #    "nombre": "Copa Alemana",
+    #    "slug": "germany-dfb-pokal",
+    #},
     12821: {
         "nombre": "Ligue 1",
         "slug": "france-ligue-1",
@@ -120,10 +120,10 @@ LIGAS_1XBET = {
         "nombre": "Brasileirao",
         "slug": "brazil-campeonato-brasileiro-serie-a",
     },
-    120013: {
-        "nombre": "Copa de Brasil",
-        "slug": "brazil-copa-do-brasil",
-    },
+    #120013: {
+    #    "nombre": "Copa de Brasil",
+    #    "slug": "brazil-copa-do-brasil",
+    #},
     2306111: {
         "nombre": "Liga MX",
         "slug": "mexico-liga-mx",

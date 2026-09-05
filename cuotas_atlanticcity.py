@@ -35,15 +35,15 @@ PARAMS_EVENTS = {
 }
 
 # === LÍMITE DE DÍAS ===
-HORAS_ADELANTE = 72  # 3 días
+HORAS_ADELANTE = 48  # 2 días
 NOW_UTC = datetime.now(timezone.utc)
 CUTOFF_UTC = NOW_UTC + timedelta(hours=HORAS_ADELANTE)
 
 # === LIGAS EQUIVALENTES ===
 LIGAS_EQUIVALENCIAS = [
     ("Premier League", "Inglaterra", "Premier League"),
-    ("FA Cup", "Inglaterra", "FA Cup"),
-    ("EFL Cup", "Inglaterra", "EFL Cup"),
+    #("FA Cup", "Inglaterra", "FA Cup"),
+    #("EFL Cup", "Inglaterra", "EFL Cup"),
     ("Championship", "Inglaterra", "Championship"),
     ("LaLiga", "España", "La Liga"),
     ("Copa del Rey", "España", "Copa del Rey"),
