@@ -1,4 +1,4 @@
-import subprocess
+
 import datetime
 import os
 import time
@@ -16,7 +16,6 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 SCRIPTS_EXTRACTORES = [
     # "cuotas_oddsapi.py",
-
     "cuotas_apuestatotal.py",
     # "cuotas_doradobet.py",
     "cuotas_atlanticcity.py",
@@ -26,10 +25,10 @@ SCRIPTS_EXTRACTORES = [
     # "cuotas_stake2.py",
     "cuotas_1xbet.py",
     "cuotas_pinnacle.py",
-    "cuotas_betsson.py",
     # "cuotas_tinbet.py",
     # "cuotas_inkabet.py",
     #"cuotas_betano.py",
+    #"cuotas_betsson.py",
 ]
 
 
@@ -191,21 +190,6 @@ def main():
 
 
     # ========================================================
-    # XVFB BETANO
-    # ========================================================
-
-    print("[INFO] Verificando Xvfb para Betano...")
-
-    os.system(
-        "pgrep Xvfb >/dev/null || "
-        "(Xvfb :99 -screen 0 1280x800x24 "
-        ">/tmp/xvfb.log 2>&1 &)"
-    )
-
-    os.environ["DISPLAY"] = ":99"
-
-
-    # ========================================================
     # 1. EXTRACTORES EN PARALELO
     # ========================================================
 
@@ -237,10 +221,6 @@ def main():
         )
 
         env = os.environ.copy()
-
-        if script == "cuotas_betano.py":
-            env["DISPLAY"] = ":99"
-            env["BETANO_HEADFUL"] = "1"
 
         try:
 
