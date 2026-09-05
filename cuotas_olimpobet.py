@@ -658,39 +658,7 @@ def extraer_cuotas_desde_detail(
         and cuota2_pago is not None
     )
 
-    # Guardar debug cuando falta el mercado normal
-    # o no existe Pago Anticipado.
-    if event_id and (
-        not tiene_resultado_normal
-        or not tiene_pago_anticipado
-    ):
-        debug_path = os.path.join(
-            DEBUG_DIR,
-            f"event_{event_id}_mercados.json",
-        )
-
-        save_json(
-            debug_path,
-            {
-                "eventId": event_id,
-                "mercados": mercados_debug,
-                "resultado_normal": {
-                    "local": cuota1_normal,
-                    "empate": cuotaX_normal,
-                    "visita": cuota2_normal,
-                },
-                "pago_anticipado": {
-                    "local": cuota1_pago,
-                    "empate": cuotaX_pago,
-                    "visita": cuota2_pago,
-                },
-                "final": {
-                    "local": cuota1_final,
-                    "empate": cuotaX_final,
-                    "visita": cuota2_final,
-                },
-            },
-        )
+    # Debug por partido desactivado para mantener la ejecución limpia.
 
     return {
         # Cuotas finales
@@ -804,20 +772,6 @@ def parse_event(
         )
 
         return None
-
-    if cuotas["tiene_pago_anticipado"]:
-        tipo = "Pago Anticipado"
-
-    else:
-        tipo = "Sin Pago Anticipado"
-
-    print(
-        f"   OK {home} vs {away} | "
-        f"{tipo} | "
-        f"{cuotas['cuota1']} / "
-        f"{cuotas['cuotaX']} / "
-        f"{cuotas['cuota2']}"
-    )
 
     return {
         "Liga": liga_nombre,
@@ -987,11 +941,6 @@ def scrape_liga(
     ]
 
     if not events_validos:
-        print(
-            f"OK {nombre}: "
-            "0 partidos dentro de ventana"
-        )
-
         return []
 
     parsed = []
@@ -1032,11 +981,6 @@ def scrape_liga(
                     f"{nombre}: {error}"
                 )
 
-    print(
-        f"OK {nombre}: "
-        f"{len(parsed)} partidos"
-    )
-
     return parsed
 
 
@@ -1057,16 +1001,7 @@ def main():
         )
     )
 
-    print(
-        "\nDescargando OLIMPO con "
-        "Resultado Final y Pago Anticipado...\n"
-    )
-
-    print(
-        f"Ventana UTC: "
-        f"{now_utc:%Y-%m-%d %H:%M:%S} -> "
-        f"{cutoff_utc:%Y-%m-%d %H:%M:%S}"
-    )
+    print("\nOlimpoBet: descargando cuotas...")
 
     resultados = []
 
@@ -1173,27 +1108,8 @@ def main():
     )
 
     print(
-        f"\nOK Archivo generado: "
-        f"{OUTPUT_FILE}"
-    )
-
-    print(
-        f"TOTAL PARTIDOS: "
-        f"{len(resultados)}"
-    )
-
-    print(
-        f"CON PAGO ANTICIPADO: "
-        f"{con_pago}"
-    )
-
-    print(
-        f"SIN PAGO ANTICIPADO: "
-        f"{sin_pago}"
-    )
-
-    print(
-        f"TIEMPO TOTAL: "
+        f"OlimpoBet OK: {len(resultados)} partidos | "
+        f"PA: {con_pago} | NoPA: {sin_pago} | "
         f"{elapsed:.2f}s"
     )
 
