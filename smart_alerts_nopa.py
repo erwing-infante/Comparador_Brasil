@@ -66,7 +66,7 @@ def agregar_chat_id(variable_entorno):
 
 agregar_chat_id("SMART_NOPA_CHAT_ID_1")
 agregar_chat_id("SMART_NOPA_CHAT_ID_2")
-agregar_chat_id("SMART_NOPA_CHAT_ID_3")
+#agregar_chat_id("SMART_NOPA_CHAT_ID_3")
 
 
 # ============================================================
