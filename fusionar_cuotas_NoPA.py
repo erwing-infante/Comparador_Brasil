@@ -31,7 +31,7 @@ ARCHIVOS = {
     "atlanticcity": os.path.join(DATA_DIR, "cuotas_atlanticcity.json"),
     "olimpobet": os.path.join(DATA_DIR, "cuotas_olimpobet.json"),
     #"gangabet": os.path.join(DATA_DIR, "cuotas_gangabet.json"),
-    "betano": os.path.join(DATA_DIR, "cuotas_betano.json"),
+    #"betano": os.path.join(DATA_DIR, "cuotas_betano.json"),
     #"stake": os.path.join(DATA_DIR, "cuotas_stake.json"),
     "1xbet": os.path.join(DATA_DIR, "cuotas_1xbet.json"),
     "pinnacle": os.path.join(DATA_DIR, "cuotas_pinnacle.json"),

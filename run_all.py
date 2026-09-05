@@ -29,7 +29,7 @@ SCRIPTS_EXTRACTORES = [
     "cuotas_betsson.py",
     # "cuotas_tinbet.py",
     # "cuotas_inkabet.py",
-    "cuotas_betano.py",
+    #"cuotas_betano.py",
 ]
 
 
