@@ -1,4 +1,4 @@
-# smart_alerts_nopa.py
+
 #
 # Bot independiente para alertas de SUREBET NoPA.
 # - Lee data/cuotas_NoPA.json
@@ -82,10 +82,38 @@ UMBRAL_SUREBET = 0.0
 
 
 # ============================================================
+# HORARIO TELEGRAM
+# ============================================================
+
+TZ_PE = ZoneInfo("America/Lima")
+HORA_INICIO_TELEGRAM = 7
+HORA_FIN_TELEGRAM = 23
+
+
+def telegram_habilitado():
+    """
+    Telegram activo todos los días:
+    07:00 <= hora Perú < 23:00
+
+    Fuera de ese horario el bot sigue procesando y guardando estado,
+    pero no envía mensajes.
+    """
+    ahora_pe = datetime.now(TZ_PE)
+    return HORA_INICIO_TELEGRAM <= ahora_pe.hour < HORA_FIN_TELEGRAM
+
+
+# ============================================================
 # TELEGRAM
 # ============================================================
 
 def enviar_alerta(msg: str):
+
+    if not telegram_habilitado():
+        print(
+            "🌙 Telegram NoPA silenciado por horario "
+            "(23:00 - 07:00, hora Perú)."
+        )
+        return False
 
     if not TELEGRAM_TOKEN:
         print(
@@ -134,6 +162,8 @@ def enviar_alerta(msg: str):
                 f"Telegram chat {chat_id}: "
                 f"{e}"
             )
+
+    return True
 
 
 # ============================================================

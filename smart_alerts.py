@@ -113,10 +113,35 @@ def clasificar_senal(margen_jugador):
 
 
 # ============================================================
+# HORARIO TELEGRAM
+# ============================================================
+
+TZ_PE = ZoneInfo("America/Lima")
+HORA_INICIO_TELEGRAM = 7
+HORA_FIN_TELEGRAM = 23
+
+
+def telegram_habilitado():
+    """
+    Telegram activo todos los días:
+    07:00 <= hora Perú < 23:00
+
+    Fuera de ese horario el bot sigue procesando y guardando estado,
+    pero no envía mensajes.
+    """
+    ahora_pe = datetime.now(TZ_PE)
+    return HORA_INICIO_TELEGRAM <= ahora_pe.hour < HORA_FIN_TELEGRAM
+
+
+# ============================================================
 # TELEGRAM
 # ============================================================
 
 def enviar_alerta(msg: str, categoria: str):
+
+    if not telegram_habilitado():
+        print("🌙 Telegram silenciado por horario (23:00 - 07:00, hora Perú).")
+        return False
 
     if not TELEGRAM_TOKEN:
         print("❌ SMART_BOT_TOKEN no configurado.")
@@ -156,6 +181,8 @@ def enviar_alerta(msg: str, categoria: str):
                 f"❌ Excepción enviando Telegram chat {cid}:",
                 e
             )
+
+    return True
 
 
 # ============================================================

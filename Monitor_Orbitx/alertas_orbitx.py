@@ -2,6 +2,7 @@ import os
 import json
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -192,7 +193,38 @@ def telegram_configurado():
     )
 
 
+# ============================================================
+# HORARIO TELEGRAM
+# ============================================================
+
+TZ_PE = ZoneInfo("America/Lima")
+HORA_INICIO_TELEGRAM = 7
+HORA_FIN_TELEGRAM = 23
+
+
+def telegram_habilitado():
+    """
+    Telegram activo todos los días:
+    07:00 <= hora Perú < 23:00
+
+    El monitor OrbitX sigue corriendo y actualizando su estado
+    durante la madrugada; únicamente se bloquea el envío a Telegram.
+    """
+    ahora_pe = datetime.now(TZ_PE)
+    return HORA_INICIO_TELEGRAM <= ahora_pe.hour < HORA_FIN_TELEGRAM
+
+
 def enviar_telegram(mensaje):
+
+    if not telegram_habilitado():
+
+        print(
+            "[TELEGRAM CAIDAS] "
+            "SILENCIADO POR HORARIO "
+            "(23:00 - 07:00, hora Perú)"
+        )
+
+        return False
 
     if not telegram_configurado():
 
