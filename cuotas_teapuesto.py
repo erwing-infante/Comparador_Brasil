@@ -44,11 +44,14 @@ OUT_PATH = os.path.join(DATA_DIR, "cuotas_teapuesto.json")
 
 LIGAS_EQUIVALENCIAS = {
     "1105": "Premier League",
+    "1105": "EFL cup",
     "1141": "La Liga",
     "1109": "Serie A",
     "1139": "Bundesliga",
     "1510": "Ligue 1",
     "130": "Brasileirao",
+    "102": "MLS",
+    "16384": "Liga MX",
     "1899": "Liga 1 Perú",
     "1417": "UEFA Champions League",
     "1952": "UEFA Europa League",
