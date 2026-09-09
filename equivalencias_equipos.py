@@ -770,4 +770,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "ldu quito": "ldu",
     "estudiantes la plata": "estudiantes",
     "independiente del valle": "independiente (ecu)",
+    "sabah masazir": "sabah fk",
 }
