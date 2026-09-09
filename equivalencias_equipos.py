@@ -767,4 +767,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "psv": "psv eindhoven",
     "psv eindhoven": "psv eindhoven",
     "shakhtar donetsk": "shakhtar",
+    "ldu quito": "ldu",
 }
