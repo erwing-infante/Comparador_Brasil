@@ -762,4 +762,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "qpr": "queens park rangers",
     "derby": "derby county",
     "bolton wanderers": "bolton",
+    "viking stavanger": "viking",
+    "bode-glimt": "bodo glimt",
 }
