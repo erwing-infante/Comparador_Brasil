@@ -765,5 +765,6 @@ EQUIVALENCIAS_EQUIPOS = {
     "viking stavanger": "viking",
     "bode-glimt": "bodo glimt",
     "psv": "psv eindhoven",
+    "psv eindhoven": "psv eindhoven",
     "shakhtar donetsk": "shakhtar",
 }
