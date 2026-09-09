@@ -12,19 +12,11 @@ import requests
 # ==========================================================
 
 TOURNAMENT_EVENTS_URL = "https://api-latam.core-ix.com/api/v1/tournament-events"
-EVENTS_URL = "https://api-latam.core-ix.com/api/v1/events"
-EVENT_DETAILS_URL = "https://api-latam.core-ix.com/api/v1/event-details"
 
-SPORT_ID = 1
 TZ_LOCAL = ZoneInfo("America/Lima")
 DIAS_A_FUTURO = 3
-
 MAX_WORKERS_LIGAS = 8
-MAX_WORKERS_MUNDIAL = 8
-
 TIMEOUT_LISTADO = (6, 25)
-TIMEOUT_MUNDIAL = (6, 20)
-TIMEOUT_DETALLE = (6, 20)
 
 AUTH_TEAPUESTO = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
@@ -64,9 +56,6 @@ LIGAS_EQUIVALENCIAS = {
     "10009": "Copa Libertadores",
     "10531": "Copa Sudamericana",
 }
-
-MUNDIAL_ID = 1197
-MUNDIAL_NAME = "Copa Mundial 2026"
 
 # ==========================================================
 # SESSION
@@ -133,7 +122,26 @@ def parse_teams(name):
     return None, None
 
 # ==========================================================
-# FILTRO PREMATCH
+# PAGO ANTICIPADO
+# ==========================================================
+
+def has_early_payout(ev):
+    labels = ev.get("event_labels", []) or []
+
+    for label in labels:
+        if not isinstance(label, dict):
+            continue
+
+        text = str(label.get("text") or "").strip().upper()
+        description = str(label.get("description") or "").strip().lower()
+
+        if "PAGO ANTICIPADO" in text or "early payout" in description:
+            return True
+
+    return False
+
+# ==========================================================
+# FILTRO PREMATCH / NO LIVE
 # ==========================================================
 
 def has_live_flag(ev):
@@ -238,7 +246,7 @@ def is_future_prematch(ev, now, window_end):
     return True, dt
 
 # ==========================================================
-# NUEVO POST TOURNAMENT-EVENTS
+# API
 # ==========================================================
 
 def fetch_tournament_events(tournament_id):
@@ -270,7 +278,7 @@ def fetch_tournament_events(tournament_id):
     return r.json()
 
 # ==========================================================
-# EXTRAER DATOS DEL PAYLOAD
+# EXTRAER TORNEOS
 # ==========================================================
 
 def get_tournaments(payload):
@@ -285,11 +293,13 @@ def get_tournaments(payload):
         if isinstance(tournaments, dict):
             return tournaments
 
-        # Algunas versiones pueden devolver directamente
-        # los torneos dentro de data.
         return data
 
     return {}
+
+# ==========================================================
+# EXTRAER 1X2 + PA / NoPA
+# ==========================================================
 
 def extract_1x2_normal(payload, tournament_id, now, window_end):
     tid = str(tournament_id)
@@ -297,11 +307,9 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
     rows = []
 
     tournaments = get_tournaments(payload)
-
     tinfo = tournaments.get(tid)
 
     if not tinfo:
-        # Buscar por tournament_id si la API cambia keys.
         for _, value in tournaments.items():
             if not isinstance(value, dict):
                 continue
@@ -317,7 +325,12 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
                 break
 
     if not isinstance(tinfo, dict):
-        return rows, {"liga": liga, "eventos": 0, "odds": 0}
+        return rows, {
+            "liga": liga,
+            "eventos": 0,
+            "odds": 0,
+            "pa": 0,
+        }
 
     events = tinfo.get("events", []) or []
 
@@ -336,6 +349,7 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
             candidatos.append((ev, dt))
 
     count_odds = 0
+    count_pa = 0
 
     for ev, dt in candidatos:
         event_id = ev.get("id")
@@ -364,7 +378,11 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
         odds_items = None
 
         for market_odd in market_1x2.get("market_odds", []) or []:
-            odds = market_odd.get("odds") if isinstance(market_odd, dict) else None
+            odds = (
+                market_odd.get("odds")
+                if isinstance(market_odd, dict)
+                else None
+            )
 
             if odds:
                 odds_items = odds
@@ -381,7 +399,10 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
             if not isinstance(odd, dict):
                 continue
 
-            provider_id = str(odd.get("provider_odd_id") or "").strip()
+            provider_id = str(
+                odd.get("provider_odd_id") or ""
+            ).strip()
+
             order = odd.get("order")
             value = odd.get("value")
 
@@ -400,15 +421,26 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
 
             if provider_id == "1" or order_num == 1:
                 cuota_local = value
+
             elif provider_id == "2" or order_num == 2:
                 cuota_empate = value
+
             elif provider_id == "3" or order_num == 3:
                 cuota_visita = value
 
-        if cuota_local is None or cuota_empate is None or cuota_visita is None:
+        if (
+            cuota_local is None
+            or cuota_empate is None
+            or cuota_visita is None
+        ):
             continue
 
+        tiene_pa = has_early_payout(ev)
+
         count_odds += 1
+
+        if tiene_pa:
+            count_pa += 1
 
         rows.append({
             "Liga": liga,
@@ -417,11 +449,14 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
             "Casa": "TeApuesto",
             "Local": home,
             "Visita": away,
-            "Cuota Local": None,
+
+            "Cuota Local": cuota_local if tiene_pa else None,
             "Cuota Empate": cuota_empate,
-            "Cuota Visita": None,
+            "Cuota Visita": cuota_visita if tiene_pa else None,
+
             "Cuota Local NoPA": cuota_local,
             "Cuota Visita NoPA": cuota_visita,
+
             "EventId": event_id,
         })
 
@@ -429,7 +464,12 @@ def extract_1x2_normal(payload, tournament_id, now, window_end):
         "liga": liga,
         "eventos": len(candidatos),
         "odds": count_odds,
+        "pa": count_pa,
     }
+
+# ==========================================================
+# PROCESAR LIGA
+# ==========================================================
 
 def procesar_liga(tournament_id, now, window_end):
     tid = str(tournament_id)
@@ -437,283 +477,25 @@ def procesar_liga(tournament_id, now, window_end):
 
     try:
         payload = fetch_tournament_events(tid)
+
         rows, status = extract_1x2_normal(
             payload,
             tid,
             now,
             window_end,
         )
+
         return tid, rows, status
 
     except Exception as e:
         print(f"❌ Error TeApuesto {liga}: {e}")
+
         return tid, [], {
             "liga": liga,
             "eventos": 0,
             "odds": 0,
+            "pa": 0,
         }
-
-# ==========================================================
-# MUNDIAL
-# ==========================================================
-
-def fetch_mundial_events():
-    session = get_session()
-
-    payload = {
-        "tournament_ids": [str(MUNDIAL_ID)],
-        "time_range": "all",
-        "event_card_type": 1,
-        "event_type_id": 1,
-        "platform": "desktop",
-        "language_id": 3,
-        "code": "es-ES",
-        "language_code": "spa",
-        "version": "v3",
-        "site_code": "ta",
-        "auth": AUTH_TEAPUESTO,
-    }
-
-    r = session.post(
-        TOURNAMENT_EVENTS_URL,
-        json=payload,
-        timeout=TIMEOUT_MUNDIAL,
-    )
-
-    if r.status_code != 200:
-        raise RuntimeError(f"HTTP {r.status_code}: {r.text[:250]}")
-
-    return r.json()
-
-def fetch_event_details(event_id):
-    session = get_session()
-
-    payload = {
-        "event_id": str(event_id),
-        "platform": "desktop",
-        "language_id": 3,
-        "code": "es-ES",
-        "language_code": "spa",
-        "version": "v3",
-        "site_code": "ta",
-        "auth": AUTH_TEAPUESTO,
-    }
-
-    try:
-        r = session.post(
-            EVENT_DETAILS_URL,
-            json=payload,
-            timeout=TIMEOUT_DETALLE,
-        )
-
-        if r.status_code != 200:
-            return None
-
-        return r.json()
-
-    except Exception:
-        return None
-
-def get_data_dict(payload):
-    if not isinstance(payload, dict):
-        return {}
-
-    data = payload.get("data", {})
-
-    if isinstance(data, dict):
-        return data
-
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict) and (
-                "market_groups" in item or "event" in item
-            ):
-                return item
-
-    return {}
-
-def extract_1x2_from_event_details(payload):
-    data = get_data_dict(payload)
-    market_groups = data.get("market_groups", []) or []
-
-    for group in market_groups:
-        if not isinstance(group, dict):
-            continue
-
-        group_name = str(group.get("name") or "").lower().strip()
-
-        for market in group.get("markets", []) or []:
-            if not isinstance(market, dict):
-                continue
-
-            market_name = str(market.get("name") or "").lower().strip()
-
-            if market_name != "1x2":
-                continue
-
-            for mo in market.get("market_odds", []) or []:
-                if not isinstance(mo, dict):
-                    continue
-
-                odds = mo.get("odds", []) or []
-
-                cuotas = {
-                    "Local": None,
-                    "Empate": None,
-                    "Visita": None,
-                }
-
-                for odd in odds:
-                    if not isinstance(odd, dict):
-                        continue
-
-                    order = odd.get("order")
-                    value = odd.get("value")
-
-                    try:
-                        order = int(order)
-                        value = float(value)
-                    except Exception:
-                        continue
-
-                    if order == 1:
-                        cuotas["Local"] = value
-                    elif order == 2:
-                        cuotas["Empate"] = value
-                    elif order == 3:
-                        cuotas["Visita"] = value
-
-                if all(v is not None for v in cuotas.values()):
-                    return cuotas
-
-    return None
-
-def get_teams_from_details(payload):
-    data = get_data_dict(payload)
-    ev = data.get("event", {}) or {}
-    competitors = ev.get("competitors", {}) or {}
-
-    home = None
-    away = None
-
-    if isinstance(competitors, dict):
-        competitors = competitors.values()
-
-    if isinstance(competitors, list) or hasattr(competitors, "__iter__"):
-        for competitor in competitors:
-            if not isinstance(competitor, dict):
-                continue
-
-            ctype = str(competitor.get("type") or "").lower()
-
-            if ctype == "home":
-                home = competitor.get("name")
-            elif ctype == "away":
-                away = competitor.get("name")
-
-    return home, away
-
-def process_mundial_event(ev, dt):
-    event_id = ev.get("id")
-    event_name = ev.get("name") or ""
-
-    if not event_id:
-        return None
-
-    details = fetch_event_details(event_id)
-
-    if not details:
-        return None
-
-    cuotas = extract_1x2_from_event_details(details)
-
-    if not cuotas:
-        return None
-
-    home, away = get_teams_from_details(details)
-
-    if not home or not away:
-        home, away = parse_teams(event_name)
-
-    if not home or not away:
-        return None
-
-    return {
-        "Liga": MUNDIAL_NAME,
-        "Partido": f"{home} vs {away}",
-        "Fecha": to_iso(dt.replace(tzinfo=None)),
-        "Casa": "TeApuesto",
-        "Local": home,
-        "Visita": away,
-        "Cuota Local": None,
-        "Cuota Empate": cuotas["Empate"],
-        "Cuota Visita": None,
-        "Cuota Local NoPA": cuotas["Local"],
-        "Cuota Visita NoPA": cuotas["Visita"],
-        "EventId": event_id,
-    }
-
-def extract_mundial(now, window_end):
-    payload = fetch_mundial_events()
-    tournaments = get_tournaments(payload)
-
-    tinfo = tournaments.get(str(MUNDIAL_ID))
-
-    if not isinstance(tinfo, dict):
-        return [], {
-            "liga": MUNDIAL_NAME,
-            "eventos": 0,
-            "odds": 0,
-        }
-
-    events = tinfo.get("events", []) or []
-
-    if isinstance(events, dict):
-        events = list(events.values())
-
-    candidatos = []
-
-    for ev in events:
-        if not isinstance(ev, dict):
-            continue
-
-        ok, dt = is_future_prematch(ev, now, window_end)
-
-        if ok:
-            candidatos.append((ev, dt))
-
-    if not candidatos:
-        return [], {
-            "liga": MUNDIAL_NAME,
-            "eventos": 0,
-            "odds": 0,
-        }
-
-    print(f"🌎 Mundial: {len(candidatos)} eventos prematch")
-
-    rows = []
-    workers = min(MAX_WORKERS_MUNDIAL, len(candidatos))
-
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [
-            executor.submit(process_mundial_event, ev, dt)
-            for ev, dt in candidatos
-        ]
-
-        for future in as_completed(futures):
-            try:
-                row = future.result()
-            except Exception:
-                row = None
-
-            if row:
-                rows.append(row)
-
-    return rows, {
-        "liga": MUNDIAL_NAME,
-        "eventos": len(candidatos),
-        "odds": len(rows),
-    }
 
 # ==========================================================
 # MAIN
@@ -736,10 +518,10 @@ def main():
     tournament_ids = list(LIGAS_EQUIVALENCIAS.keys())
 
     with ThreadPoolExecutor(
-        max_workers=min(MAX_WORKERS_LIGAS, len(tournament_ids)) + 1
+        max_workers=min(MAX_WORKERS_LIGAS, len(tournament_ids))
     ) as executor:
 
-        futures_ligas = {
+        futures = {
             executor.submit(
                 procesar_liga,
                 tid,
@@ -749,33 +531,19 @@ def main():
             for tid in tournament_ids
         }
 
-        future_mundial = executor.submit(
-            extract_mundial,
-            now,
-            window_end,
-        )
-
-        for future in as_completed(futures_ligas):
+        for future in as_completed(futures):
             try:
                 tid, rows, status = future.result()
                 all_rows.extend(rows)
                 status_total[tid] = status
+
             except Exception as e:
                 print(f"❌ Error procesando liga: {e}")
 
-        try:
-            mundial_rows, mundial_status = future_mundial.result()
-            all_rows.extend(mundial_rows)
-            status_total[str(MUNDIAL_ID)] = mundial_status
-        except Exception as e:
-            print(f"❌ Error Mundial: {e}")
-            status_total[str(MUNDIAL_ID)] = {
-                "liga": MUNDIAL_NAME,
-                "eventos": 0,
-                "odds": 0,
-            }
+    # ======================================================
+    # DEDUPLICAR
+    # ======================================================
 
-    # Deduplicar
     unique = {}
 
     for row in all_rows:
@@ -795,10 +563,16 @@ def main():
         )
     )
 
-    # Seguridad: si todo falla, NO pisar JSON bueno con []
+    # ======================================================
+    # GUARDAR
+    # ======================================================
+
     if not all_rows:
         print("\n⚠️ TeApuesto devolvió 0 partidos.")
-        print("⚠️ NO se reemplaza cuotas_teapuesto.json para conservar el último resultado válido.")
+        print(
+            "⚠️ NO se reemplaza cuotas_teapuesto.json "
+            "para conservar el último resultado válido."
+        )
     else:
         with open(OUT_PATH, "w", encoding="utf-8") as f:
             json.dump(
@@ -808,52 +582,57 @@ def main():
                 indent=2,
             )
 
-    # Resumen
+    # ======================================================
+    # RESUMEN
+    # ======================================================
+
     for tid, liga in LIGAS_EQUIVALENCIAS.items():
+
         info = status_total.get(
             tid,
             {
                 "eventos": 0,
                 "odds": 0,
+                "pa": 0,
             },
         )
 
         evs = info["eventos"]
         odds = info["odds"]
+        pa = info.get("pa", 0)
 
         if evs == 0:
             print(f"❌ {liga}: 0 eventos prematch")
+
         elif odds == 0:
-            print(f"⚠️ {liga}: {evs} eventos prematch, 0 odds 1x2")
+            print(
+                f"⚠️ {liga}: "
+                f"{evs} eventos prematch, 0 odds 1x2"
+            )
+
         else:
-            print(f"✅ {liga}: OK ({evs} eventos prematch, {odds} con 1x2)")
-
-    info = status_total.get(
-        str(MUNDIAL_ID),
-        {
-            "eventos": 0,
-            "odds": 0,
-        },
-    )
-
-    if info["eventos"] == 0:
-        print(f"❌ {MUNDIAL_NAME}: 0 eventos prematch")
-    elif info["odds"] == 0:
-        print(
-            f"⚠️ {MUNDIAL_NAME}: "
-            f"{info['eventos']} eventos prematch, 0 odds 1x2"
-        )
-    else:
-        print(
-            f"✅ {MUNDIAL_NAME}: "
-            f"{info['eventos']} eventos | {info['odds']} con 1x2"
-        )
+            print(
+                f"✅ {liga}: OK "
+                f"({evs} eventos prematch, "
+                f"{odds} con 1x2, "
+                f"{pa} con PA)"
+            )
 
     elapsed = time.perf_counter() - started
 
     print(f"\n💾 Total obtenido: {len(all_rows)} partidos")
 
     if all_rows:
+
+        total_pa = sum(
+            1
+            for row in all_rows
+            if row["Cuota Local"] is not None
+            and row["Cuota Visita"] is not None
+        )
+
+        print(f"🟨 Con Pago Anticipado: {total_pa}")
+        print(f"⬜ Sin Pago Anticipado: {len(all_rows) - total_pa}")
         print(f"💾 Guardado -> {OUT_PATH}")
 
     print(f"⚡ Tiempo total: {elapsed:.2f}s")

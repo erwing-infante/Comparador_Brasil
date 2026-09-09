@@ -1,4 +1,4 @@
-# smart_alerts.py
+# smart_alerts_PA.py
 
 import os
 import json
@@ -10,17 +10,17 @@ BASE_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 CUOTAS_FILE = os.path.join(DATA_DIR, "cuotas.json")
-ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas.json")
+ESTADO_FILE = os.path.join(DATA_DIR, "ultimo_estado_alertas_PA.json")
 
-TELEGRAM_TOKEN = os.getenv("SMART_BOT_TOKEN")
+TELEGRAM_TOKEN = os.getenv("SMART_PA_BOT_TOKEN")
 
 USUARIOS = []
 
 for variable in (
-    "SMART_BOT_CHAT_ID_1",
-    "SMART_BOT_CHAT_ID_2",
-    "SMART_BOT_CHAT_ID_3",
-    "SMART_BOT_CHAT_ID_4",
+    "SMART_PA_BOT_CHAT_ID_1",
+    "SMART_PA_BOT_CHAT_ID_2",
+    "SMART_PA_BOT_CHAT_ID_3",
+    "SMART_PA_BOT_CHAT_ID_4",
 ):
     valor = os.getenv(variable)
 
@@ -41,8 +41,7 @@ for variable in (
 # CONFIG
 # ============================================================
 
-MARGEN_SUPERIOR = -1.20
-MARGEN_INFERIOR = -2.00
+MARGEN_MINIMO = -2.00
 
 MAX_HORAS_ADELANTE = 36.0
 
@@ -67,11 +66,11 @@ def telegram_habilitado():
 def enviar_alerta(msg):
 
     if not telegram_habilitado():
-        print("🌙 Telegram silenciado por horario (23:00 - 07:00, hora Perú).")
+        print("🌙 Telegram PA silenciado por horario (23:00 - 07:00, hora Perú).")
         return False
 
     if not TELEGRAM_TOKEN:
-        print("❌ SMART_BOT_TOKEN no configurado.")
+        print("❌ SMART_PA_BOT_TOKEN no configurado.")
         return False
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -92,10 +91,10 @@ def enviar_alerta(msg):
             )
 
             if not r.ok:
-                print(f"❌ Error Telegram chat {cid}: {r.text}")
+                print(f"❌ Error Telegram PA chat {cid}: {r.text}")
 
         except Exception as e:
-            print(f"❌ Excepción enviando Telegram chat {cid}: {e}")
+            print(f"❌ Excepción enviando Telegram PA chat {cid}: {e}")
 
     return True
 
@@ -115,11 +114,8 @@ def calcular_margen(c1, c2, c3):
 
 def margen_valido(margen_jugador):
 
-    return (
-        MARGEN_INFERIOR
-        <= margen_jugador
-        <= MARGEN_SUPERIOR
-    )
+    # Positivo, 0 y negativo hasta -2.00%
+    return margen_jugador >= MARGEN_MINIMO
 
 
 # ============================================================
@@ -231,7 +227,7 @@ def enviar_alerta_armada(liga, p, margen_jugador):
     ba = p.get("best_away") or {}
 
     msg = f"""
-⚠️ <b>ALERTAS MANCORABET</b>
+⚠️ <b>ALERTAS MANCORABET PA</b>
 
 <b>{home} vs {away}</b>
 Liga: <b>{liga}</b>
@@ -320,7 +316,7 @@ def procesar_alertas():
             if margen_real is None:
                 continue
 
-            # Se mantiene tu lógica original
+            # Se mantiene exactamente la lógica original
             margen_jugador = -1 * margen_real
 
             clave = generar_clave(
@@ -385,8 +381,8 @@ def procesar_alertas():
     )
 
     print(
-        "✔ smart_alerts ejecutado | "
-        "Margen -1.20% a -2.00%"
+        "✔ smart_alerts_PA ejecutado | "
+        "Margen positivo/0 hasta -2.00%"
     )
 
 
