@@ -769,4 +769,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "shakhtar donetsk": "shakhtar",
     "ldu quito": "ldu",
     "estudiantes la plata": "estudiantes",
+    "independiente del valle": "independiente (ecu)",
 }
