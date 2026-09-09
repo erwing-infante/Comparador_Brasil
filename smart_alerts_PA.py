@@ -18,9 +18,6 @@ USUARIOS = []
 
 for variable in (
     "SMART_PA_BOT_CHAT_ID_1",
-    "SMART_PA_BOT_CHAT_ID_2",
-    "SMART_PA_BOT_CHAT_ID_3",
-    "SMART_PA_BOT_CHAT_ID_4",
 ):
     valor = os.getenv(variable)
 
