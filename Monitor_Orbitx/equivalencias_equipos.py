@@ -281,4 +281,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "atlanta utd": "atlanta united",
     "stoke": "stoke city",
     "ipswich town": "ipswich",
+    "atletico torque": "torque",
 }
