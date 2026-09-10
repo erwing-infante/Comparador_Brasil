@@ -4,177 +4,249 @@ from zoneinfo import ZoneInfo
 import fusionar_cuotas_NoPA as F_NOPA
 import fusionar_cuotas as F_PA
 
-BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-DATA_DIR=os.path.join(BASE_DIR,'data')
-TZ=ZoneInfo('America/Lima')
-TRIGGERS={'betsson','teapuesto'}
-MAX_CONFIRM_SEC=30
-MIN_DROP_PCT=1.00
-ALIGN_TOL_PCT=2.50
-BREAKAWAY_GAP_PCT=0.50
-MIN_CONSENSUS_BOOKS=2
-RESULT_WINDOW_SEC=180
-RESULT_MIN_DROP_PCT=0.50
-COOLDOWN_SEC=600
-POLL_SEC=0.40
-MAX_HOURS_AHEAD=18
-STATE_FILE=os.path.join(DATA_DIR,'anticipador_at_state.json')
-RESULT_FILE=os.path.join(DATA_DIR,'anticipador_at_resultados.jsonl')
-BOT_TOKEN=os.getenv('ANTICIPADOR_BOT_TOKEN','').strip()
-CHAT_ID=os.getenv('ANTICIPADOR_CHAT_ID','').strip()
-SEL={'home':('LOCAL','Local Odd'),'draw':('EMPATE','Empate Odd'),'away':('VISITA','Visita Odd')}
+BASE=os.path.dirname(os.path.abspath(__file__))
+DATA=os.path.join(BASE,"data")
+TZ=ZoneInfo("America/Lima")
+SOURCES={"betsson","teapuesto","pinnacle"}
+TARGETS={"apuestatotal","1xbet"}
+CONFIRM_SEC=90
+MIN_DROP=1.00
+MIN_REMAIN_DROP=0.50
+MAX_DATE_DIFF=21600
+POLL=.40
+MAX_HOURS=18
+COOLDOWN=600
+BOT_TOKEN=os.getenv("ANTICIPADOR_BOT_TOKEN","").strip()
+CHAT_ID=os.getenv("ANTICIPADOR_CHAT_ID","").strip()
+LOG=os.path.join(DATA,"anticipador_at_resultados.jsonl")
+SEL={"home":("LOCAL","Local Odd"),"draw":("EMPATE","Empate Odd"),"away":("VISITA","Visita Odd")}
 
-def now():return datetime.now(TZ)
-def fnum(x):
+def num(x):
     try:return float(x)
     except:return None
-def pct_drop(a,b):return ((a-b)/a*100.0) if a and b and a>0 else 0.0
-def norm_bm(s):return (s or '').replace(' ','').strip().lower()
-def key_str(k):return '||'.join(str(x) for x in k)
-def event_key(r):return F_NOPA.partido_hash(r)
-def valid_prematch(r):
-    dt=r.get('Fecha_dt')
-    if not dt:return True
+
+def drop(a,b):
+    return ((a-b)/a*100) if a and b and a>0 else 0
+
+def norm(x):return (x or "").replace(" ","").strip().lower()
+
+def valid(r):
+    dt=r.get("Fecha_dt")
+    if not dt:return False
     try:
         d=dt-datetime.now(timezone.utc).replace(tzinfo=None)
-        return timedelta(0)<d<=timedelta(hours=MAX_HOURS_AHEAD)
-    except:return True
-def save_state(o):
-    os.makedirs(DATA_DIR,exist_ok=True);tmp=STATE_FILE+'.tmp'
-    with open(tmp,'w',encoding='utf-8') as f:json.dump(o,f,ensure_ascii=False,indent=2)
-    os.replace(tmp,STATE_FILE)
-def append_result(o):
-    os.makedirs(DATA_DIR,exist_ok=True)
-    with open(RESULT_FILE,'a',encoding='utf-8') as f:f.write(json.dumps(o,ensure_ascii=False)+'\n')
-def tg(text):
-    if not BOT_TOKEN or not CHAT_ID:print('\n'+text+'\n');return
-    try:
-        data=urllib.parse.urlencode({'chat_id':CHAT_ID,'text':text,'parse_mode':'HTML','disable_web_page_preview':'true'}).encode()
-        urllib.request.urlopen(urllib.request.Request(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',data=data,method='POST'),timeout=10).read()
-    except Exception as e:print('[TG ERROR]',e)
+        return timedelta(0)<d<=timedelta(hours=MAX_HOURS)
+    except:return False
 
-def load_nopa(path):
-    out={}
-    for r in F_NOPA.load_rows_from_file(path):
-        if valid_prematch(r):out[event_key(r)]=r
-    return out
-def load_pa(path):
-    out={}
-    for r in F_PA.load_rows_from_file(path):
-        if valid_prematch(r):out[event_key(r)]=r
-    return out
-def source_paths():return {norm_bm(b):p for b,p in F_NOPA.ARCHIVOS.items() if os.path.exists(p)}
-def target_paths():return {norm_bm(b):p for b,p in F_PA.ARCHIVOS.items() if os.path.exists(p)}
-def quote(states,bm,event,sel):
-    r=states.get(bm,{}).get(event)
-    return fnum(r.get(SEL[sel][1])) if r else None
-def consensus(states,event,sel,exclude):
-    vals=[];col=SEL[sel][1]
-    for bm,m in states.items():
-        if bm==exclude:continue
-        r=m.get(event)
-        if not r:continue
-        v=fnum(r.get(col))
-        if v and v>1:vals.append(v)
-    if len(vals)<MIN_CONSENSUS_BOOKS:return None,len(vals)
-    vals.sort();n=len(vals)
-    return (vals[n//2] if n%2 else (vals[n//2-1]+vals[n//2])/2),n
-def is_breakaway(old,new,cons):
-    if not old or not new or not cons or new>=old:return False
-    if pct_drop(old,new)<MIN_DROP_PCT:return False
-    if abs(old-cons)/cons*100>ALIGN_TOL_PCT:return False
-    if (cons-new)/cons*100<BREAKAWAY_GAP_PCT:return False
-    return True
-def event_info(states,event):
-    for bm in ('betsson','teapuesto','pinnacle','1xbet','apuestatotal'):
-        r=states.get(bm,{}).get(event)
-        if r:return {'liga':r.get('Liga') or '','local':r.get('Local') or '','visita':r.get('Visita') or ''}
-    return {'liga':'','local':'','visita':''}
-def send_signal(rec,nopa,pa):
-    event=tuple(rec['event']);sel=rec['sel'];lab=SEL[sel][0];info=event_info(nopa,event)
-    at=quote(pa,'apuestatotal',event,sel);x1=quote(pa,'1xbet',event,sel);pin=quote(nopa,'pinnacle',event,sel)
-    at0=rec.get('at_pa_base');x10=rec.get('x1_pa_base')
-    at_txt='—' if at is None else f'{at:.3f}'+('  ✅ TODAVÍA SIN MOVERSE' if at0 is not None and abs(at-at0)<1e-9 else '')
-    x1_txt='—' if x1 is None else f'{x1:.3f}'+('  ✅ TODAVÍA SIN MOVERSE' if x10 is not None and abs(x1-x10)<1e-9 else '')
-    a=rec['moves']['betsson'];b=rec['moves']['teapuesto'];diff=abs(a['ts']-b['ts'])
-    text=(f'🚨 <b>POSIBLE CAÍDA APUESTA TOTAL</b>\n\n🏆 {html.escape(info["liga"])}\n⚽ <b>{html.escape(info["local"])} vs {html.escape(info["visita"])}</b>\n📉 <b>{lab}</b>\n\n'
-          f'🔥 <b>Betsson NoPA</b>\n{a["old"]:.3f} → <b>{a["new"]:.3f}</b> ({-a["drop"]:.2f}%)\n\n'
-          f'🔥 <b>TeApuesto NoPA</b>\n{b["old"]:.3f} → <b>{b["new"]:.3f}</b> ({-b["drop"]:.2f}%)\n\n'
-          f'⏱ Confirmación: <b>{diff:.1f} s</b>\n\n🎯 <b>APUESTA TOTAL PA</b>\n{at_txt}\n\n📌 <b>1XBET PA</b>\n{x1_txt}\n\n📊 Pinnacle NoPA: {pin if pin is not None else "—"}\n⚡ <b>POSIBLE CAÍDA INMINENTE</b>')
-    tg(text)
-def send_result(a,hit,new_at=None):
-    lab=SEL[a['sel']][0];base=a['at_pa']
-    if hit:
-        d=pct_drop(base,new_at);e=time.time()-a['alert_ts']
-        tg(f'✅ <b>RESULTADO ANTICIPADOR</b>\n\n📉 {lab}\nApuesta Total PA: {base:.3f} → <b>{new_at:.3f}</b>\nCaída: <b>-{d:.2f}%</b>\n⏱ Tardó: <b>{e:.1f} s</b>')
-    else:tg(f'❌ <b>RESULTADO ANTICIPADOR</b>\n\n📉 {lab}\nApuesta Total PA permaneció en {base:.3f}\nSin caída ≥{RESULT_MIN_DROP_PCT:.2f}% en {RESULT_WINDOW_SEC} s.')
+def match_score(a,b):
+    if not a or not b:return None
+    if (a.get("Liga") or "")!=(b.get("Liga") or ""):return None
+    d1,d2=a.get("Fecha_dt"),b.get("Fecha_dt")
+    if not d1 or not d2:return None
+    if abs((d1-d2).total_seconds())>MAX_DATE_DIFF:return None
+    h=F_NOPA.similitud(a.get("home_short",""),b.get("home_short",""))
+    v=F_NOPA.similitud(a.get("away_short",""),b.get("away_short",""))
+    if h<F_NOPA.SIM_THRESHOLD or v<F_NOPA.SIM_THRESHOLD:return None
+    return h+v-(abs((d1-d2).total_seconds())/MAX_DATE_DIFF)*.05
+
+def find_match(rows,anchor):
+    best=None;score=-1
+    for r in rows:
+        s=match_score(anchor,r)
+        if s is not None and s>score:best,score=r,s
+    return best
+
+def same_match(a,b):return match_score(a,b) is not None
+
+def tg(text):
+    if not BOT_TOKEN or not CHAT_ID:
+        print("\n"+text+"\n",flush=True);return
+    try:
+        data=urllib.parse.urlencode({"chat_id":CHAT_ID,"text":text,"parse_mode":"HTML","disable_web_page_preview":"true"}).encode()
+        urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",data=data,method="POST"),timeout=10).read()
+    except Exception as e:print("[TG ERROR]",e,flush=True)
+
+def log(o):
+    os.makedirs(DATA,exist_ok=True)
+    o["time"]=datetime.now(TZ).isoformat()
+    with open(LOG,"a",encoding="utf-8") as f:f.write(json.dumps(o,ensure_ascii=False,default=str)+"\n")
+
+def load_rows(loader,path,old=None):
+    for i in range(4):
+        try:
+            rows=[r for r in loader(path) if valid(r)]
+            if rows:return rows
+        except:pass
+        time.sleep(.12)
+    return old if old is not None else []
+
+def nopa_paths():
+    return {norm(b):p for b,p in F_NOPA.ARCHIVOS.items() if norm(b) in SOURCES and os.path.exists(p)}
+
+def pa_paths():
+    return {norm(b):p for b,p in F_PA.ARCHIVOS.items() if norm(b) in TARGETS and os.path.exists(p)}
+
+def quote(states,bm,anchor,sel):
+    r=find_match(states.get(bm,[]),anchor)
+    return num(r.get(SEL[sel][1])) if r else None
+
+def current_source(states,bm,anchor):
+    return find_match(states.get(bm,[]),anchor)
+
+def target_status(cur,base):
+    if cur is None:return "—"
+    if base is None:return f"{cur:.3f}"
+    if cur<base-1e-9:return f"{cur:.3f} ⚠️ YA BAJÓ"
+    if cur>base+1e-9:return f"{cur:.3f} ⬆️ SUBIÓ"
+    return f"{cur:.3f} ✅ SIN MOVERSE"
+
+def info(anchor):
+    return anchor.get("Liga") or "",anchor.get("Local") or "",anchor.get("Visita") or ""
+
+def prealert(rec,nopa,pa):
+    anchor=rec["anchor"];sel=rec["sel"];lab=SEL[sel][0]
+    liga,local,visita=info(anchor)
+    bm,m=next(iter(rec["moves"].items()))
+    at=quote(pa,"apuestatotal",anchor,sel)
+    x1=quote(pa,"1xbet",anchor,sel)
+    txt=(f'🟡 <b>PREAVISO</b>\n\n🏆 {html.escape(liga)}\n⚽ <b>{html.escape(local.title())} vs {html.escape(visita.title())}</b>\n📉 <b>{lab}</b>\n\n'
+         f'🔥 <b>{bm.title()} NoPA</b>\n{m["old"]:.3f} → <b>{m["new"]:.3f}</b> (-{m["drop"]:.2f}%)\n\n'
+         f'🎯 Apuesta Total PA: <b>{at if at is not None else "—"}</b>\n📌 1xBet PA: <b>{x1 if x1 is not None else "—"}</b>\n\n'
+         f'⏳ Esperando confirmación hasta {CONFIRM_SEC} s...')
+    tg(txt)
+
+def confirm(rec,nopa,pa):
+    anchor=rec["anchor"];sel=rec["sel"];lab=SEL[sel][0]
+    liga,local,visita=info(anchor)
+    moves=sorted(rec["moves"].items(),key=lambda x:x[1]["ts"])
+    at=quote(pa,"apuestatotal",anchor,sel);x1=quote(pa,"1xbet",anchor,sel)
+    secs=moves[-1][1]["ts"]-moves[0][1]["ts"]
+    lines=[]
+    for bm,m in moves:
+        cur=current_source(nopa,bm,anchor)
+        cv=num(cur.get(SEL[sel][1])) if cur else m["new"]
+        lines.append(f'🔥 <b>{bm.title()} NoPA</b>\n{m["old"]:.3f} → <b>{cv:.3f}</b> (-{drop(m["old"],cv):.2f}%)')
+    txt=(f'🔴 <b>MOVIMIENTO CONFIRMADO</b>\n\n🏆 {html.escape(liga)}\n⚽ <b>{html.escape(local.title())} vs {html.escape(visita.title())}</b>\n📉 <b>{lab}</b>\n\n'
+         +"\n\n".join(lines)+
+         f'\n\n⏱ Confirmación: <b>{secs:.1f} s</b>\n\n🎯 <b>APUESTA TOTAL PA</b>\n{target_status(at,rec["at_base"])}\n\n'
+         f'📌 <b>1XBET PA</b>\n{target_status(x1,rec["x1_base"])}\n\n🔥 <b>CONFIRMADO</b>')
+    tg(txt)
+
+def rec_id(anchor,sel):
+    dt=anchor.get("Fecha_dt")
+    return f'{anchor.get("Liga","")}|{dt}|{anchor.get("home_short","")}|{anchor.get("away_short","")}|{sel}'
+
+def find_pending(pending,anchor,sel):
+    best=None;score=-1
+    for k,r in pending.items():
+        if r["sel"]!=sel:continue
+        s=match_score(r["anchor"],anchor)
+        if s is not None and s>score:best,score=k,s
+    return best
 
 def main():
-    print('MANCORABET - ANTICIPADOR APUESTA TOTAL PA')
-    npaths=source_paths();ppaths=target_paths()
-    miss=[x for x in TRIGGERS if x not in npaths]
-    if miss:raise SystemExit(f'Faltan fuentes NoPA: {miss}')
-    if 'apuestatotal' not in ppaths:raise SystemExit('Falta cuotas_apuestatotal.json')
-    nopa={bm:load_nopa(p) for bm,p in npaths.items()}
-    pa={bm:load_pa(p) for bm,p in ppaths.items() if bm in {'apuestatotal','1xbet'}}
-    mn={bm:os.path.getmtime(p) for bm,p in npaths.items()}
-    mp={bm:os.path.getmtime(p) for bm,p in ppaths.items() if bm in {'apuestatotal','1xbet'}}
-    pending={};alerts={};cooldown={}
+    print("MANCORABET - ANTICIPADOR RAPIDO 2 DE 3",flush=True)
+    np=nopa_paths();pp=pa_paths()
+    faltan=[x for x in SOURCES if x not in np]
+    if faltan:raise SystemExit(f"Faltan fuentes NoPA: {faltan}")
+    if "apuestatotal" not in pp:raise SystemExit("Falta Apuesta Total PA")
+    nopa={bm:load_rows(F_NOPA.load_rows_from_file,p) for bm,p in np.items()}
+    pa={bm:load_rows(F_PA.load_rows_from_file,p) for bm,p in pp.items()}
+    mn={bm:os.path.getmtime(p) for bm,p in np.items()}
+    mp={bm:os.path.getmtime(p) for bm,p in pp.items()}
+    pending={};cooldown={}
+
     while True:
         t=time.time()
-        for bm,p in ppaths.items():
-            if bm not in {'apuestatotal','1xbet'}:continue
+
+        for bm,p in pp.items():
             try:m=os.path.getmtime(p)
             except:continue
-            if m!=mp.get(bm):mp[bm]=m;pa[bm]=load_pa(p)
-        changed=[];olds={}
-        for bm,p in npaths.items():
+            if m!=mp.get(bm):
+                old=pa.get(bm,[])
+                new=load_rows(F_PA.load_rows_from_file,p,old)
+                if new is not old:
+                    pa[bm]=new;mp[bm]=m
+
+        for bm,p in np.items():
             try:m=os.path.getmtime(p)
             except:continue
-            if m!=mn.get(bm):mn[bm]=m;olds[bm]=nopa.get(bm,{});nopa[bm]=load_nopa(p);changed.append(bm)
-        for bm in changed:
-            if bm not in TRIGGERS:continue
-            for event,nr in nopa[bm].items():
-                orow=olds[bm].get(event)
-                if not orow:continue
+            if m==mn.get(bm):continue
+            oldrows=nopa.get(bm,[])
+            newrows=load_rows(F_NOPA.load_rows_from_file,p,oldrows)
+            if newrows is oldrows:continue
+            nopa[bm]=newrows;mn[bm]=m
+
+            for nr in newrows:
+                oldr=find_match(oldrows,nr)
+                if not oldr:continue
+
                 for sel,(_,col) in SEL.items():
-                    old,new=fnum(orow.get(col)),fnum(nr.get(col))
-                    if not old or not new or new>=old:continue
-                    cons,ncons=consensus(nopa,event,sel,bm)
-                    if not is_breakaway(old,new,cons):continue
-                    pkey=key_str(event)+'||'+sel
-                    if cooldown.get(pkey,0)>t:continue
-                    move={'ts':t,'old':old,'new':new,'drop':pct_drop(old,new),'consensus':cons,'nconsensus':ncons}
-                    rec=pending.get(pkey)
-                    if not rec or t-rec['first_ts']>MAX_CONFIRM_SEC:
-                        pending[pkey]={'event':list(event),'sel':sel,'first_ts':t,'moves':{bm:move},'at_pa_base':quote(pa,'apuestatotal',event,sel),'x1_pa_base':quote(pa,'1xbet',event,sel)}
+                    old=num(oldr.get(col));new=num(nr.get(col))
+                    if not old or not new:continue
+
+                    pk=find_pending(pending,nr,sel)
+
+                    if pk:
+                        rec=pending[pk]
+                        if bm in rec["moves"]:
+                            first=rec["moves"][bm]
+                            if drop(first["old"],new)<MIN_REMAIN_DROP:
+                                rec["moves"].pop(bm,None)
+                                if not rec["moves"]:pending.pop(pk,None)
+                            continue
+
+                    if new>=old or drop(old,new)<MIN_DROP:continue
+
+                    rid=rec_id(nr,sel)
+                    if cooldown.get(rid,0)>t:continue
+                    move={"ts":t,"old":old,"new":new,"drop":drop(old,new)}
+
+                    pk=find_pending(pending,nr,sel)
+                    if not pk:
+                        at=quote(pa,"apuestatotal",nr,sel)
+                        x1=quote(pa,"1xbet",nr,sel)
+                        rec={"anchor":nr,"sel":sel,"first_ts":t,"moves":{bm:move},"at_base":at,"x1_base":x1}
+                        pending[rid]=rec
+                        prealert(rec,nopa,pa)
+                        log({"type":"PREALERT","source":bm,"selection":sel,"liga":nr.get("Liga"),"local":nr.get("Local"),"visita":nr.get("Visita"),"source_old":old,"source_new":new,"source_drop":drop(old,new),"at_pa":at,"x1_pa":x1})
                         continue
-                    if bm in rec['moves']:rec['moves'][bm]=move;continue
-                    rec['moves'][bm]=move
-                    if not TRIGGERS.issubset(rec['moves']):continue
-                    if abs(rec['moves']['betsson']['ts']-rec['moves']['teapuesto']['ts'])>MAX_CONFIRM_SEC:continue
-                    at0=rec.get('at_pa_base');at=quote(pa,'apuestatotal',event,sel)
-                    if at0 is None or at is None:pending.pop(pkey,None);continue
-                    if at<at0-1e-9:print('[TARDE]',pkey,at0,'->',at);pending.pop(pkey,None);continue
-                    send_signal(rec,nopa,pa)
-                    aid=f'{int(t)}_{abs(hash(pkey))}'
-                    alerts[aid]={'id':aid,'event':list(event),'sel':sel,'alert_ts':t,'expires':t+RESULT_WINDOW_SEC,'at_pa':at,'x1_pa':quote(pa,'1xbet',event,sel),'moves':rec['moves']}
-                    append_result({'type':'signal','time':now().isoformat(),**alerts[aid]})
-                    cooldown[pkey]=t+COOLDOWN_SEC;pending.pop(pkey,None);save_state({'cooldown':cooldown})
-        done=[]
-        for aid,a in alerts.items():
-            event=tuple(a['event']);cur=quote(pa,'apuestatotal',event,a['sel'])
-            if cur is not None and cur<a['at_pa'] and pct_drop(a['at_pa'],cur)>=RESULT_MIN_DROP_PCT:
-                append_result({'type':'result','result':'HIT','time':now().isoformat(),'alert_id':aid,'event':a['event'],'selection':a['sel'],'at_old':a['at_pa'],'at_new':cur,'drop_pct':pct_drop(a['at_pa'],cur),'elapsed_sec':t-a['alert_ts']})
-                send_result(a,True,cur);done.append(aid);continue
-            if t>=a['expires']:
-                append_result({'type':'result','result':'MISS','time':now().isoformat(),'alert_id':aid,'event':a['event'],'selection':a['sel'],'at_old':a['at_pa'],'at_new':cur,'elapsed_sec':RESULT_WINDOW_SEC})
-                send_result(a,False);done.append(aid)
-        for aid in done:alerts.pop(aid,None)
+
+                    rec=pending[pk]
+                    if t-rec["first_ts"]>CONFIRM_SEC:
+                        pending.pop(pk,None);continue
+                    if bm in rec["moves"]:continue
+                    rec["moves"][bm]=move
+
+                    activos=[]
+                    for sbm,sm in list(rec["moves"].items()):
+                        cr=current_source(nopa,sbm,rec["anchor"])
+                        cv=num(cr.get(col)) if cr else None
+                        if cv is None or drop(sm["old"],cv)<MIN_REMAIN_DROP:
+                            rec["moves"].pop(sbm,None)
+                        else:activos.append(sbm)
+
+                    if len(activos)<2:continue
+
+                    at=quote(pa,"apuestatotal",rec["anchor"],sel)
+                    x1=quote(pa,"1xbet",rec["anchor"],sel)
+                    at_ok=at is not None and (rec["at_base"] is None or at>=rec["at_base"]-1e-9)
+                    x1_ok=x1 is not None and (rec["x1_base"] is None or x1>=rec["x1_base"]-1e-9)
+
+                    if not at_ok and not x1_ok:
+                        print("[TARDE] ambos targets ya bajaron:",pk,flush=True)
+                        pending.pop(pk,None);cooldown[rid]=t+COOLDOWN
+                        continue
+
+                    confirm(rec,nopa,pa)
+                    log({"type":"CONFIRMED","sources":activos,"selection":sel,"liga":rec["anchor"].get("Liga"),"local":rec["anchor"].get("Local"),"visita":rec["anchor"].get("Visita"),"confirm_sec":t-rec["first_ts"],"at_base":rec["at_base"],"at_now":at,"x1_base":rec["x1_base"],"x1_now":x1})
+                    pending.pop(pk,None);cooldown[rid]=t+COOLDOWN
+
         for k in list(pending):
-            if t-pending[k]['first_ts']>MAX_CONFIRM_SEC:pending.pop(k,None)
+            if t-pending[k]["first_ts"]>CONFIRM_SEC:pending.pop(k,None)
         for k in list(cooldown):
             if cooldown[k]<=t:cooldown.pop(k,None)
-        time.sleep(POLL_SEC)
 
-if __name__=='__main__':main()
+        time.sleep(POLL)
+
+if __name__=="__main__":main()
