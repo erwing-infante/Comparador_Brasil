@@ -772,4 +772,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "independiente del valle": "independiente (ecu)",
     "sabah masazir": "sabah",
     "sabah fk": "sabah",
+    "atletico torque": "torque",
 }
