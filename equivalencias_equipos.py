@@ -773,4 +773,5 @@ EQUIVALENCIAS_EQUIPOS = {
     "sabah masazir": "sabah",
     "sabah fk": "sabah",
     "atletico torque": "torque",
+    "marseille": "marsella",
 }
