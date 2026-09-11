@@ -10,8 +10,8 @@ DATA_DIR=os.path.join(BASE_DIR,"data")
 SNAPSHOT_FILE=os.path.join(DATA_DIR,"snapshot.json")
 STATE_FILE=os.path.join(DATA_DIR,"estado_caidas_orbitx.json")
 LOG_FILE=os.path.join(DATA_DIR,"caidas_orbitx.jsonl")
-APUESTATOTAL_FILE=os.path.join(DATA_DIR,"cuotas_apuestatotal.json")
-XBET_FILE=os.path.join(DATA_DIR,"cuotas_1xbet.json")
+APUESTATOTAL_FILE="/root/proyectos/Mancorabet/data/cuotas_apuestatotal.json"
+XBET_FILE="/root/proyectos/Mancorabet/data/cuotas_1xbet.json"
 
 TELEGRAM_TOKEN=os.getenv("ORBITX_CAIDAS_BOT_TOKEN")
 TELEGRAM_CHAT_ID=os.getenv("ORBITX_CAIDAS_CHAT_ID")
