@@ -86,14 +86,14 @@ UMBRAL_SUREBET = 0.0
 # ============================================================
 
 TZ_PE = ZoneInfo("America/Lima")
-HORA_INICIO_TELEGRAM = 7
+HORA_INICIO_TELEGRAM = 5
 HORA_FIN_TELEGRAM = 23
 
 
 def telegram_habilitado():
     """
     Telegram activo todos los días:
-    07:00 <= hora Perú < 23:00
+    05:00 <= hora Perú < 23:00
 
     Fuera de ese horario el bot sigue procesando y guardando estado,
     pero no envía mensajes.
