@@ -36,7 +36,7 @@ LIGAS_BETSSON = {
     19: "Ligue 1", 38: "Brasileirao", 253: "Liga MX", 250: "MLS",
     22988: "Liga 1 Perú", 231: "Primeira Liga", 25: "Eredivisie",
     569: "Copa de Brasil", 6134: "UEFA Champions League", 2612: "UEFA Europa League",
-    23462: "UEFA Conference League", 275: "Copa Libertadores", 691: "Copa Sudamericana",
+    23462: "UEFA Conference League", 275: "Copa Libertadores", 691: "Copa Sudamericana", 15723: "Nations League",
 }
 
 GROUPABLE_NORMAL = "MW3W"
