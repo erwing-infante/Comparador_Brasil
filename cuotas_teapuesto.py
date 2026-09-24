@@ -58,6 +58,7 @@ LIGAS_EQUIVALENCIAS = {
     "1956": "UEFA Conference League",
     "10009": "Copa Libertadores",
     "10531": "Copa Sudamericana",
+    "616": "Nations League",
 }
 
 # ==========================================================

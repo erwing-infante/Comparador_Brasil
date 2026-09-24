@@ -36,7 +36,7 @@ SCRIPT_FUSION_NOPA = "fusionar_cuotas_NoPA.py"
 # ACTIVAR / DESACTIVAR MÓDULOS
 # ============================================================
 
-EJECUTAR_SMART_ALERTS = True
+EJECUTAR_SMART_ALERTS = False
 EJECUTAR_SMART_ALERTS_NOPA = True
 EJECUTAR_SMART_ALERTS_PA = True
 

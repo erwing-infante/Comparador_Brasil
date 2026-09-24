@@ -59,6 +59,11 @@ LIGAS_EQUIVALENCIAS = [
     ("UEFA Europa Conference League", "Europa", "203553622255214592", "UEFA Conference League"),
     ("Copa Libertadores", "Sudamérica", "133", "Copa Libertadores"),
     ("Copa Sudamericana", "Sudamérica", "1699", "Copa Sudamericana"),
+    ("UEFA Liga de Naciones A", "Europa", "328205254497980416", "Nations League"),
+    ("UEFA Liga de Naciones B", "Europa", "328205637022699520", "Nations League"),
+    ("UEFA Liga de Naciones C", "Europa", "328205775250182144", "Nations League"),
+    ("UEFA Liga de Naciones D", "Europa", "328205906317987840", "Nations League"),
+
 ]
 
 # ================= HELPERS =================

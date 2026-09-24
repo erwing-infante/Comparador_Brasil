@@ -60,6 +60,10 @@ LIGAS_PINNACLE = {
     2627: "UEFA Champions League",
     1875: "Copa Libertadores",
     2472: "Copa Sudamericana",
+    200719: "Nations League",
+    200721: "Nations League",
+    200726: "Nations League",
+    200727: "Nations League",
 }
 
 

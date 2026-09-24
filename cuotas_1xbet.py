@@ -201,6 +201,11 @@ LIGAS_1XBET = {
         "slug": "copa-libertadores",
     },
 
+    1706694: {
+        "nombre": "Nations League",
+        "slug": "uefa-nations-league",
+    },  
+
     1528791: {
         "nombre": "Copa Sudamericana",
         "slug": "copa-sudamericana",
