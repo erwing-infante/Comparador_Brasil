@@ -780,6 +780,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "denmark": "dinamarca",
     "greece": "grecia",
     "republic of ireland": "irlanda",
+    "ireland": "irlanda",
     "lithuania": "lituania",
     "northern ireland": "irlanda del norte",
     "latvia": "letonia",
@@ -795,5 +796,9 @@ EQUIVALENCIAS_EQUIPOS = {
     "iceland": "islandia",
     "faroe islands": "islas feroe",
     "kazakhstan": "kazajistan",
+    "kazajstan": "kazajistan",
     "england": "inglaterra",
+    "belarus": "bielorrusia",
+    "republica macedonia del norte": "macedonia del norte",
+    "moldova": "moldavia",
 }

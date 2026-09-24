@@ -293,7 +293,7 @@ EQUIVALENCIAS_EQUIPOS = {
     "italy": "italia",
     "romania": "rumania",
     "poland": "polonia",
-    "bosnia and herzegovina": "bosnia y herzegovina",
+    "bosnia": "bosnia y herzegovina",
     "hungary": "hungria",
     "ukraine": "ucrania",
     "cyprus": "chipre",
